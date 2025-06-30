@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Flex, Image, Box } from "@chakra-ui/react";
+import { Flex, Box } from "@chakra-ui/react";
 
 const MotionBox = motion(Box);
 
@@ -32,18 +32,6 @@ export default function Header() {
                 justify="space-between"
                 px={8}
             >
-                <MotionBox
-                    whileHover={{ rotateY: 10 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    <Image
-                        src="/images/logo.png"
-                        alt="Театр Студия Антракт"
-                        h={scrolled ? "50px" : "70px"}
-                        transition="all 0.3s"
-                    />
-                </MotionBox>
-
                 {/* Навигация будет добавлена позже */}
             </Flex>
         </MotionBox>
