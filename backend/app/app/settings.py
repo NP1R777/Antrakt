@@ -25,12 +25,13 @@ SECRET_KEY = 'django-insecure-tz-^0_e%qv2&ac4e1$viah-tr=gby9=0grcdeu_yp0kcop^_1%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'my_app1',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -75,10 +76,10 @@ WSGI_APPLICATION = 'app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'antrakt',
-        'USER': 'np1r',
+        'NAME': 'antrakt_db',
+        'USER': 'postgres',
         'PASSWORD': '345456zahar',
-        'HOST': '172.19.0.1',
+        'HOST': 'postgres',
         'PORT': '5432',
     }
 }
