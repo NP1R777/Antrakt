@@ -32,6 +32,9 @@ ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'my_app1',
+    'rest_framework',
+    'drf_yasg',
+    'django.contrib.postgres',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -76,10 +79,10 @@ WSGI_APPLICATION = 'app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'antrakt_db',
+        'NAME': 'antrakt',
         'USER': 'postgres',
-        'PASSWORD': '345456zahar',
-        'HOST': 'postgres',
+        'PASSWORD': '123',
+        'HOST': 'localhost',
         'PORT': '5432',
     }
 }
