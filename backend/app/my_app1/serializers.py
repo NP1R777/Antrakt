@@ -1,5 +1,5 @@
-from rest_framework import serializers
 from .models import User, Perfomances
+from rest_framework import serializers
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -9,7 +9,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class PerfomanceSerializer(serializers.ModelSerializer):
+    afisha = serializers.BooleanField(default=False)
+
     class Meta:
         model = Perfomances
         fields = '__all__'
-

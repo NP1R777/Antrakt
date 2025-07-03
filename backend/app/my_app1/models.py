@@ -41,6 +41,7 @@ class Perfomances(models.Model): # Спектакли
     description = models.CharField(max_length=2000, null=False)
     afisha = models.BooleanField(default=False) # Если False -> то отображать в разделе "Спектакли",
                                                 # если True -> то отображать в разделе "Афиша".
+    image_url = models.URLField(null=False, blank=True)
 
 
 class Actors(models.Model):
