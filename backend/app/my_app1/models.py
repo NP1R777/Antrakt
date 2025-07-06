@@ -1,8 +1,33 @@
 from django.db import models
 from django.contrib.postgres import fields
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 
-class User(models.Model):
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password, **extra_fields):
+        if not email:
+            raise ValueError('Пользователь должен иметь email')
+        
+        email = self.normalize_email(email)
+        user = self.model(
+            email=email,
+            **extra_fields
+        )
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+    
+
+    def create_superuser(self, email, password, **extra_fields):
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Суперпользователь должен иметь is_superuser=True')
+        
+        return self.create_user(email, password, **extra_fields)
+
+
+class User(AbstractBaseUser):
     class Meta:
         db_table = 'user'
     
@@ -12,6 +37,11 @@ class User(models.Model):
     email = models.EmailField(unique=True, null=False)
     password = models.CharField(max_length=500, null=False)
     phone_number = models.CharField(max_length=20)
+    is_superuser = models.BooleanField(default=False)
+
+    USERNAME_FIELD = "email"
+
+    objects = CustomUserManager()
 
 
 class Perfomances(models.Model): # Спектакли
@@ -50,7 +80,7 @@ class Actors(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True, null=False)
     updated_at = models.DateTimeField(null=True)
-    deleted_at = models.DateTimeField(null=True)
+    deleted_at = models.DateTimeField(null=True, blank=True, default=None)
     name = models.CharField(max_length=50, null=False)
     place_of_work = models.CharField(max_length=200, blank=True) # Место работы
     time_in_theatre = models.CharField(max_length=10, blank=True) # В студии
@@ -108,7 +138,7 @@ class Actors(models.Model):
     image_url = models.URLField(null=False)
 
 
-class DirectorsTheatre(models.Model):
+class DirectorsTheatre(models.Model): # Режиссёры театра
     class Meta:
         db_table = 'directors_theatre'
     
@@ -124,7 +154,7 @@ class DirectorsTheatre(models.Model):
     ) # Поставленные спектакли
 
     years = fields.ArrayField(
-        models.IntegerField(max_length=4),
+        models.IntegerField(),
         blank=True,
         default=list
     ) # Года, в которые ставились спектакли (на фронте надо приписывать слово "год")
@@ -133,7 +163,8 @@ class DirectorsTheatre(models.Model):
         models.CharField(max_length=300),
         blank=True,
         default=list
-    ) # Названия коллективов, учавствующих в спектакле
+    ) # Названия коллективов, учавствующих в спектакле (сделать на фронте выпадающий список, чтобы
+      # оттуда можно было выбрать название коллектива или внести свой)
 
     image_url = models.URLField(null=False)
 
@@ -150,7 +181,7 @@ class News(models.Model):
     image_url = models.URLField(null=False)
 
 
-class Archive(models.Model):
+class Archive(models.Model): # Архив
     class Meta:
         db_table = 'archive'
     
@@ -159,12 +190,12 @@ class Archive(models.Model):
     deleted_at = models.DateTimeField(null=True)
     description = models.CharField(max_length=2000, null=False)
     premiere_date = models.DateField(null=True)
-    afisha = models.BooleanField(default=False) # Если False -> то не нужно отображать в разделе "Архив",
+    afisha = models.BooleanField(default=False) # Если False -> то нужно отображать в разделе "Архив",
                                                 # если True -> то отображать в разделе "Афиша".
     image_url = models.URLField(null=False)
 
 
-class Achievements(models.Model):
+class Achievements(models.Model): # Достижения
     class Meta:
         db_table = 'achievements'
     
