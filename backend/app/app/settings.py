@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'my_app1',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'drf_yasg',
     'django.contrib.postgres',
@@ -91,7 +92,25 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
+
+    'ALGORITHM': 'RS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+
     'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+    
+    'JTI_CLAIM': 'jti',
+    
+    # Отключение слайдинг токенов
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': None,
+    'SLIDING_TOKEN_LIFETIME': None,
+    'SLIDING_TOKEN_REFRESH_LIFETIME': None,
 }
 
 CORS_ALLOW_ALL_ORIGINS = True  # Для разработки, в продакшене укажите конкретные домены

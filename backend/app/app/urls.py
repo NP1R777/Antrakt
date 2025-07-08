@@ -39,6 +39,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
     path('users/', views.UserList.as_view(), name='user-list'),
+    path('user-<str:token>/', views.UserDetail.as_view(), name='user'),
     path('register/', views.RegisterView.as_view(), name='register'),
     path('login/', views.CustomTokenObtainPairView.as_view(), name='login'),
     path('perfomances/', views.PefomancesList.as_view(), name='perfomances-list'),

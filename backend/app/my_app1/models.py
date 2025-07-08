@@ -33,11 +33,14 @@ class User(AbstractBaseUser):
     
     created_at = models.DateTimeField(auto_now_add=True, null=False)
     updated_at = models.DateTimeField(null=True)
-    deleted_at = models.DateTimeField(null=True)
+    deleted_at = models.DateTimeField(null=True, default=None, blank=True)
     email = models.EmailField(unique=True, null=False)
     password = models.CharField(max_length=500, null=False)
     phone_number = models.CharField(max_length=20)
+    is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
+    acess_token = models.CharField(max_length=500)
+    refresh_token = models.CharField(max_length=500)
 
     USERNAME_FIELD = "email"
 

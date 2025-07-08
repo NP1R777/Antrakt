@@ -5,9 +5,12 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 class UserSerializer(serializers.ModelSerializer):
+    is_superuser = serializers.BooleanField(default=False)
+
     class Meta:
         model = User
-        fields = ['id', 'deleted_at', 'email', 'password', 'phone_number']
+        fields = ['id', 'deleted_at', 'email', 'password',
+                  'phone_number', 'is_superuser']
 
 
     def create(self, validated_date):

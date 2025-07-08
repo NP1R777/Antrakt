@@ -17,8 +17,19 @@ class UserList(APIView):
 
 
     def get(self, request, format=None):
-        users = self.model_class.objects.filter(deleted_at=None)
+        users = self.model_class.objects.filter(deleted_at=None).order_by('id')
         serializer = self.serializer_class(users, many=True)
+        return Response(serializer.data)
+
+
+class UserDetail(APIView):
+    model_class = User
+    serializer_class = UserSerializer
+
+    
+    def get(self, request, token, format=None):
+        user = get_object_or_404(self.model_class, access_token=token)
+        serializer = self.serializer_class(user)
         return Response(serializer.data)
 
 
@@ -30,6 +41,7 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
+        print(UserSerializer(user).data)
         return Response({
             "user": UserSerializer(user).data,
             "message": "Пользователь создан!"
