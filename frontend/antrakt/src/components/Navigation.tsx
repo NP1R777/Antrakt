@@ -19,7 +19,7 @@ import {
 import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { useState, useEffect } from "react";
 import AuthModal from "./AuthModal.tsx";
-import axios from "axios";
+import { useAuth } from "../contexts/AuthContext";
 
 const primaryColor = "#800020";
 const darkBg = "#0a0a0a";
@@ -35,55 +35,17 @@ const NAV_ITEMS = [
     { label: "Контакты", href: "#contacts" },
 ];
 
-const REGISTER_URL = "http://127.0.0.1:8000/register/";
-const LOGIN_URL = "http://127.0.0.1:8000/login/";
-
-// Тип для данных пользователя
-interface UserData {
-    name: string;
-    email: string;
-    is_superuser: boolean;
-}
-
 export default function Navigation() {
     const { isOpen, onToggle } = useDisclosure();
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [authMode, setAuthMode] = useState<"login" | "register">("login");
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [userData, setUserData] = useState<UserData | null>(null);
     const [registeredEmail, setRegisteredEmail] = useState("");
     const toast = useToast();
+    
+    // Используем новый AuthContext
+    const { user, isAuthenticated, login, register, logout } = useAuth();
 
-    // Функция для загрузки данных пользователя
-    const fetchUserProfile = async () => {
-        try {
-            const token = localStorage.getItem("access");
-            if (!token) return;
-
-            const response = await axios.get(`http://localhost:8000/user${token}/`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-
-            setUserData({
-                name: response.data.name,
-                email: response.data.email,
-                is_superuser: response.data.is_superuser
-            });
-        } catch (error) {
-            console.error("Ошибка загрузки профиля:", error);
-        }
-    };
-
-    useEffect(() => {
-        const token = localStorage.getItem("access");
-        if (token) {
-            setIsAuthenticated(true);
-            // Загружаем данные пользователя, включая флаг администратора
-            fetchUserProfile();
-        }
-    }, []);
+    // Больше не нужно - управляется через AuthContext
 
     const handleLoginClick = () => {
         setAuthMode("login");
@@ -96,16 +58,9 @@ export default function Navigation() {
     };
 
     const handleRegister = async (email: string, password: string, phone: string) => {
-        try {
-            const response = await axios.post(REGISTER_URL, {
-                email,
-                password,
-                phone_number: phone
-            });
-
+        const success = await register(email, password, phone);
+        if (success) {
             setRegisteredEmail(email);
-            localStorage.setItem("id", response.data.user.id)
-
             toast({
                 title: "Успешная регистрация!",
                 description: "Теперь войдите в свой аккаунт.",
@@ -114,35 +69,23 @@ export default function Navigation() {
                 isClosable: true,
                 position: "top"
             });
-
             setAuthMode("login");
-            return true;
-        } catch (error: any) {
+        } else {
             toast({
                 title: "Ошибка регистрации",
-                description: error.response?.data?.message || "Произошла ошибка",
+                description: "Произошла ошибка при регистрации",
                 status: "error",
                 duration: 3000,
                 isClosable: true,
                 position: "top"
             });
-            return false;
         }
+        return success;
     };
 
     const handleLogin = async (email: string, password: string) => {
-        try {
-            const response = await axios.post(LOGIN_URL, {
-                email,
-                password
-            });
-
-            localStorage.setItem("access", response.data.access);
-            setIsAuthenticated(true);
-
-            // После входа загружаем данные пользователя
-            await fetchUserProfile();
-
+        const success = await login(email, password);
+        if (success) {
             toast({
                 title: "Вход выполнен!",
                 description: "Добро пожаловать!",
@@ -151,27 +94,22 @@ export default function Navigation() {
                 isClosable: true,
                 position: "top"
             });
-
             setIsAuthModalOpen(false);
-            return true;
-        } catch (error: any) {
+        } else {
             toast({
                 title: "Ошибка входа",
-                description: error.response?.data?.message || "Неверный email или пароль",
+                description: "Неверный email или пароль",
                 status: "error",
                 duration: 3000,
                 isClosable: true,
                 position: "top"
             });
-            return false;
         }
+        return success;
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem("access");
-        localStorage.removeItem("id")
-        setIsAuthenticated(false);
-        setUserData(null);
+    const handleLogout = async () => {
+        await logout();
         toast({
             title: "Вы вышли из системы",
             status: "info",
@@ -237,7 +175,7 @@ export default function Navigation() {
                             <MenuButton>
                                 <Avatar
                                     size="sm"
-                                    name={userData?.name || "User"}
+                                    name={user?.email || "User"}
                                     bg={primaryColor}
                                     color={lightText}
                                     cursor="pointer"
@@ -249,7 +187,7 @@ export default function Navigation() {
                                 </MenuItem>
 
                                 {/* Пункт "Админ-панель" только для суперпользователей */}
-                                {userData?.is_superuser && (
+                                {user?.is_superuser && (
                                     <MenuItem
                                         bg={darkBg}
                                         _hover={{ bg: "#1a1a1a" }}
