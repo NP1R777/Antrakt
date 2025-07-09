@@ -20,7 +20,7 @@ import {
 import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { useState, useEffect } from "react";
 import AuthModal from "./AuthModal.tsx";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/AuthContext.tsx";
 
 const primaryColor = "#800020";
 const darkBg = "#0a0a0a";
@@ -42,7 +42,7 @@ export default function Navigation() {
     const [authMode, setAuthMode] = useState<"login" | "register">("login");
     const [registeredEmail, setRegisteredEmail] = useState("");
     const toast = useToast();
-    
+
     // Используем новый AuthContext
     const { user, isAuthenticated, login, register, logout } = useAuth();
 
