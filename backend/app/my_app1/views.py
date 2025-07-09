@@ -5,7 +5,10 @@ from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from django.shortcuts import get_object_or_404
 from rest_framework import status, generics, permissions
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
+from rest_framework.decorators import permission_classes
 from .serializers import (UserSerializer, PerfomanceSerializer, ActorsSerializer,
                           DirectorsSerializer, NewsSerializer, ArchiveSerializer,
                           AchievementsSerializer, CustomTokenObtainPairSerializer)
@@ -50,6 +53,96 @@ class RegisterView(generics.CreateAPIView):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+    
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        
+        if response.status_code == 200:
+            # Сохраняем токены в базе для пользователя
+            email = request.data.get('email')
+            try:
+                user = User.objects.get(email=email)
+                user.access_token = response.data['access']
+                user.refresh_token = response.data['refresh']
+                user.save()
+            except User.DoesNotExist:
+                pass
+                
+        return response
+
+
+class CustomTokenRefreshView(TokenRefreshView):
+    """
+    Кастомный view для обновления токенов
+    """
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        
+        if response.status_code == 200:
+            # Обновляем access_token в базе
+            refresh_token = request.data.get('refresh')
+            try:
+                # Декодируем refresh токен чтобы получить user_id
+                token = RefreshToken(refresh_token)
+                user_id = token.payload.get('user_id')
+                user = User.objects.get(id=user_id)
+                user.access_token = response.data['access']
+                # Если есть новый refresh токен (при ROTATE_REFRESH_TOKENS=True)
+                if 'refresh' in response.data:
+                    user.refresh_token = response.data['refresh']
+                user.save()
+            except Exception:
+                pass
+                
+        return response
+
+
+class LogoutView(APIView):
+    """
+    Выход из системы с добавлением токена в blacklist
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request):
+        try:
+            refresh_token = request.data.get("refresh_token")
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            
+            # Очищаем токены из базы пользователя
+            user = request.user
+            user.access_token = None
+            user.refresh_token = None
+            user.save()
+            
+            return Response(
+                {"message": "Успешный выход из системы"}, 
+                status=status.HTTP_205_RESET_CONTENT
+            )
+        except Exception as e:
+            return Response(
+                {"error": "Ошибка при выходе из системы"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class VerifyTokenView(APIView):
+    """
+    Проверка действительности токена
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        return Response({
+            "valid": True,
+            "user": {
+                "id": request.user.id,
+                "email": request.user.email,
+                "phone_number": request.user.phone_number,
+                "is_superuser": request.user.is_superuser
+            }
+        })
 
 
 class PefomancesList(APIView):
