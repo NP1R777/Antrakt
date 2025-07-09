@@ -261,5 +261,9 @@ class AuthService {
   }
 }
 
+// Создаем singleton
+const authService = new AuthService();
+
 // Экспортируем singleton
-export default new AuthService();
+export default authService;
+export { authService };

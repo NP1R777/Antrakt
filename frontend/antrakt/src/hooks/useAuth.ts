@@ -1,4 +1,4 @@
-import apiClient from '../utils/apiClient.ts';
+import apiClient from '../utils/apiClient';
 import { useState, useEffect, useCallback } from 'react';
 import { setTokens, getTokens, clearTokens } from '../utils/tokenStorage';
 
