@@ -39,6 +39,8 @@ class User(AbstractBaseUser):
     phone_number = models.CharField(max_length=20)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
+    access_token = models.CharField(max_length=500, blank=True, null=True)
+    refresh_token = models.CharField(max_length=500, blank=True, null=True)
 
     USERNAME_FIELD = "email"
 
