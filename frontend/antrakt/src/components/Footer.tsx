@@ -10,25 +10,23 @@ import {
     FaMapMarkerAlt,
     FaClock
 } from "react-icons/fa";
+import type { ComponentWithAs, IconProps } from "@chakra-ui/react";
 
 const MotionBox = motion(Box);
 const MotionLink = motion(Link);
 
 export default function Footer() {
-    // Основные цвета проекта
-    const primaryColor = "#800020"; // Бордовый
-    const darkBg = "#0a0a0a";       // Темный фон
-    const lightText = "#ffffff";    // Белый текст
-    const grayText = "#a0a0a0";     // Серый текст
+    const primaryColor = "#800020";
+    const darkBg = "#0a0a0a";
+    const lightText = "#ffffff";
+    const grayText = "#a0a0a0";
 
-    // Контакты
     const director = "Дустимов Андрей Аидмазонович";
     const email = "ADustimov@mail.ru";
     const phone = "+7-913-161-00-34";
     const address = "г. Норильск, ул. Орджоникидзе, д. 15";
     const hours = "Пн-Сб: 10:00 - 22:00, Вс: 11:00 - 20:00";
 
-    // Социальные сети
     const socialLinks = [
         { icon: FaVk, url: "https://vk.com/tsantrakt", label: "ВКонтакте" },
         { icon: FaTelegram, url: "https://t.me/tsantrakt", label: "Telegram" },
@@ -36,7 +34,6 @@ export default function Footer() {
         { icon: FaYoutube, url: "https://youtube.com/tsantrakt", label: "YouTube" }
     ];
 
-    // Навигация
     const navLinks = [
         { label: "Главная", url: "#" },
         { label: "О студии", url: "#about" },
@@ -71,7 +68,7 @@ export default function Footer() {
                     gap={10}
                     mb={12}
                 >
-                    {/* Колонка 1: Лого и описание */}
+                    {/* Лого и соцсети */}
                     <GridItem>
                         <Flex direction="column" align={{ base: "center", md: "flex-start" }}>
                             <Heading
@@ -99,7 +96,6 @@ export default function Footer() {
                                 свой творческий потенциал и найти свою сцену.
                             </Text>
 
-                            {/* Социальные сети */}
                             <Flex gap={4}>
                                 {socialLinks.map((social, index) => (
                                     <MotionLink
@@ -116,22 +112,16 @@ export default function Footer() {
                                         }}
                                         transition="all 0.2s"
                                     >
-                                        <Icon as={social.icon as any} />
+                                        <Icon as={social.icon as ComponentWithAs<"svg", IconProps>} />
                                     </MotionLink>
                                 ))}
                             </Flex>
                         </Flex>
                     </GridItem>
 
-                    {/* Колонка 2: Контакты */}
+                    {/* Контакты */}
                     <GridItem>
-                        <Heading
-                            as="h4"
-                            fontSize="lg"
-                            mb={6}
-                            color={lightText}
-                            position="relative"
-                            pb={2}
+                        <Heading as="h4" fontSize="lg" mb={6} color={lightText} position="relative" pb={2}
                             _after={{
                                 content: '""',
                                 position: "absolute",
@@ -145,68 +135,41 @@ export default function Footer() {
                             Контакты
                         </Heading>
 
-                        {/* Руководитель */}
                         <Flex align="center" mb={4}>
-                            <Box
-                                w="8px"
-                                h="8px"
-                                bg={primaryColor}
-                                borderRadius="full"
-                                mr={3}
-                            />
+                            <Box w="8px" h="8px" bg={primaryColor} borderRadius="full" mr={3} />
                             <Text color={grayText}>
                                 Руководитель: <Text as="span" color={lightText}>{director}</Text>
                             </Text>
                         </Flex>
 
-                        {/* Почта */}
                         <Flex align="center" mb={4}>
-                            <Icon as={FaEnvelope} color={primaryColor} mr={3} />
-                            <Link
-                                href={`mailto:${email}`}
-                                color={grayText}
-                                _hover={{ color: primaryColor }}
-                                transition="color 0.2s"
-                            >
+                            <Icon as={FaEnvelope as ComponentWithAs<"svg", IconProps>} color={primaryColor} mr={3} />
+                            <Link href={`mailto:${email}`} color={grayText} _hover={{ color: primaryColor }}>
                                 {email}
                             </Link>
                         </Flex>
 
-                        {/* Телефон */}
                         <Flex align="center" mb={4}>
-                            <Icon as={FaPhoneAlt} color={primaryColor} mr={3} />
-                            <Link
-                                href={`tel:${phone.replace(/\D/g, '')}`}
-                                color={grayText}
-                                _hover={{ color: primaryColor }}
-                                transition="color 0.2s"
-                            >
+                            <Icon as={FaPhoneAlt as ComponentWithAs<"svg", IconProps>} color={primaryColor} mr={3} />
+                            <Link href={`tel:${phone.replace(/\D/g, '')}`} color={grayText} _hover={{ color: primaryColor }}>
                                 {phone}
                             </Link>
                         </Flex>
 
-                        {/* Адрес */}
                         <Flex align="center" mb={4}>
-                            <Icon as={FaMapMarkerAlt} color={primaryColor} mr={3} />
+                            <Icon as={FaMapMarkerAlt as ComponentWithAs<"svg", IconProps>} color={primaryColor} mr={3} />
                             <Text color={grayText}>{address}</Text>
                         </Flex>
 
-                        {/* Часы работы */}
                         <Flex align="center">
-                            <Icon as={FaClock} color={primaryColor} mr={3} />
+                            <Icon as={FaClock as ComponentWithAs<"svg", IconProps>} color={primaryColor} mr={3} />
                             <Text color={grayText}>{hours}</Text>
                         </Flex>
                     </GridItem>
 
-                    {/* Колонка 3: Навигация */}
+                    {/* Навигация */}
                     <GridItem>
-                        <Heading
-                            as="h4"
-                            fontSize="lg"
-                            mb={6}
-                            color={lightText}
-                            position="relative"
-                            pb={2}
+                        <Heading as="h4" fontSize="lg" mb={6} color={lightText} position="relative" pb={2}
                             _after={{
                                 content: '""',
                                 position: "absolute",
@@ -240,15 +203,9 @@ export default function Footer() {
                         </Grid>
                     </GridItem>
 
-                    {/* Колонка 4: Подписка */}
+                    {/* Подписка */}
                     <GridItem>
-                        <Heading
-                            as="h4"
-                            fontSize="lg"
-                            mb={6}
-                            color={lightText}
-                            position="relative"
-                            pb={2}
+                        <Heading as="h4" fontSize="lg" mb={6} color={lightText} position="relative" pb={2}
                             _after={{
                                 content: '""',
                                 position: "absolute",
@@ -266,11 +223,7 @@ export default function Footer() {
                             Узнавайте первыми о новых спектаклях, мастер-классах и акциях
                         </Text>
 
-                        <chakra.form
-                            display="flex"
-                            flexDirection="column"
-                            gap={3}
-                        >
+                        <chakra.form display="flex" flexDirection="column" gap={3}>
                             <chakra.input
                                 type="email"
                                 placeholder="Ваш email"
@@ -285,7 +238,6 @@ export default function Footer() {
                                     borderColor: primaryColor,
                                     boxShadow: `0 0 0 1px ${primaryColor}`
                                 }}
-                                transition="all 0.2s"
                             />
 
                             <MotionBox
@@ -296,7 +248,6 @@ export default function Footer() {
                                 fontWeight="bold"
                                 p={3}
                                 borderRadius="md"
-                                border="none"
                                 cursor="pointer"
                                 whileHover={{
                                     backgroundColor: "#600018",
@@ -311,7 +262,6 @@ export default function Footer() {
                     </GridItem>
                 </Grid>
 
-                {/* Копирайт */}
                 <Flex
                     direction={{ base: "column", md: "row" }}
                     justify="space-between"
@@ -323,7 +273,6 @@ export default function Footer() {
                     <Text color={grayText} fontSize="sm">
                         © {new Date().getFullYear()} Театральная студия "Антракт". Все права защищены.
                     </Text>
-
                     <Text color={grayText} fontSize="sm">
                         Разработано с ❤️ для театрального искусства
                     </Text>

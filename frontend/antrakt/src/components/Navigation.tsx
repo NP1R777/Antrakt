@@ -14,18 +14,12 @@ import {
     MenuButton,
     MenuList,
     MenuItem,
-    useToast,
-    LightMode
+    useToast
 } from "@chakra-ui/react";
 import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
-import { useState, useEffect } from "react";
-<<<<<<< HEAD
-import AuthModal from "./AuthModal.tsx";
-import { useAuth } from "../contexts/AuthContext.tsx";
-=======
+import { useState } from "react";
 import AuthModal from "./AuthModal";
 import { useAuth } from "../contexts/AuthContext";
->>>>>>> 4e42a4c1ab16976dc5554976ec3f3286a809a200
 
 const primaryColor = "#800020";
 const darkBg = "#0a0a0a";

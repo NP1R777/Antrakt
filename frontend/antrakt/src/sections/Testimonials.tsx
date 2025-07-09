@@ -1,9 +1,23 @@
-import { Box, Heading, Grid, GridItem, Text, Flex, Avatar, Icon } from "@chakra-ui/react";
+import React from "react";
+import {
+    Box,
+    Heading,
+    Grid,
+    GridItem,
+    Text,
+    Flex,
+    Avatar,
+    chakra
+} from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import { FaQuoteLeft, FaStar } from "react-icons/fa";
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
+
+// Оборачиваем react‑icons в chakra, приводя к any, чтобы избежать TypeScript-ошибок
+const ChakraFaQuoteLeft = chakra(FaQuoteLeft as any);
+const ChakraFaStar = chakra(FaStar as any);
 
 const testimonials = [
     {
@@ -70,42 +84,24 @@ const testimonials = [
 
 export default function Testimonials() {
     return (
-        <Box
-            py={20}
-            bg="black"
-            position="relative"
-            overflow="hidden"
-            id="testimonials"
-        >
-            {/* Декоративный элемент */}
+        <Box py={20} bg="black" position="relative" overflow="hidden" id="testimonials">
+            {/* Размытый фоновой круг */}
             <MotionBox
                 position="absolute"
                 top="10%"
                 right="-5%"
                 w="400px"
                 h="400px"
-                bg="#C53030" // brand.700
+                bg="#C53030"
                 borderRadius="full"
                 filter="blur(70px)"
                 opacity={0.15}
-                animate={{
-                    scale: [0.9, 1.1, 0.9],
-                }}
-                transition={{
-                    duration: 7,
-                    repeat: Infinity,
-                    repeatType: "reverse"
-                }}
+                animate={{ scale: [0.9, 1.1, 0.9] }}
+                transition={{ duration: 7, repeat: Infinity, repeatType: "reverse" }}
             />
 
-            <Box
-                maxW="container.xl"
-                mx="auto"
-                px={{ base: 4, md: 8 }}
-                position="relative"
-                zIndex="1"
-            >
-                {/* Заголовок секции */}
+            <Box maxW="container.xl" mx="auto" px={{ base: 4, md: 8 }} position="relative" zIndex="1">
+                {/* Заголовок */}
                 <MotionBox
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -114,12 +110,7 @@ export default function Testimonials() {
                     mb={16}
                     textAlign="center"
                 >
-                    <Heading
-                        as="h2"
-                        fontSize={{ base: "3xl", md: "4xl" }}
-                        color="white"
-                        mb={4}
-                    >
+                    <Heading as="h2" fontSize={{ base: "3xl", md: "4xl" }} color="white" mb={4}>
                         Что говорят о нас
                     </Heading>
                     <Text color="gray.400" maxW="2xl" mx="auto">
@@ -136,15 +127,15 @@ export default function Testimonials() {
                     }}
                     gap={8}
                 >
-                    {testimonials.map((testimonial) => (
+                    {testimonials.map((t) => (
                         <MotionGridItem
-                            key={testimonial.id}
+                            key={t.id}
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true, margin: "-100px" }}
                             transition={{ duration: 0.5 }}
                         >
-                            <TestimonialCard testimonial={testimonial} />
+                            <TestimonialCard testimonial={t} />
                         </MotionGridItem>
                     ))}
                 </Grid>
@@ -165,7 +156,7 @@ function TestimonialCard({ testimonial }: { testimonial: any }) {
             position="relative"
             whileHover={{
                 y: -5,
-                borderColor: "#F56565", // brand.500
+                borderColor: "#F56565",
                 boxShadow: "0 15px 40px rgba(128, 0, 32, 0.3)"
             }}
             transition={{ duration: 0.3 }}
@@ -173,13 +164,12 @@ function TestimonialCard({ testimonial }: { testimonial: any }) {
             display="flex"
             flexDirection="column"
         >
-            {/* Декоративная цитата */}
-            <Icon
-                as={FaQuoteLeft}
+            {/* Цитата */}
+            <ChakraFaQuoteLeft
                 position="absolute"
                 top={6}
                 right={6}
-                color="#F56565" // brand.500
+                color="#F56565"
                 opacity={0.2}
                 fontSize="4xl"
             />
@@ -187,52 +177,43 @@ function TestimonialCard({ testimonial }: { testimonial: any }) {
             {/* Рейтинг */}
             <Flex mb={4}>
                 {[...Array(5)].map((_, i) => (
-                    <Icon
+                    <ChakraFaStar
                         key={i}
-                        as={FaStar}
-                        color={i < testimonial.rating ? "#F56565" : "gray.700"} // brand.500
+                        color={i < testimonial.rating ? "#F56565" : "gray.700"}
                         mr={1}
                         fontSize="lg"
                     />
                 ))}
             </Flex>
 
-            {/* Основное содержимое */}
+            {/* Аватар и текст */}
             <Flex flex="1" mb={6}>
-                {/* Аватар */}
                 <Avatar
                     src={testimonial.avatar}
                     name={testimonial.name}
                     size="lg"
                     mr={4}
                     border="2px solid"
-                    borderColor="#F56565" // brand.500
+                    borderColor="#F56565"
                 />
-
-                {/* Текст отзыва */}
                 <Text color="gray.300" fontStyle="italic" flex="1">
                     "{testimonial.text}"
                 </Text>
             </Flex>
 
-            {/* Информация о пользователе */}
+            {/* Автор */}
             <Box borderTop="1px solid" borderColor="gray.800" pt={4}>
                 <Text color="white" fontWeight="bold" fontSize="lg">
                     {testimonial.name}
                 </Text>
-
                 <Flex justify="space-between" mt={2}>
                     <Text color="gray.400" fontSize="sm">
                         {testimonial.role}
                     </Text>
-
-                    <Flex align="center">
-                        <Text color="#FC8181" fontSize="sm" fontWeight="500"> {/* brand.300 */}
-                            {testimonial.performance}
-                        </Text>
-                    </Flex>
+                    <Text color="#FC8181" fontSize="sm" fontWeight="500">
+                        {testimonial.performance}
+                    </Text>
                 </Flex>
-
                 <Text color="gray.600" fontSize="xs" mt={2}>
                     {testimonial.date}
                 </Text>
