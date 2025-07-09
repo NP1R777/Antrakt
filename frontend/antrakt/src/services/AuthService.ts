@@ -36,7 +36,7 @@ class AuthService {
   private loadTokensFromStorage(): void {
     this.accessToken = localStorage.getItem('access_token');
     this.refreshToken = localStorage.getItem('refresh_token');
-    
+
     if (this.accessToken && this.refreshToken) {
       this.startAutoRefresh();
     }
@@ -224,9 +224,8 @@ class AuthService {
         console.error('Ошибка при выходе:', error);
       }
     }
-    
+
     this.clearTokens();
-    window.location.reload(); // Перезагружаем страницу
   }
 
   /**
