@@ -19,15 +19,18 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshUser = async () => {
     try {
       const currentUser = await AuthService.getCurrentUser();
       setUser(currentUser);
+      setIsAuthenticated(!!currentUser);
     } catch (error) {
       console.error('Ошибка получения пользователя:', error);
       setUser(null);
+      setIsAuthenticated(false);
     }
   };
 
@@ -46,6 +49,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async (): Promise<void> => {
     await AuthService.logout();
     setUser(null);
+    setIsAuthenticated(false);
   };
 
   useEffect(() => {
@@ -53,6 +57,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       if (AuthService.isAuthenticated()) {
         await refreshUser();
+      } else {
+        setIsAuthenticated(false);
       }
       setIsLoading(false);
     };
@@ -62,7 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const value: AuthContextType = {
     user,
-    isAuthenticated: AuthService.isAuthenticated(),
+    isAuthenticated,
     isLoading,
     login,
     register,
