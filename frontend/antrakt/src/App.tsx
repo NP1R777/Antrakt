@@ -3,15 +3,16 @@ import theme from "./styles/theme";
 import Hero from "./sections/Hero";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Dashboard from "./pages/admin/Dashboard";
 import NewsSection from "./sections/NewsSection";
 import Navigation from "./components/Navigation";
+import ActorsPage from "./pages/admin/ActorsPage";
 import Performances from "./sections/Perfomances";
-import { ChakraProvider, Box } from "@chakra-ui/react";
 import Testimonials from "./sections/Testimonials";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { ChakraProvider, Box } from "@chakra-ui/react";
 import AdminLayout from "./components/admin/AdminLayout";
-import Dashboard from "./pages/admin/Dashboard";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Главная страница сайта
 const MainPage = () => (
@@ -93,10 +94,7 @@ function App() {
               element={
                 <ProtectedAdminRoute>
                   <AdminLayout>
-                    <Box p={8} color="white">
-                      <h1>Управление актёрами</h1>
-                      <p>Скоро здесь будет CRUD для актёров</p>
-                    </Box>
+                    <ActorsPage />
                   </AdminLayout>
                 </ProtectedAdminRoute>
               }
@@ -163,7 +161,7 @@ function App() {
           </Routes>
         </AuthProvider>
       </ChakraProvider>
-    </BrowserRouter>
+    </BrowserRouter >
   );
 }
 

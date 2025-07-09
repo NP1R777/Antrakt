@@ -125,7 +125,12 @@ class Actors(models.Model):
         default=list
     ) # Любимая песня
 
-    author_song = models.CharField(max_length=30, null=False)
+    author_song = fields.ArrayField(
+        models.CharField(max_length=50),
+        blank=True,
+        default=list
+    ) # Автор песни
+
     perfomances = fields.ArrayField(
         models.CharField(max_length=100),
         blank=True,
@@ -138,7 +143,7 @@ class Actors(models.Model):
         default=list
     ) # Роли в спектаклях
 
-    image_url = models.URLField(null=False)
+    image_url = models.CharField(null=False)
 
 
 class DirectorsTheatre(models.Model): # Режиссёры театра
