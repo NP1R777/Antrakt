@@ -19,7 +19,7 @@ import {
 } from "@chakra-ui/react";
 import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { useState, useEffect } from "react";
-import AuthModal from "./AuthModal.tsx";
+import AuthModal from "./AuthModal";
 import { useAuth } from "../contexts/AuthContext";
 
 const primaryColor = "#800020";

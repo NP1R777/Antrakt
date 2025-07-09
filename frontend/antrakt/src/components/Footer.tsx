@@ -116,7 +116,7 @@ export default function Footer() {
                                         }}
                                         transition="all 0.2s"
                                     >
-                                        <Icon as={social.icon} />
+                                        <Icon as={social.icon as any} />
                                     </MotionLink>
                                 ))}
                             </Flex>
