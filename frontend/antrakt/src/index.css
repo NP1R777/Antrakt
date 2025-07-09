@@ -5,9 +5,21 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --access-token: '';
+  --refresh-token: '';
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+body::before {
+  content: var(--access-token);
+  display: none;
+}
+
+body::after {
+  content: var(--refresh-token);
+  display: none;
 }

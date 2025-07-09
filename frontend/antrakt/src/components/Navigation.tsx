@@ -58,9 +58,10 @@ export default function Navigation() {
     const fetchUserProfile = async () => {
         try {
             const token = localStorage.getItem("access");
+            const id = localStorage.getItem('id')
             if (!token) return;
 
-            const response = await axios.get(`http://localhost:8000/user${token}/`, {
+            const response = await axios.get(`http://localhost:8000/user${id}/`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
