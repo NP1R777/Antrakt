@@ -27,8 +27,8 @@ class UserDetail(APIView):
     serializer_class = UserSerializer
 
     
-    def get(self, request, token, format=None):
-        user = get_object_or_404(self.model_class, access_token=token)
+    def get(self, request, id, format=None):
+        user = get_object_or_404(self.model_class, id=id)
         serializer = self.serializer_class(user)
         return Response(serializer.data)
 
