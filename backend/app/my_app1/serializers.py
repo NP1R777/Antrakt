@@ -14,13 +14,20 @@ class UserSerializer(serializers.ModelSerializer):
                   'access_token', 'refresh_token']
 
 
-    def create(self, validated_date):
-        user = User.objects.create_user(
-            email=validated_date.get('email', ''),
-            phone_number=validated_date['phone_number'],
-            password=validated_date['password']
+    def create(self, validated_data):
+        if validated_data.get('is_superuser'):
+            user = User.objects.create_superuser(
+                email=validated_data['email'],
+                phone_number=validated_data['phone_number'],
+                password=validated_data['password']
         )
-
+        else:
+            user = User.objects.create_user(
+                email=validated_data['email'],
+                phone_number=validated_data['phone_number'],
+                password=validated_data['password']
+            )
+        
         return user
 
 
