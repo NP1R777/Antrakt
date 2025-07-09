@@ -9,8 +9,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'deleted_at', 'email', 'password',
-                  'phone_number', 'is_superuser']
+        fields = ['id', 'deleted_at', 'email',
+                  'password', 'phone_number', 'is_superuser',
+                  'access_token', 'refresh_token']
 
 
     def create(self, validated_date):

@@ -4,11 +4,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from django.shortcuts import get_object_or_404
+from rest_framework.decorators import permission_classes
 from rest_framework import status, generics, permissions
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
-from rest_framework.decorators import permission_classes
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .serializers import (UserSerializer, PerfomanceSerializer, ActorsSerializer,
                           DirectorsSerializer, NewsSerializer, ArchiveSerializer,
                           AchievementsSerializer, CustomTokenObtainPairSerializer)
@@ -44,7 +44,6 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        print(UserSerializer(user).data)
         return Response({
             "user": UserSerializer(user).data,
             "message": "Пользователь создан!"
