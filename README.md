@@ -35,6 +35,13 @@ cd antrakt-admin
 .\start_windows.ps1
 ```
 
+**Способ A1: PowerShell с существующим окружением**
+```powershell
+# Сначала активируйте ваше виртуальное окружение
+venv\Scripts\Activate.ps1  # или путь к вашему окружению
+.\start_windows_existing_env.ps1
+```
+
 **Способ B: Batch файл**
 ```cmd
 start_windows.bat
@@ -59,6 +66,15 @@ python init_minio.py
 
 # 5. Запуск Django
 python app\manage.py runserver
+```
+
+**Способ D: Быстрый запуск Django (если окружение уже настроено)**
+```powershell
+# Активируйте ваше виртуальное окружение
+venv\Scripts\Activate.ps1  # или путь к вашему окружению
+
+# Запустите только Django
+.\start_django_only.ps1
 ```
 
 ### Вариант 2: Docker (для Linux/macOS)

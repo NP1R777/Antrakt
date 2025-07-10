@@ -1,7 +1,8 @@
-# Театральная студия "Антракт" - PowerShell скрипт запуска
+# Театральная студия "Антракт" - PowerShell скрипт запуска (существующее окружение)
 Write-Host "========================================" -ForegroundColor Green
 Write-Host "Театральная студия 'Антракт' - Запуск" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
+Write-Host "Используется существующее виртуальное окружение" -ForegroundColor Cyan
 
 # Проверка наличия Docker
 try {
@@ -44,37 +45,33 @@ if ($minioStatus -match "Up") {
     Write-Host "✗ MinIO не запущен" -ForegroundColor Red
 }
 
-Write-Host "`n4. Настройка виртуального окружения..." -ForegroundColor Yellow
-Set-Location backend
+Write-Host "`n4. Проверка виртуального окружения..." -ForegroundColor Yellow
 
 # Проверяем, есть ли уже активированное виртуальное окружение
 if ($env:VIRTUAL_ENV) {
     Write-Host "✓ Виртуальное окружение уже активировано: $env:VIRTUAL_ENV" -ForegroundColor Green
 } else {
-    # Проверяем, есть ли виртуальное окружение в папке backend
-    if (Test-Path "venv\Scripts\Activate.ps1") {
-        Write-Host "Активация существующего виртуального окружения..." -ForegroundColor Yellow
-        & "venv\Scripts\Activate.ps1"
-    } else {
-        Write-Host "Создание нового виртуального окружения..." -ForegroundColor Yellow
-        python -m venv venv
-        & "venv\Scripts\Activate.ps1"
-        
-        Write-Host "Установка зависимостей..." -ForegroundColor Yellow
-        pip install -r requirements.txt
-    }
+    Write-Host "⚠ Виртуальное окружение не активировано" -ForegroundColor Yellow
+    Write-Host "Убедитесь, что вы активировали виртуальное окружение перед запуском скрипта" -ForegroundColor Yellow
+    Write-Host "Пример: venv\Scripts\Activate.ps1" -ForegroundColor Cyan
 }
 
 # Проверяем, установлены ли основные зависимости
-Write-Host "Проверка зависимостей..." -ForegroundColor Yellow
-try {
-    python -c "import django; print('✓ Django установлен')" 2>$null
-    python -c "import minio; print('✓ MinIO клиент установлен')" 2>$null
-    Write-Host "✓ Все зависимости установлены" -ForegroundColor Green
-} catch {
-    Write-Host "Установка недостающих зависимостей..." -ForegroundColor Yellow
-    pip install -r requirements.txt
+Write-Host "`n5. Проверка зависимостей..." -ForegroundColor Yellow
+$dependencies = @("django", "minio", "djangorestframework", "psycopg")
+
+foreach ($dep in $dependencies) {
+    try {
+        python -c "import $dep" 2>$null
+        Write-Host "✓ $dep установлен" -ForegroundColor Green
+    } catch {
+        Write-Host "✗ $dep не установлен" -ForegroundColor Red
+        Write-Host "Установите зависимости: pip install -r requirements.txt" -ForegroundColor Yellow
+        exit 1
+    }
 }
+
+Set-Location backend
 
 Write-Host "`n6. Применение миграций..." -ForegroundColor Yellow
 python app\manage.py migrate
