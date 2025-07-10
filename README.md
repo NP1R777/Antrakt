@@ -9,14 +9,66 @@
 - **Хранилище файлов**: MinIO (S3-совместимое)
 - **Frontend**: React (в разработке)
 
-## Быстрый запуск с Docker
+## Быстрый запуск
 
-### Предварительные требования
+### Вариант 1: Windows (рекомендуется)
+
+#### Предварительные требования
+
+- Windows 10/11
+- Docker Desktop для Windows
+- Python 3.8+
+- Git
+
+#### Запуск
+
+1. Клонируйте репозиторий:
+```bash
+git clone <repository-url>
+cd antrakt-admin
+```
+
+2. Запустите проект одним из способов:
+
+**Способ A: PowerShell (рекомендуется)**
+```powershell
+.\start_windows.ps1
+```
+
+**Способ B: Batch файл**
+```cmd
+start_windows.bat
+```
+
+**Способ C: Ручной запуск**
+```bash
+# 1. Запуск PostgreSQL и MinIO
+docker-compose up -d postgres minio
+
+# 2. Настройка Python окружения
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+
+# 3. Применение миграций
+python app\manage.py migrate
+
+# 4. Инициализация MinIO
+python init_minio.py
+
+# 5. Запуск Django
+python app\manage.py runserver
+```
+
+### Вариант 2: Docker (для Linux/macOS)
+
+#### Предварительные требования
 
 - Docker
 - Docker Compose
 
-### Запуск
+#### Запуск
 
 1. Клонируйте репозиторий:
 ```bash

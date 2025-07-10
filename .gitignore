@@ -114,3 +114,38 @@ media/
 # **/migrations/**
 # !**/migrations
 # !**/migrations/__init__.py
+
+# Windows-specific
+*.exe
+*.msi
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker
+.dockerignore
+
+# MinIO data
+minio_data/
+
+# PostgreSQL data
+postgres_data/
+
+# Static files
+static/
+staticfiles/
+
+# Logs
+logs/
+
+# Temporary files
+tmp/
+temp/
