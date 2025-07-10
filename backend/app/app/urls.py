@@ -53,6 +53,7 @@ urlpatterns = [
     path('director<int:id>/', views.DirectorDetail.as_view(), name='director'),
     path('news/', views.NewsList.as_view(), name='news-list'),
     path('news<int:id>/', views.NewsDetail.as_view(), name='news'),
+    path('news-admin/', views.NewsListAdmin.as_view(), name='news-list-admin'),
     path('archive/', views.ArchiveList.as_view(), name='archive-list'),
     path('archive<int:id>/', views.ArchiveDetail.as_view(), name='archive'),
     path('achievements/', views.AchievementsList.as_view(), name='achievements-list'),

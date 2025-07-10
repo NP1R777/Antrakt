@@ -187,6 +187,8 @@ class News(ImageUploadMixin, models.Model):
     deleted_at = models.DateTimeField(null=True)
     title = models.CharField(max_length=150, null=False)
     description = models.CharField(max_length=2000, null=False)
+    summary = models.CharField(max_length=300, blank=True) # Краткое описание новости
+    is_published = models.BooleanField(default=False, blank=True) # Опубликована или нет новость
     image_url = models.URLField(null=False, blank=True)
 
 

@@ -436,15 +436,28 @@ const ActorsPage: React.FC = () => {
                             maxW="450px"
                             minW="300px"
                             mx="auto"
-                            minH="300px"
+                            minH="250px"
                         >
                             <Flex align="center" mb={4}>
-                                <Avatar
-                                    name={actor.name}
-                                    src={actor.image_url || undefined}
-                                    size="xl"
+                                <Box
+                                    boxSize="90px"
+                                    borderRadius="full"
+                                    overflow="hidden"
                                     border={`2px solid ${primaryColor}`}
-                                />
+                                    flexShrink={0}
+                                    bg="#222"
+                                >
+                                    <img
+                                        src={actor.image_url}
+                                        alt={actor.name}
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover',
+                                            objectPosition: 'top center'
+                                        }}
+                                    />
+                                </Box>
                                 <Box ml={4} maxW="calc(100% - 80px)">
                                     <Heading size="md" fontFamily="Playfair Display" noOfLines={1}>{actor.name}</Heading>
                                     <Badge

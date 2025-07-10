@@ -63,6 +63,8 @@ class DirectorsSerializer(serializers.ModelSerializer):
 
 
 class NewsSerializer(serializers.ModelSerializer):
+    is_published = serializers.BooleanField(default=False)
+
     class Meta:
         model = News
         fields = '__all__'

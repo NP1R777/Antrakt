@@ -296,7 +296,8 @@ class NewsList(APIView):
 
 
     def get(self, request, format=None):
-        news = self.model_class.objects.filter(deleted_at=None)
+        news = self.model_class.objects.filter(deleted_at=None,
+                                               is_published=True)
         serializer = self.serializer_class(news, many=True)
         return Response(serializer.data)
     
@@ -308,6 +309,17 @@ class NewsList(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class NewsListAdmin(APIView):
+    model_class = News
+    serializer_class = NewsSerializer
+
+
+    def get(self, request, format=None):
+        news = self.model_class.objects.order_by('id')
+        serializer = self.serializer_class(news, many=True)
+        return Response(serializer.data)
 
 
 class NewsDetail(APIView):
