@@ -3,6 +3,7 @@ import theme from "./styles/theme";
 import Hero from "./sections/Hero";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import NewsPage from "./pages/admin/NewsPage";
 import Dashboard from "./pages/admin/Dashboard";
 import NewsSection from "./sections/NewsSection";
 import Navigation from "./components/Navigation";
@@ -11,6 +12,7 @@ import Performances from "./sections/Perfomances";
 import Testimonials from "./sections/Testimonials";
 import { ChakraProvider, Box } from "@chakra-ui/react";
 import AdminLayout from "./components/admin/AdminLayout";
+import PerformancesPage from './pages/admin/PerformancesPage'
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
@@ -80,10 +82,7 @@ function App() {
               element={
                 <ProtectedAdminRoute>
                   <AdminLayout>
-                    <Box p={8} color="white">
-                      <h1>Управление спектаклями</h1>
-                      <p>Скоро здесь будет CRUD для спектаклей</p>
-                    </Box>
+                    <Performances />
                   </AdminLayout>
                 </ProtectedAdminRoute>
               }
@@ -119,10 +118,7 @@ function App() {
               element={
                 <ProtectedAdminRoute>
                   <AdminLayout>
-                    <Box p={8} color="white">
-                      <h1>Управление новостями</h1>
-                      <p>Скоро здесь будет CRUD для новостей</p>
-                    </Box>
+                    <NewsPage />
                   </AdminLayout>
                 </ProtectedAdminRoute>
               }

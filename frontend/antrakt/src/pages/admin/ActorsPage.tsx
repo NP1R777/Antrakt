@@ -62,6 +62,7 @@ import {
     FaHistory
 } from 'react-icons/fa';
 import axios from 'axios';
+import ImageUpload from '../../components/ImageUpload';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -200,6 +201,20 @@ const ActorsPage: React.FC = () => {
         setCurrentActor(prev => ({
             ...prev,
             [field]: currentList
+        }));
+    };
+
+    const handleImageUpload = (imageUrl: string) => {
+        setCurrentActor(prev => ({
+            ...prev,
+            image_url: imageUrl
+        }));
+    };
+
+    const handleImageRemove = () => {
+        setCurrentActor(prev => ({
+            ...prev,
+            image_url: ''
         }));
     };
 
@@ -507,7 +522,7 @@ const ActorsPage: React.FC = () => {
                             Управление актёрами
                         </Heading>
                         <Text color="#AAAAAA">
-                            CRUD операции для управления актёрами театра
+                            Здесь вы можете управлять данными актёров театральной студии "Антракт"
                         </Text>
                     </VStack>
 
@@ -649,17 +664,15 @@ const ActorsPage: React.FC = () => {
                                 <FormControl>
                                     <FormLabel display="flex" alignItems="center" gap={2}>
                                         <CFaFilm color={primaryColor} />
-                                        <Text as="span" fontWeight="semibold">Ссылка на фото</Text>
+                                        <Text as="span" fontWeight="semibold">Фотография актёра</Text>
                                     </FormLabel>
-                                    <Input
-                                        name="image_url"
-                                        placeholder="URL фотографии"
-                                        value={currentActor.image_url || ''}
-                                        onChange={handleInputChange}
-                                        focusBorderColor={primaryColor}
-                                        bg="#333333"
-                                        borderColor="#444444"
-                                        _hover={{ borderColor: '#555555' }}
+                                    <ImageUpload
+                                        currentImageUrl={currentActor.image_url}
+                                        onImageUpload={handleImageUpload}
+                                        onImageRemove={handleImageRemove}
+                                        contentType="actors"
+                                        maxSize={10}
+                                        disabled={isSubmitting}
                                     />
                                 </FormControl>
                             </VStack>

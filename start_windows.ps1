@@ -45,20 +45,21 @@ if ($minioStatus -match "Up") {
 }
 
 Write-Host "`n4. Настройка виртуального окружения..." -ForegroundColor Yellow
-Set-Location backend
+# Set-Location backend
 
-if (-not (Test-Path "venv\Scripts\Activate.ps1")) {
-    Write-Host "Создание виртуального окружения..." -ForegroundColor Yellow
-    python -m venv venv
-}
+# if (-not (Test-Path "venv\Scripts\Activate.ps1")) {
+#     Write-Host "Создание виртуального окружения..." -ForegroundColor Yellow
+#     python -m venv venv
+# }
 
 Write-Host "Активация виртуального окружения..." -ForegroundColor Yellow
-& "venv\Scripts\Activate.ps1"
+& ".\env\Scripts\activate"
 
-Write-Host "`n5. Установка зависимостей..." -ForegroundColor Yellow
-pip install -r requirements.txt
+# Write-Host "`n5. Установка зависимостей..." -ForegroundColor Yellow
+# pip install -r requirements.txt
 
 Write-Host "`n6. Применение миграций..." -ForegroundColor Yellow
+Set-Location backend
 python app\manage.py migrate
 
 Write-Host "`n7. Инициализация MinIO..." -ForegroundColor Yellow
@@ -66,10 +67,10 @@ python init_minio.py
 
 Write-Host "`n8. Запуск Django сервера..." -ForegroundColor Yellow
 Write-Host "`nДоступные сервисы:" -ForegroundColor Cyan
-Write-Host "• Django API: http://localhost:8000" -ForegroundColor White
-Write-Host "• MinIO Console: http://localhost:9001" -ForegroundColor White
+Write-Host "• Django API: http://127.0.0.1:8000" -ForegroundColor White
+Write-Host "• MinIO Console: http://127.0.0.1:9001" -ForegroundColor White
 Write-Host "  Логин: minioadmin, Пароль: minioadmin123" -ForegroundColor Gray
-Write-Host "• Swagger API Docs: http://localhost:8000/swagger/" -ForegroundColor White
+Write-Host "• Swagger API Docs: http://127.0.0.1:8000/swagger/" -ForegroundColor White
 Write-Host "`nДля остановки нажмите Ctrl+C" -ForegroundColor Yellow
 Write-Host "========================================" -ForegroundColor Green
 

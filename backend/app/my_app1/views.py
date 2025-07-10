@@ -200,7 +200,7 @@ class ActorsList(APIView):
 
 
     def get(self, request, format=None):
-        actors = self.model_class.objects.filter(deleted_at=None)
+        actors = self.model_class.objects.filter(deleted_at=None).order_by('id')
         serializer = self.serializer_class(actors, many=True)
         return Response(serializer.data)
     
@@ -434,22 +434,22 @@ class ImageUploadView(APIView):
     @swagger_auto_schema(
         operation_description="Загрузка изображения в MinIO",
         request_body=None,
-        manual_parameters=[
-            {
-                'name': 'image',
-                'in': 'formData',
-                'type': 'file',
-                'required': True,
-                'description': 'Изображение для загрузки'
-            },
-            {
-                'name': 'folder',
-                'in': 'formData',
-                'type': 'string',
-                'required': False,
-                'description': 'Папка для сохранения (по умолчанию: images)'
-            }
-        ]
+        # manual_parameters=[
+        #     {
+        #         'name': 'image',
+        #         'in': 'formData',
+        #         'type': 'file',
+        #         'required': True,
+        #         'description': 'Изображение для загрузки'
+        #     },
+        #     {
+        #         'name': 'folder',
+        #         'in': 'formData',
+        #         'type': 'string',
+        #         'required': False,
+        #         'description': 'Папка для сохранения (по умолчанию: images)'
+        #     }
+        # ]
     )
     def post(self, request):
         try:
@@ -503,15 +503,6 @@ class ImageDeleteView(APIView):
     @swagger_auto_schema(
         operation_description="Удаление изображения из MinIO",
         request_body=None,
-        manual_parameters=[
-            {
-                'name': 'image_url',
-                'in': 'query',
-                'type': 'string',
-                'required': True,
-                'description': 'URL изображения для удаления'
-            }
-        ]
     )
     def delete(self, request):
         try:
