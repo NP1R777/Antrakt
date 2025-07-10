@@ -82,7 +82,7 @@ function App() {
               element={
                 <ProtectedAdminRoute>
                   <AdminLayout>
-                    <Performances />
+                    <PerformancesPage />
                   </AdminLayout>
                 </ProtectedAdminRoute>
               }

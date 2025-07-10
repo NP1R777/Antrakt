@@ -49,6 +49,7 @@ urlpatterns = [
     path('perfomance<int:id>/', views.PerfomanceDetail.as_view(), name='perfomance'),
     path('actors/', views.ActorsList.as_view(), name='actors-list'),
     path('actor<int:id>/', views.ActorDetail.as_view(), name='actor'),
+    path('actors-admin/', views.ActorsListAdmin.as_view(), name='actors-list-admin'),
     path('directors/', views.DirectorsList.as_view(), name='directors-list'),
     path('director<int:id>/', views.DirectorDetail.as_view(), name='director'),
     path('news/', views.NewsList.as_view(), name='news-list'),

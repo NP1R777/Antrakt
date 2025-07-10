@@ -59,7 +59,8 @@ import {
     FaMusic,
     FaQuoteRight,
     FaUser,
-    FaHistory
+    FaHistory,
+    FaUndo
 } from 'react-icons/fa';
 import axios from 'axios';
 import ImageUpload from '../../components/ImageUpload';
@@ -87,6 +88,7 @@ const CFaMusic = chakra(FaMusic as any);
 const CFaQuoteRight = chakra(FaQuoteRight as any);
 const CFaUser = chakra(FaUser as any);
 const CFaHistory = chakra(FaHistory as any);
+const CFaUndo = chakra(FaUndo as any);
 
 interface Actor {
     id: number;
@@ -105,6 +107,7 @@ interface Actor {
     perfomances: string[];
     role_in_perfomances: string[];
     image_url: string;
+    deleted_at?: string | null; // Добавлено поле для логики удаления
 }
 
 const quoteAuthors = [
@@ -131,7 +134,8 @@ const ActorsPage: React.FC = () => {
         favorite_song: [],
         author_song: [],
         perfomances: [],
-        role_in_perfomances: []
+        role_in_perfomances: [],
+        deleted_at: null // Установлено по умолчанию как null
     });
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -149,7 +153,8 @@ const ActorsPage: React.FC = () => {
 
     const fetchActors = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/actors/');
+            const response = await axios.get('http://localhost:8000/actors-admin/');
+            // Показываем все актёры, включая удалённых
             setActors(response.data);
             setIsLoading(false);
         } catch (error) {
@@ -276,19 +281,30 @@ const ActorsPage: React.FC = () => {
         }
     };
 
-    const handleDeleteActor = async () => {
-        if (!deleteId) return;
+    const handleDeleteActor = async (id: number) => {
+        if (!id) return;
 
+        setIsSubmitting(true);
         try {
-            await axios.delete(`http://localhost:8000/actor${deleteId}/`);
-            setActors(actors.filter(actor => actor.id !== deleteId));
+            await axios.put(`http://localhost:8000/actor${id}/`, {
+                deleted_at: new Date().toISOString()
+            });
             toast({
                 title: 'Успех!',
-                description: 'Актёр успешно удалён',
+                description: 'Актёр удалён',
                 status: 'success',
                 duration: 2000,
                 isClosable: true,
             });
+
+            // Обновляем локальное состояние
+            setActors(prevActors =>
+                prevActors.map(actor =>
+                    actor.id === id
+                        ? { ...actor, deleted_at: new Date().toISOString() }
+                        : actor
+                )
+            );
         } catch (error) {
             console.error('Ошибка при удалении актёра:', error);
             toast({
@@ -299,8 +315,47 @@ const ActorsPage: React.FC = () => {
                 isClosable: true,
             });
         } finally {
+            setIsSubmitting(false);
             onDeleteClose();
             setDeleteId(null);
+        }
+    };
+
+    const handleRestoreActor = async (id: number) => {
+        if (!id) return;
+
+        setIsSubmitting(true);
+        try {
+            await axios.put(`http://localhost:8000/actor${id}/`, {
+                deleted_at: null
+            });
+            toast({
+                title: 'Успех!',
+                description: 'Актёр восстановлен',
+                status: 'success',
+                duration: 2000,
+                isClosable: true,
+            });
+
+            // Обновляем локальное состояние
+            setActors(prevActors =>
+                prevActors.map(actor =>
+                    actor.id === id
+                        ? { ...actor, deleted_at: null }
+                        : actor
+                )
+            );
+        } catch (error) {
+            console.error('Ошибка при восстановлении актёра:', error);
+            toast({
+                title: 'Ошибка',
+                description: 'Не удалось восстановить актёра',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -314,7 +369,8 @@ const ActorsPage: React.FC = () => {
             favorite_song: [],
             author_song: [],
             perfomances: [],
-            role_in_perfomances: []
+            role_in_perfomances: [],
+            deleted_at: null
         });
         setListInputs({});
         onFormClose();
@@ -422,15 +478,18 @@ const ActorsPage: React.FC = () => {
                         zIndex={1}
                     >
                         <MotionBox
-                            bg="rgba(255,255,255,0.05)"
+                            bg={actor.deleted_at ? "rgba(50,50,50,0.5)" : "rgba(255,255,255,0.05)"}
                             p={4}
                             borderRadius="xl"
                             border="1px solid"
-                            borderColor="rgba(255,255,255,0.1)"
+                            borderColor={actor.deleted_at ? "#555" : "rgba(255,255,255,0.1)"}
                             backdropFilter="blur(10px)"
                             position="relative"
                             overflow="hidden"
-                            whileHover={{ borderColor: secondaryColor, boxShadow: `0 0 20px ${secondaryColor}50` }}
+                            whileHover={{
+                                borderColor: actor.deleted_at ? "#666" : secondaryColor,
+                                boxShadow: actor.deleted_at ? "none" : `0 0 20px ${secondaryColor}50`
+                            }}
                             transition={{ duration: 0.3 }}
                             w="100%"
                             maxW="450px"
@@ -438,6 +497,18 @@ const ActorsPage: React.FC = () => {
                             mx="auto"
                             minH="250px"
                         >
+                            {actor.deleted_at && (
+                                <Badge
+                                    position="absolute"
+                                    top={2}
+                                    right={2}
+                                    colorScheme="red"
+                                    zIndex={1}
+                                >
+                                    Удалено
+                                </Badge>
+                            )}
+
                             <Flex align="center" mb={4}>
                                 <Box
                                     boxSize="90px"
@@ -446,6 +517,7 @@ const ActorsPage: React.FC = () => {
                                     border={`2px solid ${primaryColor}`}
                                     flexShrink={0}
                                     bg="#222"
+                                    opacity={actor.deleted_at ? 0.6 : 1}
                                 >
                                     <img
                                         src={actor.image_url}
@@ -459,7 +531,14 @@ const ActorsPage: React.FC = () => {
                                     />
                                 </Box>
                                 <Box ml={4} maxW="calc(100% - 80px)">
-                                    <Heading size="md" fontFamily="Playfair Display" noOfLines={1}>{actor.name}</Heading>
+                                    <Heading
+                                        size="md"
+                                        fontFamily="Playfair Display"
+                                        noOfLines={1}
+                                        color={actor.deleted_at ? "#999" : "white"}
+                                    >
+                                        {actor.name}
+                                    </Heading>
                                     <Badge
                                         bg={secondaryColor}
                                         color="white"
@@ -474,6 +553,7 @@ const ActorsPage: React.FC = () => {
                                         textShadow="0 1px 2px rgba(0, 0, 0, 0.3)"
                                         _hover={{ bg: '#B00040' }}
                                         noOfLines={2}
+                                        opacity={actor.deleted_at ? 0.6 : 1}
                                     >
                                         {actor.place_of_work} • {getYearsText(actor.time_in_theatre)}
                                     </Badge>
@@ -483,9 +563,10 @@ const ActorsPage: React.FC = () => {
                             <Text
                                 noOfLines={3}
                                 fontSize="sm"
-                                color="#CCCCCC"
+                                color={actor.deleted_at ? "#999" : "#CCCCCC"}
                                 mb={4}
                                 fontStyle="italic"
+                                opacity={actor.deleted_at ? 0.6 : 1}
                             >
                                 "{actor.favorite_quote}" — {actor.author_quote}
                             </Text>
@@ -500,24 +581,41 @@ const ActorsPage: React.FC = () => {
                                         onClick={() => openEditForm(actor)}
                                         whileHover={{ scale: 1.1 }}
                                         whileTap={{ scale: 0.9 }}
+                                        isDisabled={!!actor.deleted_at}
                                     >
                                         <CFaEdit />
                                     </MotionButton>
                                 </Tooltip>
 
-                                <Tooltip label="Удалить" hasArrow>
-                                    <MotionButton
-                                        size="sm"
-                                        iconSpacing={0}
-                                        bg="transparent"
-                                        color="#E53E3E"
-                                        onClick={() => confirmDelete(actor.id)}
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
-                                    >
-                                        <CFaTrash />
-                                    </MotionButton>
-                                </Tooltip>
+                                {actor.deleted_at ? (
+                                    <Tooltip label="Восстановить" hasArrow>
+                                        <MotionButton
+                                            size="sm"
+                                            iconSpacing={0}
+                                            bg="transparent"
+                                            color="#48BB78"
+                                            onClick={() => handleRestoreActor(actor.id)}
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.9 }}
+                                        >
+                                            <CFaUndo />
+                                        </MotionButton>
+                                    </Tooltip>
+                                ) : (
+                                    <Tooltip label="Удалить" hasArrow>
+                                        <MotionButton
+                                            size="sm"
+                                            iconSpacing={0}
+                                            bg="transparent"
+                                            color="#E53E3E"
+                                            onClick={() => confirmDelete(actor.id)}
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.9 }}
+                                        >
+                                            <CFaTrash />
+                                        </MotionButton>
+                                    </Tooltip>
+                                )}
                             </Flex>
                         </MotionBox>
                     </MotionGridItem>
@@ -934,7 +1032,7 @@ const ActorsPage: React.FC = () => {
                         </AlertDialogHeader>
 
                         <AlertDialogBody>
-                            Вы уверены, что хотите удалить этого актёра? Это действие нельзя отменить.
+                            Вы уверены, что хотите удалить этого актёра?
                         </AlertDialogBody>
 
                         <AlertDialogFooter>
@@ -949,7 +1047,7 @@ const ActorsPage: React.FC = () => {
                             <Button
                                 bg="#E53E3E"
                                 _hover={{ bg: '#F56565' }}
-                                onClick={handleDeleteActor}
+                                onClick={() => handleDeleteActor(deleteId!)}
                                 ml={3}
                             >
                                 Удалить

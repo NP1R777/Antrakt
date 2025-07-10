@@ -178,7 +178,7 @@ class PerfomanceDetail(APIView):
     
 
     @swagger_auto_schema(request_body=PerfomanceSerializer)
-    def put(self, id, request, format=None):
+    def put(self, request, id, format=None):
         perfomance = get_object_or_404(self.model_class, id=id)
         serializer = self.serializer_class(perfomance, data=request.data, partial=True)
         if serializer.is_valid():
@@ -212,6 +212,17 @@ class ActorsList(APIView):
             actor = serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ActorsListAdmin(APIView):
+    model_class = Actors
+    serializer_class = ActorsSerializer
+
+
+    def get(self, request, format=None):
+        actors = self.model_class.objects.order_by('id')
+        serializer = self.serializer_class(actors, many=True)
+        return Response(serializer.data)
 
 
 class ActorDetail(APIView):

@@ -50,7 +50,6 @@ import {
     FaEye,
     FaEyeSlash,
     FaImage,
-    FaHistory,
     FaUndo
 } from 'react-icons/fa';
 import axios from 'axios';
@@ -96,12 +95,10 @@ const NewsPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [deleteId, setDeleteId] = useState<number | null>(null);
-    const [restoreId, setRestoreId] = useState<number | null>(null);
     const toast = useToast();
 
     const { isOpen: isFormOpen, onOpen: onFormOpen, onClose: onFormClose } = useDisclosure();
     const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
-    const { isOpen: isRestoreOpen, onOpen: onRestoreOpen, onClose: onRestoreClose } = useDisclosure();
     const cancelRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
@@ -111,8 +108,8 @@ const NewsPage: React.FC = () => {
     const fetchNews = async () => {
         try {
             const response = await axios.get('http://localhost:8000/news-admin/');
-            // Фильтруем только неудалённые новости (где deleted_at равно null)
-            setNews(response.data.filter((item: News) => !item.deleted_at));
+            // Показываем все новости, включая удаленные
+            setNews(response.data);
             setIsLoading(false);
         } catch (error) {
             console.error('Ошибка при загрузке новостей:', error);
@@ -202,27 +199,35 @@ const NewsPage: React.FC = () => {
         }
     };
 
-    const handleDeleteNews = async (id: number) => {
-        if (!id) return;
+    const handleDeleteNews = async () => {
+        if (!deleteId) return;
 
         setIsSubmitting(true);
         try {
-            await axios.put(`http://localhost:8000/news${id}/`, {
+            await axios.put(`http://localhost:8000/news${deleteId}/`, {
                 deleted_at: new Date().toISOString()
             });
             toast({
                 title: 'Успешно',
-                description: 'Новость помечена как удалённая',
+                description: 'Новость удалена',
                 status: 'success',
                 duration: 3000,
                 isClosable: true,
             });
-            fetchNews();
+
+            // Обновляем локальное состояние вместо перезагрузки
+            setNews(prevNews =>
+                prevNews.map(item =>
+                    item.id === deleteId
+                        ? { ...item, deleted_at: new Date().toISOString() }
+                        : item
+                )
+            );
         } catch (error) {
             console.error('Ошибка при удалении новости:', error);
             toast({
                 title: 'Ошибка',
-                description: 'Не удалось пометить новость как удалённую',
+                description: 'Не удалось удалить новость',
                 status: 'error',
                 duration: 3000,
                 isClosable: true,
@@ -249,7 +254,15 @@ const NewsPage: React.FC = () => {
                 duration: 3000,
                 isClosable: true,
             });
-            fetchNews();
+
+            // Обновляем локальное состояние вместо перезагрузки
+            setNews(prevNews =>
+                prevNews.map(item =>
+                    item.id === id
+                        ? { ...item, deleted_at: null }
+                        : item
+                )
+            );
         } catch (error) {
             console.error('Ошибка при восстановлении новости:', error);
             toast({
@@ -261,8 +274,6 @@ const NewsPage: React.FC = () => {
             });
         } finally {
             setIsSubmitting(false);
-            onRestoreClose();
-            setRestoreId(null);
         }
     };
 
@@ -279,11 +290,6 @@ const NewsPage: React.FC = () => {
     const confirmDelete = (id: number) => {
         setDeleteId(id);
         onDeleteOpen();
-    };
-
-    const confirmRestore = (id: number) => {
-        setRestoreId(id);
-        onRestoreOpen();
     };
 
     const formatDate = (dateString: string) => {
@@ -322,134 +328,126 @@ const NewsPage: React.FC = () => {
 
         return (
             <Grid templateColumns={{ base: '1fr', md: 'repeat(auto-fill, minmax(400px, 1fr))' }} gap={6}>
-                <AnimatePresence>
-                    {news.map((newsItem) => (
-                        <MotionGridItem
-                            key={newsItem.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.4 }}
+                {news.map((newsItem) => (
+                    <MotionGridItem
+                        key={newsItem.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4 }}
+                    >
+                        <MotionBox
+                            bg={newsItem.deleted_at ? "rgba(50,50,50,0.5)" : "rgba(255,255,255,0.05)"}
+                            p={4}
+                            borderRadius="xl"
+                            border="1px solid"
+                            borderColor={newsItem.deleted_at ? "#555" : "rgba(255,255,255,0.1)"}
+                            backdropFilter="blur(10px)"
+                            position="relative"
+                            overflow="hidden"
+                            whileHover={{
+                                borderColor: newsItem.deleted_at ? "#666" : secondaryColor,
+                                boxShadow: newsItem.deleted_at ? "none" : `0 0 20px ${secondaryColor}50`
+                            }}
+                            transition={{ duration: 0.3 }}
                         >
-                            <MotionBox
-                                bg="rgba(255,255,255,0.05)"
-                                p={4}
-                                borderRadius="xl"
-                                border="1px solid"
-                                borderColor="rgba(255,255,255,0.1)"
-                                backdropFilter="blur(10px)"
-                                position="relative"
-                                overflow="hidden"
-                                whileHover={{
-                                    borderColor: newsItem.deleted_at ? "#666" : secondaryColor,
-                                    boxShadow: newsItem.deleted_at
-                                        ? 'none'
-                                        : `0 0 20px ${secondaryColor}50`
-                                }}
-                                transition={{ duration: 0.3 }}
-                                opacity={newsItem.deleted_at ? 0.6 : 1}
-                            >
-                                {newsItem.deleted_at && (
-                                    <Badge
-                                        colorScheme="red"
-                                        position="absolute"
-                                        top={2}
-                                        right={2}
-                                        zIndex={1}
-                                        px={2}
-                                        py={1}
+                            {newsItem.deleted_at && (
+                                <Badge
+                                    position="absolute"
+                                    top={2}
+                                    right={2}
+                                    colorScheme="red"
+                                    zIndex={1}
+                                >
+                                    Удалено
+                                </Badge>
+                            )}
+
+                            {newsItem.image_url && (
+                                <Image
+                                    src={newsItem.image_url}
+                                    alt={newsItem.title}
+                                    w="100%"
+                                    h="200px"
+                                    objectFit="cover"
+                                    borderRadius="md"
+                                    mb={4}
+                                    opacity={newsItem.deleted_at ? 0.6 : 1}
+                                />
+                            )}
+
+                            <VStack align="stretch" spacing={3}>
+                                <HStack justify="space-between" align="start">
+                                    <Heading
+                                        size="md"
+                                        fontFamily="Playfair Display"
+                                        noOfLines={2}
+                                        flex={1}
+                                        color={newsItem.deleted_at ? "#999" : "white"}
                                     >
-                                        Удалено
-                                    </Badge>
-                                )}
+                                        {newsItem.title}
+                                    </Heading>
+                                    {newsItem.is_published && !newsItem.deleted_at ? (
+                                        <Badge colorScheme="green" variant="subtle">
+                                            <CFaEye style={{ marginRight: '4px' }} />
+                                            Опубликовано
+                                        </Badge>
+                                    ) : (
+                                        <Badge colorScheme="gray" variant="subtle">
+                                            <CFaEyeSlash style={{ marginRight: '4px' }} />
+                                            Черновик
+                                        </Badge>
+                                    )}
+                                </HStack>
 
-                                {newsItem.image_url && (
-                                    <Image
-                                        src={newsItem.image_url}
-                                        alt={newsItem.title}
-                                        w="100%"
-                                        h="200px"
-                                        objectFit="cover"
-                                        borderRadius="md"
-                                        mb={4}
-                                        opacity={newsItem.deleted_at ? 0.7 : 1}
-                                    />
-                                )}
+                                <Text
+                                    noOfLines={3}
+                                    fontSize="sm"
+                                    color={newsItem.deleted_at ? "#999" : "#CCCCCC"}
+                                >
+                                    {newsItem.summary || truncateText(newsItem.description, 150)}
+                                </Text>
 
-                                <VStack align="stretch" spacing={3}>
-                                    <HStack justify="space-between" align="start">
-                                        <Heading
-                                            size="md"
-                                            fontFamily="Playfair Display"
-                                            noOfLines={2}
-                                            flex={1}
-                                            color={newsItem.deleted_at ? "#999" : "white"}
-                                        >
-                                            {newsItem.title}
-                                        </Heading>
-                                        {newsItem.is_published && !newsItem.deleted_at ? (
-                                            <Badge colorScheme="green" variant="subtle">
-                                                <CFaEye style={{ marginRight: '4px' }} />
-                                                Опубликовано
-                                            </Badge>
-                                        ) : (
-                                            <Badge colorScheme="gray" variant="subtle">
-                                                <CFaEyeSlash style={{ marginRight: '4px' }} />
-                                                Черновик
-                                            </Badge>
-                                        )}
-                                    </HStack>
+                                <Flex justify="flex-end" gap={2} mt={2}>
+                                    <Tooltip label="Редактировать" hasArrow>
+                                        <IconButton
+                                            size="sm"
+                                            icon={<CFaEdit />}
+                                            colorScheme="blue"
+                                            variant="ghost"
+                                            onClick={() => openEditForm(newsItem)}
+                                            aria-label='Редактировать новость'
+                                            isDisabled={!!newsItem.deleted_at}
+                                        />
+                                    </Tooltip>
 
-                                    <Text
-                                        noOfLines={3}
-                                        fontSize="sm"
-                                        color={newsItem.deleted_at ? "#999" : "#CCCCCC"}
-                                    >
-                                        {newsItem.summary || truncateText(newsItem.description, 150)}
-                                    </Text>
-
-                                    <Flex justify="flex-end" gap={2} mt={2}>
-                                        <Tooltip label="Редактировать" hasArrow>
+                                    {newsItem.deleted_at ? (
+                                        <Tooltip label="Восстановить" hasArrow>
                                             <IconButton
                                                 size="sm"
-                                                icon={<CFaEdit />}
-                                                colorScheme="blue"
+                                                icon={<CFaUndo />}
+                                                colorScheme="green"
                                                 variant="ghost"
-                                                onClick={() => openEditForm(newsItem)}
-                                                aria-label='Редактировать новость'
-                                                isDisabled={!!newsItem.deleted_at}
+                                                onClick={() => handleRestoreNews(newsItem.id)}
+                                                aria-label='Восстановить новость'
                                             />
                                         </Tooltip>
-
-                                        {newsItem.deleted_at ? (
-                                            <Tooltip label="Восстановить" hasArrow>
-                                                <IconButton
-                                                    size="sm"
-                                                    icon={<CFaUndo />}
-                                                    colorScheme="green"
-                                                    variant="ghost"
-                                                    onClick={() => confirmRestore(newsItem.id)}
-                                                    aria-label='Восстановить новость'
-                                                />
-                                            </Tooltip>
-                                        ) : (
-                                            <Tooltip label="Удалить" hasArrow>
-                                                <IconButton
-                                                    size="sm"
-                                                    icon={<CFaTrash />}
-                                                    colorScheme="red"
-                                                    variant="ghost"
-                                                    onClick={() => confirmDelete(newsItem.id)}
-                                                    aria-label='Удалить новость'
-                                                />
-                                            </Tooltip>
-                                        )}
-                                    </Flex>
-                                </VStack>
-                            </MotionBox>
-                        </MotionGridItem>
-                    ))}
-                </AnimatePresence>
+                                    ) : (
+                                        <Tooltip label="Удалить" hasArrow>
+                                            <IconButton
+                                                size="sm"
+                                                icon={<CFaTrash />}
+                                                colorScheme="red"
+                                                variant="ghost"
+                                                onClick={() => confirmDelete(newsItem.id)}
+                                                aria-label='Удалить новость'
+                                            />
+                                        </Tooltip>
+                                    )}
+                                </Flex>
+                            </VStack>
+                        </MotionBox>
+                    </MotionGridItem>
+                ))}
             </Grid>
         );
     };
@@ -463,7 +461,7 @@ const NewsPage: React.FC = () => {
                             Управление новостями
                         </Heading>
                         <Text color="#AAAAAA">
-                            CRUD операции для управления новостями театра
+                            Здесь вы можете управлять новостями театральной студии "Антракт"
                         </Text>
                     </VStack>
 
@@ -582,26 +580,29 @@ const NewsPage: React.FC = () => {
                     </ModalBody>
 
                     <ModalFooter borderTop="1px solid #333333">
-                        <HStack spacing={3}>
-                            <Button
-                                leftIcon={<CFaTimes />}
-                                variant="outline"
-                                onClick={resetForm}
-                                disabled={isSubmitting}
-                            >
-                                Отмена
-                            </Button>
-                            <Button
-                                leftIcon={currentNews.id ? <CFaSave /> : <CFaPlus />}
-                                bg={primaryColor}
-                                _hover={{ bg: '#900030' }}
-                                onClick={currentNews.id ? handleUpdateNews : handleCreateNews}
-                                isLoading={isSubmitting}
-                                loadingText={currentNews.id ? 'Обновление...' : 'Создание...'}
-                            >
-                                {currentNews.id ? 'Обновить' : 'Создать'}
-                            </Button>
-                        </HStack>
+                        <Button
+                            variant="outline"
+                            mr={3}
+                            onClick={resetForm}
+                            leftIcon={<CFaTimes />}
+                            bg='#B00040'
+                            borderColor="#B00040"
+                            _hover={{ bg: 'red' }}
+                        >
+                            Отмена
+                        </Button>
+
+                        <MotionButton
+                            bg="#3182CE"
+                            _hover={{ bg: '#4299E1' }}
+                            isLoading={isSubmitting}
+                            onClick={currentNews.id ? handleUpdateNews : handleCreateNews}
+                            leftIcon={<CFaSave />}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            {currentNews.id ? 'Обновить' : 'Создать'}
+                        </MotionButton>
                     </ModalFooter>
                 </ModalContent>
             </Modal>
@@ -619,7 +620,7 @@ const NewsPage: React.FC = () => {
                         </AlertDialogHeader>
 
                         <AlertDialogBody>
-                            Вы уверены, что хотите пометить эту новость как удалённую? Её можно будет восстановить.
+                            Вы уверены, что хотите удалить эту новость?
                         </AlertDialogBody>
 
                         <AlertDialogFooter>
@@ -628,43 +629,10 @@ const NewsPage: React.FC = () => {
                             </Button>
                             <Button
                                 colorScheme="red"
-                                onClick={() => handleDeleteNews(deleteId!)}
+                                onClick={handleDeleteNews}
                                 ml={3}
                             >
-                                Пометить как удалённую
-                            </Button>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialogOverlay>
-            </AlertDialog>
-
-            {/* Диалог подтверждения восстановления */}
-            <AlertDialog
-                isOpen={isRestoreOpen}
-                leastDestructiveRef={cancelRef}
-                onClose={onRestoreClose}
-            >
-                <AlertDialogOverlay>
-                    <AlertDialogContent bg="#222222" color="white">
-                        <AlertDialogHeader fontFamily="Playfair Display">
-                            Восстановить новость
-                        </AlertDialogHeader>
-
-                        <AlertDialogBody>
-                            Вы уверены, что хотите восстановить эту новость? Она снова станет доступной.
-                        </AlertDialogBody>
-
-                        <AlertDialogFooter>
-                            <Button ref={cancelRef} onClick={onRestoreClose}>
-                                Отмена
-                            </Button>
-                            <Button
-                                colorScheme="green"
-                                onClick={() => handleRestoreNews(restoreId!)}
-                                ml={3}
-                                leftIcon={<CFaUndo />}
-                            >
-                                Восстановить
+                                Удалить
                             </Button>
                         </AlertDialogFooter>
                     </AlertDialogContent>
