@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.postgres import fields
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from .mixins import ImageUploadMixin
 
 
 class CustomUserManager(BaseUserManager):
@@ -47,7 +48,7 @@ class User(AbstractBaseUser):
     objects = CustomUserManager()
 
 
-class Perfomances(models.Model): # Спектакли
+class Perfomances(ImageUploadMixin, models.Model): # Спектакли
     class Meta:
         db_table = 'perfomances'
     
@@ -77,7 +78,7 @@ class Perfomances(models.Model): # Спектакли
     image_url = models.URLField(null=False, blank=True)
 
 
-class Actors(models.Model):
+class Actors(ImageUploadMixin, models.Model):
     class Meta:
         db_table = 'actors'
     
@@ -143,10 +144,10 @@ class Actors(models.Model):
         default=list
     ) # Роли в спектаклях
 
-    image_url = models.CharField(null=False)
+    image_url = models.URLField(null=False, blank=True)
 
 
-class DirectorsTheatre(models.Model): # Режиссёры театра
+class DirectorsTheatre(ImageUploadMixin, models.Model): # Режиссёры театра
     class Meta:
         db_table = 'directors_theatre'
     
@@ -174,10 +175,10 @@ class DirectorsTheatre(models.Model): # Режиссёры театра
     ) # Названия коллективов, учавствующих в спектакле (сделать на фронте выпадающий список, чтобы
       # оттуда можно было выбрать название коллектива или внести свой)
 
-    image_url = models.URLField(null=False)
+    image_url = models.URLField(null=False, blank=True)
 
 
-class News(models.Model):
+class News(ImageUploadMixin, models.Model):
     class Meta:
         db_table = 'news'
     
@@ -186,10 +187,10 @@ class News(models.Model):
     deleted_at = models.DateTimeField(null=True)
     title = models.CharField(max_length=150, null=False)
     description = models.CharField(max_length=2000, null=False)
-    image_url = models.URLField(null=False)
+    image_url = models.URLField(null=False, blank=True)
 
 
-class Archive(models.Model): # Архив
+class Archive(ImageUploadMixin, models.Model): # Архив
     class Meta:
         db_table = 'archive'
     
@@ -200,10 +201,10 @@ class Archive(models.Model): # Архив
     premiere_date = models.DateField(null=True)
     afisha = models.BooleanField(default=False) # Если False -> то нужно отображать в разделе "Архив",
                                                 # если True -> то отображать в разделе "Афиша".
-    image_url = models.URLField(null=False)
+    image_url = models.URLField(null=False, blank=True)
 
 
-class Achievements(models.Model): # Достижения
+class Achievements(ImageUploadMixin, models.Model): # Достижения
     class Meta:
         db_table = 'achievements'
     
@@ -216,4 +217,4 @@ class Achievements(models.Model): # Достижения
         default=list
     )
 
-    image_url = models.URLField(null=False)
+    image_url = models.URLField(null=False, blank=True)

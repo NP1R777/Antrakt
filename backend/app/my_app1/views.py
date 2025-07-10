@@ -12,6 +12,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .serializers import (UserSerializer, PerfomanceSerializer, ActorsSerializer,
                           DirectorsSerializer, NewsSerializer, ArchiveSerializer,
                           AchievementsSerializer, CustomTokenObtainPairSerializer)
+from .minio_utils import upload_image_to_minio, delete_image_from_minio
 
 
 class UserList(APIView):
@@ -422,3 +423,116 @@ class AchievementDetail(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ImageUploadView(APIView):
+    """
+    API endpoint для загрузки изображений в MinIO
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Загрузка изображения в MinIO",
+        request_body=None,
+        manual_parameters=[
+            {
+                'name': 'image',
+                'in': 'formData',
+                'type': 'file',
+                'required': True,
+                'description': 'Изображение для загрузки'
+            },
+            {
+                'name': 'folder',
+                'in': 'formData',
+                'type': 'string',
+                'required': False,
+                'description': 'Папка для сохранения (по умолчанию: images)'
+            }
+        ]
+    )
+    def post(self, request):
+        try:
+            # Проверяем наличие файла
+            if 'image' not in request.FILES:
+                return Response(
+                    {'error': 'Файл изображения не найден'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            image_file = request.FILES['image']
+            folder = request.data.get('folder', 'images')
+            
+            # Проверяем тип файла
+            allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+            if image_file.content_type not in allowed_types:
+                return Response(
+                    {'error': 'Неподдерживаемый тип файла. Разрешены только изображения.'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Проверяем размер файла (максимум 10MB)
+            if image_file.size > 10 * 1024 * 1024:
+                return Response(
+                    {'error': 'Размер файла превышает 10MB'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Загружаем изображение в MinIO
+            image_url = upload_image_to_minio(image_file, folder)
+            
+            return Response({
+                'success': True,
+                'image_url': image_url,
+                'message': 'Изображение успешно загружено'
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Ошибка при загрузке изображения: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class ImageDeleteView(APIView):
+    """
+    API endpoint для удаления изображений из MinIO
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Удаление изображения из MinIO",
+        request_body=None,
+        manual_parameters=[
+            {
+                'name': 'image_url',
+                'in': 'query',
+                'type': 'string',
+                'required': True,
+                'description': 'URL изображения для удаления'
+            }
+        ]
+    )
+    def delete(self, request):
+        try:
+            image_url = request.query_params.get('image_url')
+            
+            if not image_url:
+                return Response(
+                    {'error': 'URL изображения не указан'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Удаляем изображение из MinIO
+            delete_image_from_minio(image_url)
+            
+            return Response({
+                'success': True,
+                'message': 'Изображение успешно удалено'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Ошибка при удалении изображения: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

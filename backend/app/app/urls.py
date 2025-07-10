@@ -57,5 +57,7 @@ urlpatterns = [
     path('archive<int:id>/', views.ArchiveDetail.as_view(), name='archive'),
     path('achievements/', views.AchievementsList.as_view(), name='achievements-list'),
     path('achievement<int:id>/', views.AchievementDetail.as_view(), name="achievement"),
+    path('upload-image/', views.ImageUploadView.as_view(), name='upload-image'),
+    path('delete-image/', views.ImageDeleteView.as_view(), name='delete-image'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name="schema-swagger-ui"),
 ]
