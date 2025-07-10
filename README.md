@@ -7,7 +7,7 @@
 - **Backend**: Django REST Framework
 - **База данных**: PostgreSQL
 - **Хранилище файлов**: MinIO (S3-совместимое)
-- **Frontend**: React (в разработке)
+- **Frontend**: React с TypeScript и Chakra UI
 
 ## Быстрый запуск
 
@@ -193,6 +193,75 @@ perfomance.set_image(new_image_file)
 # Сохранение (старое изображение автоматически удалится, новое загрузится)
 perfomance.save()
 ```
+
+## Frontend интеграция
+
+### Запуск Frontend
+
+1. Перейдите в папку frontend:
+```bash
+cd frontend/antrakt
+```
+
+2. Установите зависимости:
+```bash
+npm install
+```
+
+3. Запустите development сервер:
+```bash
+npm start
+```
+
+Frontend будет доступен по адресу: http://localhost:3000
+
+### Компоненты для работы с изображениями
+
+#### ImageUpload компонент
+
+Универсальный компонент для загрузки изображений с предварительным просмотром:
+
+```typescript
+import ImageUpload from '../components/ImageUpload';
+
+<ImageUpload
+    currentImageUrl={imageUrl}
+    onImageUpload={handleImageUpload}
+    onImageRemove={handleImageRemove}
+    contentType="actors"
+    maxSize={10}
+    disabled={false}
+/>
+```
+
+#### ImageService
+
+Сервис для работы с API загрузки изображений:
+
+```typescript
+import ImageService from '../services/ImageService';
+
+// Загрузка изображения
+const imageUrl = await ImageService.uploadImage(file, 'actors');
+
+// Удаление изображения
+const success = await ImageService.deleteImage(imageUrl);
+```
+
+### Интегрированные страницы
+
+- **Актеры** (`/admin/actors`) - управление актерами с загрузкой фотографий
+- **Спектакли** (`/admin/performances`) - управление спектаклями с загрузкой постеров
+- **Новости** (`/admin/news`) - управление новостями с загрузкой изображений
+
+### Поддерживаемые форматы изображений
+
+- JPEG (.jpg, .jpeg)
+- PNG (.png)
+- GIF (.gif)
+- WebP (.webp)
+
+Максимальный размер файла: 10MB
 
 ## Структура хранения в MinIO
 
