@@ -49,7 +49,8 @@ import {
     FaCalendar,
     FaEye,
     FaEyeSlash,
-    FaImage
+    FaImage,
+    FaHistory
 } from 'react-icons/fa';
 import axios from 'axios';
 import ImageUpload from '../../components/ImageUpload';
@@ -83,6 +84,7 @@ interface News {
     published_date: string;
     is_published: boolean;
     author: string;
+    deleted_at?: string | null;
 }
 
 const NewsPage: React.FC = () => {
@@ -93,6 +95,7 @@ const NewsPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [deleteId, setDeleteId] = useState<number | null>(null);
+    const [restoringId, setRestoringId] = useState<number | null>(null);
     const toast = useToast();
 
     const { isOpen: isFormOpen, onOpen: onFormOpen, onClose: onFormClose } = useDisclosure();
@@ -224,6 +227,51 @@ const NewsPage: React.FC = () => {
         }
     };
 
+    const handleSoftDeleteNews = async (id: number) => {
+        try {
+            await axios.put(`http://localhost:8000/news/${id}/`, { deleted_at: new Date().toISOString() });
+            toast({
+                title: 'Новость удалена',
+                status: 'info',
+                duration: 3000,
+                isClosable: true,
+            });
+            fetchNews();
+        } catch (error) {
+            toast({
+                title: 'Ошибка',
+                description: 'Не удалось удалить новость',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
+
+    const handleRestoreNews = async (id: number) => {
+        setRestoringId(id);
+        try {
+            await axios.put(`http://localhost:8000/news/${id}/`, { deleted_at: null });
+            toast({
+                title: 'Новость восстановлена',
+                status: 'success',
+                duration: 3000,
+                isClosable: true,
+            });
+            fetchNews();
+        } catch (error) {
+            toast({
+                title: 'Ошибка',
+                description: 'Не удалось восстановить новость',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        } finally {
+            setRestoringId(null);
+        }
+    };
+
     const resetForm = () => {
         setCurrentNews({ is_published: false });
         onFormClose();
@@ -274,95 +322,117 @@ const NewsPage: React.FC = () => {
 
         return (
             <Grid templateColumns={{ base: '1fr', md: 'repeat(auto-fill, minmax(400px, 1fr))' }} gap={6}>
-                {news.map((newsItem) => (
-                    <MotionGridItem
-                        key={newsItem.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4 }}
-                    >
-                        <MotionBox
-                            bg="rgba(255,255,255,0.05)"
-                            p={4}
-                            borderRadius="xl"
-                            border="1px solid"
-                            borderColor="rgba(255,255,255,0.1)"
-                            backdropFilter="blur(10px)"
-                            position="relative"
-                            overflow="hidden"
-                            whileHover={{ borderColor: secondaryColor, boxShadow: `0 0 20px ${secondaryColor}50` }}
-                            transition={{ duration: 0.3 }}
+                {news.map((newsItem) => {
+                    const isDeleted = !!newsItem.deleted_at;
+                    return (
+                        <MotionGridItem
+                            key={newsItem.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4 }}
                         >
-                            {newsItem.image_url && (
-                                <Image
-                                    src={newsItem.image_url}
-                                    alt={newsItem.title}
-                                    w="100%"
-                                    h="200px"
-                                    objectFit="cover"
-                                    borderRadius="md"
-                                    mb={4}
-                                />
-                            )}
+                            <MotionBox
+                                bg="rgba(255,255,255,0.05)"
+                                p={4}
+                                borderRadius="xl"
+                                border="1px solid"
+                                borderColor="rgba(255,255,255,0.1)"
+                                backdropFilter="blur(10px)"
+                                position="relative"
+                                overflow="hidden"
+                                whileHover={{ borderColor: secondaryColor, boxShadow: `0 0 20px ${secondaryColor}50` }}
+                                transition={{ duration: 0.3 }}
+                                style={{
+                                    filter: isDeleted ? 'grayscale(0.7) brightness(0.7)' : undefined,
+                                    opacity: isDeleted ? 0.7 : 1,
+                                    pointerEvents: restoringId === newsItem.id ? 'none' : undefined,
+                                    transition: 'filter 0.3s, opacity 0.3s',
+                                }}
+                            >
+                                {newsItem.image_url && (
+                                    <Image
+                                        src={newsItem.image_url}
+                                        alt={newsItem.title}
+                                        w="100%"
+                                        h="200px"
+                                        objectFit="cover"
+                                        borderRadius="md"
+                                        mb={4}
+                                    />
+                                )}
 
-                            <VStack align="stretch" spacing={3}>
-                                <HStack justify="space-between" align="start">
-                                    <Heading size="md" fontFamily="Playfair Display" noOfLines={2} flex={1}>
-                                        {newsItem.title}
-                                    </Heading>
-                                    {newsItem.is_published ? (
-                                        <Badge colorScheme="green" variant="subtle">
-                                            <CFaEye style={{ marginRight: '4px' }} />
-                                            Опубликовано
-                                        </Badge>
-                                    ) : (
-                                        <Badge colorScheme="gray" variant="subtle">
-                                            <CFaEyeSlash style={{ marginRight: '4px' }} />
-                                            Черновик
-                                        </Badge>
-                                    )}
-                                </HStack>
+                                <VStack align="stretch" spacing={3}>
+                                    <HStack justify="space-between" align="start">
+                                        <Heading size="md" fontFamily="Playfair Display" noOfLines={2} flex={1}>
+                                            {newsItem.title}
+                                        </Heading>
+                                        {newsItem.is_published ? (
+                                            <Badge colorScheme="green" variant="subtle">
+                                                <CFaEye style={{ marginRight: '4px' }} />
+                                                Опубликовано
+                                            </Badge>
+                                        ) : (
+                                            <Badge colorScheme="gray" variant="subtle">
+                                                <CFaEyeSlash style={{ marginRight: '4px' }} />
+                                                Черновик
+                                            </Badge>
+                                        )}
+                                    </HStack>
 
-                                <Text noOfLines={3} fontSize="sm" color="#CCCCCC">
-                                    {newsItem.summary || truncateText(newsItem.content, 150)}
-                                </Text>
+                                    <Text noOfLines={3} fontSize="sm" color="#CCCCCC">
+                                        {newsItem.summary || truncateText(newsItem.content, 150)}
+                                    </Text>
 
-                                <HStack spacing={2} fontSize="sm" color="#AAAAAA">
-                                    <CFaCalendar style={{ display: 'inline' }} />
-                                    <Text>{formatDate(newsItem.published_date)}</Text>
-                                    {newsItem.author && (
-                                        <>
-                                            <Text>•</Text>
-                                            <Text>Автор: {newsItem.author}</Text>
-                                        </>
-                                    )}
-                                </HStack>
+                                    <HStack spacing={2} fontSize="sm" color="#AAAAAA">
+                                        <CFaCalendar style={{ display: 'inline' }} />
+                                        <Text>{formatDate(newsItem.published_date)}</Text>
+                                        {newsItem.author && (
+                                            <>
+                                                <Text>•</Text>
+                                                <Text>Автор: {newsItem.author}</Text>
+                                            </>
+                                        )}
+                                    </HStack>
 
-                                <Flex justify="flex-end" gap={2} mt={2}>
-                                    <Tooltip label="Редактировать" hasArrow>
-                                        <IconButton
-                                            size="sm"
-                                            icon={<CFaEdit />}
-                                            colorScheme="blue"
-                                            variant="ghost"
-                                            onClick={() => openEditForm(newsItem)}
-                                        />
-                                    </Tooltip>
-
-                                    <Tooltip label="Удалить" hasArrow>
-                                        <IconButton
-                                            size="sm"
-                                            icon={<CFaTrash />}
-                                            colorScheme="red"
-                                            variant="ghost"
-                                            onClick={() => confirmDelete(newsItem.id)}
-                                        />
-                                    </Tooltip>
-                                </Flex>
-                            </VStack>
-                        </MotionBox>
-                    </MotionGridItem>
-                ))}
+                                    <Flex justify="flex-end" gap={2} mt={2}>
+                                        <Tooltip label="Редактировать" hasArrow>
+                                            <IconButton
+                                                size="sm"
+                                                icon={<CFaEdit />}
+                                                colorScheme="blue"
+                                                variant="ghost"
+                                                onClick={() => openEditForm(newsItem)}
+                                                isDisabled={isDeleted}
+                                            />
+                                        </Tooltip>
+                                        {isDeleted ? (
+                                            <Tooltip label="Восстановить" hasArrow>
+                                                <IconButton
+                                                    size="sm"
+                                                    icon={<FaHistory />}
+                                                    colorScheme="yellow"
+                                                    variant="ghost"
+                                                    isLoading={restoringId === newsItem.id}
+                                                    onClick={() => handleRestoreNews(newsItem.id)}
+                                                />
+                                            </Tooltip>
+                                        ) : (
+                                            <Tooltip label="Удалить" hasArrow>
+                                                <IconButton
+                                                    size="sm"
+                                                    icon={<CFaTrash />}
+                                                    colorScheme="red"
+                                                    variant="ghost"
+                                                    onClick={() => handleSoftDeleteNews(newsItem.id)}
+                                                />
+                                            </Tooltip>
+                                        )}
+                                    </Flex>
+                                </VStack>
+                            </MotionBox>
+                        </MotionGridItem>
+                    );
+                })}
             </Grid>
         );
     };
