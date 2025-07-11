@@ -166,6 +166,17 @@ class PefomancesList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class PerfomancesListAdmin(APIView):
+    model_class = Perfomances
+    serializer_class = PerfomanceSerializer
+
+
+    def get(self, request, format=None):
+        perfomances = self.model_class.objects.order_by('id')
+        serializer = self.serializer_class(perfomances, many=True)
+        return Response(serializer.data)
+
+
 class PerfomanceDetail(APIView):
     model_class = Perfomances
     serializer_class = PerfomanceSerializer
@@ -273,6 +284,17 @@ class DirectorsList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class DirectorsListAdmin(APIView):
+    model_class = DirectorsTheatre
+    serializer_class = DirectorsSerializer
+
+
+    def get(self, request, format=None):
+        directors = self.model_class.objects.order_by('id')
+        serializer = self.serializer_class(directors, many=True)
+        return Response(serializer.data)
+
+
 class DirectorDetail(APIView):
     model_class = DirectorsTheatre
     serializer_class = DirectorsSerializer
@@ -287,7 +309,7 @@ class DirectorDetail(APIView):
     @swagger_auto_schema(request_body=DirectorsSerializer)
     def put(self, request, id, format=None):
         director = get_object_or_404(self.model_class, id=id)
-        serializer = self.serializer_class(director, date=request.data, patrial=True)
+        serializer = self.serializer_class(director, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -454,26 +476,7 @@ class ImageUploadView(APIView):
     """
     permission_classes = [permissions.IsAuthenticated]
     
-    @swagger_auto_schema(
-        operation_description="Загрузка изображения в MinIO",
-        request_body=None,
-        # manual_parameters=[
-        #     {
-        #         'name': 'image',
-        #         'in': 'formData',
-        #         'type': 'file',
-        #         'required': True,
-        #         'description': 'Изображение для загрузки'
-        #     },
-        #     {
-        #         'name': 'folder',
-        #         'in': 'formData',
-        #         'type': 'string',
-        #         'required': False,
-        #         'description': 'Папка для сохранения (по умолчанию: images)'
-        #     }
-        # ]
-    )
+    @swagger_auto_schema(operation_description="Загрузка изображения в MinIO", request_body=None)
     def post(self, request):
         try:
             # Проверяем наличие файла

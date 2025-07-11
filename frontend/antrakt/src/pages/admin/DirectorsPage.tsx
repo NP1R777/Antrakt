@@ -10,6 +10,7 @@ import {
     Badge,
     Container,
     chakra,
+    Avatar,
     useDisclosure,
     Modal,
     ModalOverlay,
@@ -28,18 +29,17 @@ import {
     Spinner,
     Text,
     IconButton,
-    Tooltip,
-    Image
+    Tooltip
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import {
-    FaPlus,
+    FaUserPlus,
     FaTrash,
     FaEdit,
     FaUndo
 } from 'react-icons/fa';
 import axios from 'axios';
-import { PerformanceForm } from './forms/PerformancesForm';
+import { DirectorForm } from './forms/DirectorForm';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -48,33 +48,27 @@ const MotionButton = motion(Button);
 const primaryColor = '#800020';
 const secondaryColor = '#A00030';
 
-const CFaPlus = chakra(FaPlus as any);
+const CFaUserPlus = chakra(FaUserPlus as any);
 const CFaTrash = chakra(FaTrash as any);
 const CFaEdit = chakra(FaEdit as any);
 const CFaUndo = chakra(FaUndo as any);
 
-interface Performance {
+interface Director {
     id: number;
-    title: string;
-    author: string;
+    name: string;
     description: string;
-    duration: string;
-    genre: string;
-    premiere_date: string;
+    perfomances: string[];
+    years: number[];
+    team_name: string[];
     image_url: string;
-    is_active: boolean;
-    age_limit: string;
-    production_team: string[];
-    the_cast: string[];
-    afisha: boolean;
     deleted_at?: string | null;
 }
 
-const PerformancesPage: React.FC = () => {
-    const [performances, setPerformances] = useState<Performance[]>([]);
+const DirectorsPage: React.FC = () => {
+    const [directors, setDirectors] = useState<Director[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [deleteId, setDeleteId] = useState<number | null>(null);
-    const [currentPerformance, setCurrentPerformance] = useState<Performance | null>(null);
+    const [currentDirector, setCurrentDirector] = useState<Director | null>(null);
     const toast = useToast();
 
     const { isOpen: isFormOpen, onOpen: onFormOpen, onClose: onFormClose } = useDisclosure();
@@ -82,19 +76,19 @@ const PerformancesPage: React.FC = () => {
     const cancelRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
-        fetchPerformances();
+        fetchDirectors();
     }, []);
 
-    const fetchPerformances = async () => {
+    const fetchDirectors = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/perfomances-admin/');
-            setPerformances(response.data);
+            const response = await axios.get('http://localhost:8000/directors-admin/');
+            setDirectors(response.data);
             setIsLoading(false);
         } catch (error) {
-            console.error('Ошибка при загрузке спектаклей:', error);
+            console.error('Ошибка при загрузке режиссёров:', error);
             toast({
                 title: 'Ошибка',
-                description: 'Не удалось загрузить спектакли',
+                description: 'Не удалось загрузить режиссёров',
                 status: 'error',
                 duration: 3000,
                 isClosable: true,
@@ -103,28 +97,33 @@ const PerformancesPage: React.FC = () => {
         }
     };
 
-    const handleSoftDelete = async () => {
-        if (!deleteId) return;
+    const handleDeleteDirector = async (id: number) => {
+        if (!id) return;
 
         try {
-            await axios.put(`http://localhost:8000/perfomance${deleteId}/`, {
+            await axios.put(`http://localhost:8000/director${id}/`, {
                 deleted_at: new Date().toISOString()
             });
-            setPerformances(performances.map(performance =>
-                performance.id === deleteId ? { ...performance, deleted_at: new Date().toISOString() } : performance
-            ));
             toast({
                 title: 'Успех!',
-                description: 'Спектакль удалён',
+                description: 'Режиссёр удалён',
                 status: 'success',
                 duration: 2000,
                 isClosable: true,
             });
+
+            setDirectors(prevDirectors =>
+                prevDirectors.map(director =>
+                    director.id === id
+                        ? { ...director, deleted_at: new Date().toISOString() }
+                        : director
+                )
+            );
         } catch (error) {
-            console.error('Ошибка при удалении спектакля:', error);
+            console.error('Ошибка при удалении режиссёра:', error);
             toast({
                 title: 'Ошибка',
-                description: 'Не удалось удалить спектакль',
+                description: 'Не удалось удалить режиссёра',
                 status: 'error',
                 duration: 3000,
                 isClosable: true,
@@ -135,26 +134,33 @@ const PerformancesPage: React.FC = () => {
         }
     };
 
-    const handleRestorePerformance = async (id: number) => {
+    const handleRestoreDirector = async (id: number) => {
+        if (!id) return;
+
         try {
-            await axios.put(`http://localhost:8000/perfomance${id}/`, {
+            await axios.put(`http://localhost:8000/director${id}/`, {
                 deleted_at: null
             });
-            setPerformances(performances.map(performance =>
-                performance.id === id ? { ...performance, deleted_at: null } : performance
-            ));
             toast({
                 title: 'Успех!',
-                description: 'Спектакль успешно восстановлен',
+                description: 'Режиссёр восстановлен',
                 status: 'success',
                 duration: 2000,
                 isClosable: true,
             });
+
+            setDirectors(prevDirectors =>
+                prevDirectors.map(director =>
+                    director.id === id
+                        ? { ...director, deleted_at: null }
+                        : director
+                )
+            );
         } catch (error) {
-            console.error('Ошибка при восстановлении спектакля:', error);
+            console.error('Ошибка при восстановлении режиссёра:', error);
             toast({
                 title: 'Ошибка',
-                description: 'Не удалось восстановить спектакль',
+                description: 'Не удалось восстановить режиссёра',
                 status: 'error',
                 duration: 3000,
                 isClosable: true,
@@ -162,13 +168,13 @@ const PerformancesPage: React.FC = () => {
         }
     };
 
-    const openEditForm = (performance: Performance) => {
-        setCurrentPerformance(performance);
+    const openEditForm = (director: Director) => {
+        setCurrentDirector(director);
         onFormOpen();
     };
 
     const openCreateForm = () => {
-        setCurrentPerformance(null);
+        setCurrentDirector(null);
         onFormOpen();
     };
 
@@ -177,17 +183,7 @@ const PerformancesPage: React.FC = () => {
         onDeleteOpen();
     };
 
-    const formatDuration = (timeString: string) => {
-        if (!timeString) return '0ч 0мин';
-        const [hours, minutes] = timeString.split(':').map(Number);
-        return `${hours}ч ${minutes}мин`;
-    };
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('ru-RU');
-    };
-
-    const renderPerformanceCards = () => {
+    const renderDirectorCards = () => {
         if (isLoading) {
             return (
                 <Flex justify="center" align="center" minH="200px">
@@ -196,10 +192,10 @@ const PerformancesPage: React.FC = () => {
             );
         }
 
-        if (performances.length === 0) {
+        if (directors.length === 0) {
             return (
                 <Text textAlign="center" fontSize="lg" color="#AAAAAA">
-                    Спектакли не найдены
+                    Режиссёры не найдены
                 </Text>
             );
         }
@@ -212,9 +208,9 @@ const PerformancesPage: React.FC = () => {
                 maxW="100%"
                 overflow="hidden"
             >
-                {performances.map(performance => (
+                {directors.map(director => (
                     <MotionGridItem
-                        key={performance.id}
+                        key={director.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4 }}
@@ -223,17 +219,17 @@ const PerformancesPage: React.FC = () => {
                         zIndex={1}
                     >
                         <MotionBox
-                            bg={performance.deleted_at ? "rgba(50,50,50,0.5)" : "rgba(255,255,255,0.05)"}
+                            bg={director.deleted_at ? "rgba(50,50,50,0.5)" : "rgba(255,255,255,0.05)"}
                             p={4}
                             borderRadius="xl"
                             border="1px solid"
-                            borderColor={performance.deleted_at ? "#555" : "rgba(255,255,255,0.1)"}
+                            borderColor={director.deleted_at ? "#555" : "rgba(255,255,255,0.1)"}
                             backdropFilter="blur(10px)"
                             position="relative"
                             overflow="hidden"
                             whileHover={{
-                                borderColor: performance.deleted_at ? "#666" : secondaryColor,
-                                boxShadow: performance.deleted_at ? "none" : `0 0 20px ${secondaryColor}50`
+                                borderColor: director.deleted_at ? "#666" : secondaryColor,
+                                boxShadow: director.deleted_at ? "none" : `0 0 20px ${secondaryColor}50`
                             }}
                             transition={{ duration: 0.3 }}
                             w="100%"
@@ -241,9 +237,8 @@ const PerformancesPage: React.FC = () => {
                             minW="300px"
                             mx="auto"
                             minH="250px"
-                            opacity={performance.deleted_at ? 0.7 : 1}
                         >
-                            {performance.deleted_at && (
+                            {director.deleted_at && (
                                 <Badge
                                     position="absolute"
                                     top={2}
@@ -263,19 +258,27 @@ const PerformancesPage: React.FC = () => {
                                     border={`2px solid ${primaryColor}`}
                                     flexShrink={0}
                                     bg="#222"
+                                    opacity={director.deleted_at ? 0.6 : 1}
                                 >
-                                    <Image
-                                        src={performance.image_url}
-                                        alt={performance.title}
-                                        w="100%"
-                                        h="100%"
-                                        objectFit="cover"
-                                        objectPosition="top center"
+                                    <img
+                                        src={director.image_url}
+                                        alt={director.name}
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover',
+                                            objectPosition: 'top center'
+                                        }}
                                     />
                                 </Box>
                                 <Box ml={4} maxW="calc(100% - 80px)">
-                                    <Heading size="md" fontFamily="Playfair Display" noOfLines={1}>
-                                        {performance.title}
+                                    <Heading
+                                        size="md"
+                                        fontFamily="Playfair Display"
+                                        noOfLines={1}
+                                        color={director.deleted_at ? "#999" : "white"}
+                                    >
+                                        {director.name}
                                     </Heading>
                                     <Badge
                                         bg={secondaryColor}
@@ -291,8 +294,9 @@ const PerformancesPage: React.FC = () => {
                                         textShadow="0 1px 2px rgba(0, 0, 0, 0.3)"
                                         _hover={{ bg: '#B00040' }}
                                         noOfLines={2}
+                                        opacity={director.deleted_at ? 0.6 : 1}
                                     >
-                                        {performance.production_team[0]} • {performance.age_limit}
+                                        {director.team_name?.[0] || 'Режиссёр театра'}
                                     </Badge>
                                 </Box>
                             </Flex>
@@ -300,51 +304,61 @@ const PerformancesPage: React.FC = () => {
                             <Text
                                 noOfLines={3}
                                 fontSize="sm"
-                                color="#CCCCCC"
+                                color={director.deleted_at ? "#999" : "#CCCCCC"}
                                 mb={4}
+                                opacity={director.deleted_at ? 0.6 : 1}
                             >
-                                {performance.description}
+                                {director.description}
                             </Text>
 
-                            <Flex justify="space-between" align="center" mt={4}>
-                                <Badge colorScheme={performance.afisha ? "green" : "purple"}>
-                                    {performance.afisha ? "В афише" : "В архиве"}
-                                </Badge>
+                            <Flex justify="space-between" align="center">
+                                <Text fontSize="sm" color="#AAAAAA" fontStyle="italic">
+                                    Поставлено спектаклей: {director.perfomances?.length || 0}
+                                </Text>
 
                                 <Flex justify="flex-end" gap={2}>
                                     <Tooltip label="Редактировать" hasArrow>
-                                        <IconButton
+                                        <MotionButton
                                             size="sm"
-                                            icon={<CFaEdit />}
-                                            colorScheme="blue"
-                                            variant="ghost"
-                                            onClick={() => openEditForm(performance)}
-                                            aria-label="Редактировать спектакль"
-                                            isDisabled={!!performance.deleted_at}
-                                        />
+                                            iconSpacing={0}
+                                            bg="transparent"
+                                            color="#3182CE"
+                                            onClick={() => openEditForm(director)}
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.9 }}
+                                            isDisabled={!!director.deleted_at}
+                                        >
+                                            <CFaEdit />
+                                        </MotionButton>
                                     </Tooltip>
 
-                                    {performance.deleted_at ? (
+                                    {director.deleted_at ? (
                                         <Tooltip label="Восстановить" hasArrow>
-                                            <IconButton
+                                            <MotionButton
                                                 size="sm"
-                                                icon={<CFaUndo />}
-                                                colorScheme="green"
-                                                variant="ghost"
-                                                onClick={() => handleRestorePerformance(performance.id)}
-                                                aria-label="Восстановить спектакль"
-                                            />
+                                                iconSpacing={0}
+                                                bg="transparent"
+                                                color="#48BB78"
+                                                onClick={() => handleRestoreDirector(director.id)}
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
+                                            >
+                                                <CFaUndo />
+                                            </MotionButton>
                                         </Tooltip>
                                     ) : (
                                         <Tooltip label="Удалить" hasArrow>
-                                            <IconButton
+                                            <MotionButton
                                                 size="sm"
-                                                icon={<CFaTrash />}
-                                                colorScheme="red"
-                                                variant="ghost"
-                                                onClick={() => confirmDelete(performance.id)}
-                                                aria-label="Удалить спектакль"
-                                            />
+                                                iconSpacing={0}
+                                                bg="transparent"
+                                                color="#E53E3E"
+                                                onClick={() => confirmDelete(director.id)}
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
+                                            >
+                                                <CFaTrash />
+                                            </MotionButton>
                                         </Tooltip>
                                     )}
                                 </Flex>
@@ -360,28 +374,29 @@ const PerformancesPage: React.FC = () => {
         <Box minH="100vh" bg="black" color="white" py={8} overflow="hidden" position="relative" zIndex={0}>
             <Container maxW="container.lg" px={{ base: 4, md: 6 }} overflow="hidden" position="relative" zIndex={1}>
                 <Flex justify="space-between" align="center" mb={8} flexWrap="wrap">
-                    <VStack align="start" spacing={2} mb={{ base: 4, md: 0 }}>
+                    <VStack align="start" spacing={2} mb={{ base: 4, md: 0 }} maxW="100%">
                         <Heading fontSize="3xl" fontFamily="Playfair Display" textShadow={`0 0 15px ${primaryColor}50`}>
-                            Управление спектаклями
+                            Управление режиссёрами
                         </Heading>
                         <Text color="#AAAAAA">
-                            Здесь вы можете управлять спектаклями театральной студии "Антракт"
+                            Здесь вы можете управлять режиссёрами театральной студии "Антракт"
                         </Text>
                     </VStack>
 
                     <MotionButton
-                        leftIcon={<CFaPlus />}
+                        leftIcon={<CFaUserPlus />}
                         bg={primaryColor}
                         _hover={{ bg: '#900030' }}
                         onClick={openCreateForm}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        mb={{ base: 4, md: 0 }}
                     >
-                        Добавить спектакль
+                        Добавить режиссёра
                     </MotionButton>
                 </Flex>
 
-                {renderPerformanceCards()}
+                {renderDirectorCards()}
             </Container>
 
             {/* Модальное окно для создания/редактирования */}
@@ -389,14 +404,14 @@ const PerformancesPage: React.FC = () => {
                 <ModalOverlay bg="blackAlpha.700" />
                 <ModalContent bg="#222222" color="white">
                     <ModalHeader borderBottom="1px solid #333333" fontFamily="Playfair Display">
-                        {currentPerformance ? 'Редактировать спектакль' : 'Добавить новый спектакль'}
+                        {currentDirector ? 'Редактировать режиссёра' : 'Добавить нового режиссёра'}
                     </ModalHeader>
                     <ModalCloseButton />
                     <ModalBody py={6} overflowY="auto">
-                        <PerformanceForm
-                            initialData={currentPerformance || undefined}
+                        <DirectorForm
+                            initialData={currentDirector || undefined}
                             onSuccess={() => {
-                                fetchPerformances();
+                                fetchDirectors();
                                 onFormClose();
                             }}
                             onCancel={onFormClose}
@@ -415,11 +430,11 @@ const PerformancesPage: React.FC = () => {
                 <AlertDialogOverlay>
                     <AlertDialogContent bg="#222222" color="white">
                         <AlertDialogHeader fontSize="lg" fontWeight="bold" fontFamily="Playfair Display">
-                            Удаление спектакля
+                            Удаление режиссёра
                         </AlertDialogHeader>
 
                         <AlertDialogBody>
-                            Вы уверены, что хотите удалить этот спектакль?
+                            Вы уверены, что хотите удалить этого режиссёра?
                         </AlertDialogBody>
 
                         <AlertDialogFooter>
@@ -434,7 +449,7 @@ const PerformancesPage: React.FC = () => {
                             <Button
                                 bg="#E53E3E"
                                 _hover={{ bg: '#F56565' }}
-                                onClick={handleSoftDelete}
+                                onClick={() => handleDeleteDirector(deleteId!)}
                                 ml={3}
                             >
                                 Удалить
@@ -447,4 +462,4 @@ const PerformancesPage: React.FC = () => {
     );
 };
 
-export default PerformancesPage;
+export default DirectorsPage;

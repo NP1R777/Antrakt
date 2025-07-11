@@ -4,6 +4,7 @@ import Hero from "./sections/Hero";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import NewsPage from "./pages/admin/NewsPage";
+import UsersPage from "./pages/admin/UsersPage";
 import Dashboard from "./pages/admin/Dashboard";
 import NewsSection from "./sections/NewsSection";
 import Navigation from "./components/Navigation";
@@ -11,6 +12,7 @@ import ActorsPage from "./pages/admin/ActorsPage";
 import Performances from "./sections/Perfomances";
 import Testimonials from "./sections/Testimonials";
 import { ChakraProvider, Box } from "@chakra-ui/react";
+import DirectorsPage from "./pages/admin/DirectorsPage";
 import AdminLayout from "./components/admin/AdminLayout";
 import PerformancesPage from './pages/admin/PerformancesPage'
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
@@ -104,10 +106,7 @@ function App() {
               element={
                 <ProtectedAdminRoute>
                   <AdminLayout>
-                    <Box p={8} color="white">
-                      <h1>Управление режиссёрами</h1>
-                      <p>Скоро здесь будет CRUD для режиссёров</p>
-                    </Box>
+                    <DirectorsPage />
                   </AdminLayout>
                 </ProtectedAdminRoute>
               }
@@ -147,6 +146,17 @@ function App() {
                       <h1>Управление архивом</h1>
                       <p>Скоро здесь будет CRUD для архива</p>
                     </Box>
+                  </AdminLayout>
+                </ProtectedAdminRoute>
+              }
+            />
+
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminLayout>
+                    <UsersPage />
                   </AdminLayout>
                 </ProtectedAdminRoute>
               }

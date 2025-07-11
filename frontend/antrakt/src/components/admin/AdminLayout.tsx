@@ -34,6 +34,7 @@ import {
     FaSignOutAlt,
     FaHome,
     FaArchive,
+    FaUser
 } from 'react-icons/fa';
 
 import { useAuth } from '../../contexts/AuthContext';
@@ -53,6 +54,7 @@ const CFaArchive = chakra(FaArchive as any);
 const CFaBars = chakra(FaBars as any);
 const CFaSignOutAlt = chakra(FaSignOutAlt as any);
 const CFaHome = chakra(FaHome as any);
+const CFaUser = chakra(FaUser as any);
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -118,6 +120,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             icon: CFaArchive,
             path: '/admin/archive',
             active: location.pathname.includes('/admin/archive')
+        },
+        {
+            label: 'Пользователи',
+            icon: CFaUser,
+            path: '/admin/users',
+            active: location.pathname.includes('/admin/users/')
         }
     ];
 

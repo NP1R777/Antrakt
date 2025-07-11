@@ -11,8 +11,6 @@ import {
     Badge,
     Container,
     chakra,
-    Input,
-    Textarea,
     useDisclosure,
     Modal,
     ModalOverlay,
@@ -30,30 +28,22 @@ import {
     useToast,
     Spinner,
     Text,
-    FormControl,
-    FormLabel,
-    IconButton,
     Tooltip,
     Image,
-    Switch,
-    FormHelperText
+    IconButton
 } from '@chakra-ui/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
     FaPlus,
     FaTrash,
     FaEdit,
-    FaSave,
-    FaTimes,
     FaNewspaper,
-    FaCalendar,
     FaEye,
     FaEyeSlash,
-    FaImage,
     FaUndo
 } from 'react-icons/fa';
 import axios from 'axios';
-import ImageUpload from '../../components/ImageUpload';
+import { NewsForm } from './forms/NewsForm';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -61,19 +51,13 @@ const MotionButton = motion(Button);
 
 const primaryColor = '#800020';
 const secondaryColor = '#A00030';
-const accentColor = '#4ECDC4';
 
-// Обернем иконки в chakra для корректной работы
 const CFaPlus = chakra(FaPlus as any);
 const CFaTrash = chakra(FaTrash as any);
 const CFaEdit = chakra(FaEdit as any);
-const CFaSave = chakra(FaSave as any);
-const CFaTimes = chakra(FaTimes as any);
 const CFaNewspaper = chakra(FaNewspaper as any);
-const CFaCalendar = chakra(FaCalendar as any);
 const CFaEye = chakra(FaEye as any);
 const CFaEyeSlash = chakra(FaEyeSlash as any);
-const CFaImage = chakra(FaImage as any);
 const CFaUndo = chakra(FaUndo as any);
 
 interface News {
@@ -88,13 +72,9 @@ interface News {
 
 const NewsPage: React.FC = () => {
     const [news, setNews] = useState<News[]>([]);
-    const [currentNews, setCurrentNews] = useState<Partial<News>>({
-        is_published: false,
-        deleted_at: null
-    });
     const [isLoading, setIsLoading] = useState(true);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [deleteId, setDeleteId] = useState<number | null>(null);
+    const [currentNews, setCurrentNews] = useState<News | null>(null);
     const toast = useToast();
 
     const { isOpen: isFormOpen, onOpen: onFormOpen, onClose: onFormClose } = useDisclosure();
@@ -108,7 +88,6 @@ const NewsPage: React.FC = () => {
     const fetchNews = async () => {
         try {
             const response = await axios.get('http://localhost:8000/news-admin/');
-            // Показываем все новости, включая удаленные
             setNews(response.data);
             setIsLoading(false);
         } catch (error) {
@@ -124,85 +103,9 @@ const NewsPage: React.FC = () => {
         }
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setCurrentNews(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleImageUpload = (imageUrl: string) => {
-        setCurrentNews(prev => ({
-            ...prev,
-            image_url: imageUrl
-        }));
-    };
-
-    const handleImageRemove = () => {
-        setCurrentNews(prev => ({
-            ...prev,
-            image_url: ''
-        }));
-    };
-
-    const handleCreateNews = async () => {
-        setIsSubmitting(true);
-        try {
-            await axios.post('http://localhost:8000/news/', currentNews);
-            toast({
-                title: 'Успешно',
-                description: 'Новость создана',
-                status: 'success',
-                duration: 3000,
-                isClosable: true,
-            });
-            resetForm();
-            fetchNews();
-        } catch (error) {
-            console.error('Ошибка при создании новости:', error);
-            toast({
-                title: 'Ошибка',
-                description: 'Не удалось создать новость',
-                status: 'error',
-                duration: 3000,
-                isClosable: true,
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleUpdateNews = async () => {
-        if (!currentNews.id) return;
-
-        setIsSubmitting(true);
-        try {
-            await axios.put(`http://localhost:8000/news${currentNews.id}/`, currentNews);
-            toast({
-                title: 'Успешно',
-                description: 'Новость обновлена',
-                status: 'success',
-                duration: 3000,
-                isClosable: true,
-            });
-            resetForm();
-            fetchNews();
-        } catch (error) {
-            console.error('Ошибка при обновлении новости:', error);
-            toast({
-                title: 'Ошибка',
-                description: 'Не удалось обновить новость',
-                status: 'error',
-                duration: 3000,
-                isClosable: true,
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
     const handleDeleteNews = async () => {
         if (!deleteId) return;
 
-        setIsSubmitting(true);
         try {
             await axios.put(`http://localhost:8000/news${deleteId}/`, {
                 deleted_at: new Date().toISOString()
@@ -215,7 +118,6 @@ const NewsPage: React.FC = () => {
                 isClosable: true,
             });
 
-            // Обновляем локальное состояние вместо перезагрузки
             setNews(prevNews =>
                 prevNews.map(item =>
                     item.id === deleteId
@@ -233,7 +135,6 @@ const NewsPage: React.FC = () => {
                 isClosable: true,
             });
         } finally {
-            setIsSubmitting(false);
             onDeleteClose();
             setDeleteId(null);
         }
@@ -242,7 +143,6 @@ const NewsPage: React.FC = () => {
     const handleRestoreNews = async (id: number) => {
         if (!id) return;
 
-        setIsSubmitting(true);
         try {
             await axios.put(`http://localhost:8000/news${id}/`, {
                 deleted_at: null
@@ -255,7 +155,6 @@ const NewsPage: React.FC = () => {
                 isClosable: true,
             });
 
-            // Обновляем локальное состояние вместо перезагрузки
             setNews(prevNews =>
                 prevNews.map(item =>
                     item.id === id
@@ -272,18 +171,16 @@ const NewsPage: React.FC = () => {
                 duration: 3000,
                 isClosable: true,
             });
-        } finally {
-            setIsSubmitting(false);
         }
-    };
-
-    const resetForm = () => {
-        setCurrentNews({ is_published: false, deleted_at: null });
-        onFormClose();
     };
 
     const openEditForm = (newsItem: News) => {
         setCurrentNews(newsItem);
+        onFormOpen();
+    };
+
+    const openCreateForm = () => {
+        setCurrentNews(null);
         onFormOpen();
     };
 
@@ -469,7 +366,7 @@ const NewsPage: React.FC = () => {
                         leftIcon={<CFaPlus />}
                         bg={primaryColor}
                         _hover={{ bg: '#900030' }}
-                        onClick={onFormOpen}
+                        onClick={openCreateForm}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                     >
@@ -481,129 +378,24 @@ const NewsPage: React.FC = () => {
             </Container>
 
             {/* Модальное окно для создания/редактирования */}
-            <Modal isOpen={isFormOpen} onClose={resetForm} size="4xl" scrollBehavior="inside">
+            <Modal isOpen={isFormOpen} onClose={onFormClose} size="4xl" scrollBehavior="inside">
                 <ModalOverlay bg="blackAlpha.700" />
                 <ModalContent bg="#222222" color="white">
                     <ModalHeader borderBottom="1px solid #333333" fontFamily="Playfair Display">
-                        {currentNews.id ? 'Редактировать новость' : 'Добавить новую новость'}
+                        {currentNews ? 'Редактировать новость' : 'Добавить новую новость'}
                     </ModalHeader>
                     <ModalCloseButton />
-
                     <ModalBody py={6}>
-                        <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={6}>
-                            {/* Левая колонка */}
-                            <VStack spacing={4} align="stretch">
-                                <FormControl>
-                                    <FormLabel display="flex" alignItems="center" gap={2}>
-                                        <CFaNewspaper color={primaryColor} />
-                                        <Text as="span" fontWeight="semibold">Заголовок новости</Text>
-                                    </FormLabel>
-                                    <Input
-                                        name="title"
-                                        placeholder="Заголовок новости"
-                                        value={currentNews.title || ''}
-                                        onChange={handleInputChange}
-                                        focusBorderColor={primaryColor}
-                                        bg="#333333"
-                                        borderColor="#444444"
-                                        _hover={{ borderColor: '#555555' }}
-                                    />
-                                </FormControl>
-
-                                <FormControl>
-                                    <FormLabel fontWeight="semibold">Краткое описание</FormLabel>
-                                    <Textarea
-                                        name="summary"
-                                        placeholder="Краткое описание новости"
-                                        value={currentNews.summary || ''}
-                                        onChange={handleInputChange}
-                                        focusBorderColor={primaryColor}
-                                        bg="#333333"
-                                        borderColor="#444444"
-                                        _hover={{ borderColor: '#555555' }}
-                                        rows={3}
-                                    />
-                                    <FormHelperText color="#AAAAAA">
-                                        Краткое описание для предварительного просмотра
-                                    </FormHelperText>
-                                </FormControl>
-
-                                <FormControl display="flex" alignItems="center">
-                                    <FormLabel htmlFor="is_published" mb="0" fontWeight="semibold">
-                                        Опубликовать
-                                    </FormLabel>
-                                    <Switch
-                                        id="is_published"
-                                        isChecked={currentNews.is_published}
-                                        onChange={(e) => setCurrentNews(prev => ({
-                                            ...prev,
-                                            is_published: e.target.checked
-                                        }))}
-                                        colorScheme="green"
-                                    />
-                                </FormControl>
-                            </VStack>
-
-                            {/* Правая колонка */}
-                            <VStack spacing={4} align="stretch">
-                                <FormControl>
-                                    <FormLabel display="flex" alignItems="center" gap={2}>
-                                        <CFaImage color={primaryColor} />
-                                        <Text as="span" fontWeight="semibold">Изображение новости</Text>
-                                    </FormLabel>
-                                    <ImageUpload
-                                        currentImageUrl={currentNews.image_url}
-                                        onImageUpload={handleImageUpload}
-                                        onImageRemove={handleImageRemove}
-                                        contentType="news"
-                                        maxSize={10}
-                                        disabled={isSubmitting}
-                                    />
-                                </FormControl>
-
-                                <FormControl>
-                                    <FormLabel fontWeight="semibold">Содержание новости</FormLabel>
-                                    <Textarea
-                                        name="description"
-                                        placeholder="Полное содержание новости"
-                                        value={currentNews.description || ''}
-                                        onChange={handleInputChange}
-                                        focusBorderColor={primaryColor}
-                                        bg="#333333"
-                                        borderColor="#444444"
-                                        _hover={{ borderColor: '#555555' }}
-                                        rows={12}
-                                    />
-                                </FormControl>
-                            </VStack>
-                        </Grid>
+                        <NewsForm
+                            initialData={currentNews || undefined}
+                            onSuccess={() => {
+                                fetchNews();
+                                onFormClose();
+                            }}
+                            onCancel={onFormClose}
+                        />
                     </ModalBody>
-
-                    <ModalFooter borderTop="1px solid #333333">
-                        <Button
-                            variant="outline"
-                            mr={3}
-                            onClick={resetForm}
-                            leftIcon={<CFaTimes />}
-                            bg='#B00040'
-                            borderColor="#B00040"
-                            _hover={{ bg: 'red' }}
-                        >
-                            Отмена
-                        </Button>
-
-                        <MotionButton
-                            bg="#3182CE"
-                            _hover={{ bg: '#4299E1' }}
-                            isLoading={isSubmitting}
-                            onClick={currentNews.id ? handleUpdateNews : handleCreateNews}
-                            leftIcon={<CFaSave />}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            {currentNews.id ? 'Обновить' : 'Создать'}
-                        </MotionButton>
-                    </ModalFooter>
+                    <ModalFooter borderTop="1px solid #333333" />
                 </ModalContent>
             </Modal>
 
@@ -618,11 +410,9 @@ const NewsPage: React.FC = () => {
                         <AlertDialogHeader fontFamily="Playfair Display">
                             Удалить новость
                         </AlertDialogHeader>
-
                         <AlertDialogBody>
                             Вы уверены, что хотите удалить эту новость?
                         </AlertDialogBody>
-
                         <AlertDialogFooter>
                             <Button ref={cancelRef} onClick={onDeleteClose}>
                                 Отмена

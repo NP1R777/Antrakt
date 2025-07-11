@@ -15,7 +15,15 @@ import {
     HStack,
     Badge,
     Container,
-    chakra
+    chakra,
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalCloseButton,
+    ModalBody,
+    ModalFooter,
+    useDisclosure
 } from '@chakra-ui/react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import {
@@ -26,15 +34,22 @@ import {
     FaEye,
     FaPlus,
     FaChartLine,
-    FaCalendar,
+    FaCalendar
 } from 'react-icons/fa';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+// Импорт компонентов форм
+import { ActorForm } from './forms/ActorForm';
+import { PerformanceForm } from './forms/PerformancesForm';
+import { NewsForm } from './forms/NewsForm';
+import { DirectorForm } from './forms/DirectorForm';
 
 const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
 const MotionGridItem = motion(GridItem);
 
-// Wrap each react‑icon in chakra() with a cast to any
+// Wrap each react-icon in chakra() with a cast to any
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
 const CFaUsers = chakra(FaUsers as any);
 const CFaNewspaper = chakra(FaNewspaper as any);
@@ -57,15 +72,20 @@ interface RecentItem {
     id: number;
     title: string;
     date: string;
-    type: 'performance' | 'news' | 'achievement';
+    type: 'performance' | 'news' | 'achievement' | 'actor' | 'director';
 }
 
 const primaryColor = '#800020';
 
 const Dashboard: React.FC = () => {
+    const navigate = useNavigate();
     const [stats, setStats] = useState<DashboardStats>({ performances: 0, actors: 0, directors: 0, news: 0, achievements: 0, users: 0 });
     const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Состояния для управления модальными окнами
+    const [activeForm, setActiveForm] = useState<'actor' | 'performance' | 'news' | 'director' | null>(null);
+    const { isOpen, onOpen, onClose } = useDisclosure();
 
     const { scrollY } = useScroll();
     const headerY = useTransform(scrollY, [0, 200], [0, -50]);
@@ -75,12 +95,12 @@ const Dashboard: React.FC = () => {
     const fetchDashboardData = async () => {
         try {
             const [perfRes, actRes, dirRes, newsRes, achRes, usrRes] = await Promise.all([
-                axios.get('/performances/'),
-                axios.get('/actors/'),
-                axios.get('/directors/'),
-                axios.get('/news/'),
-                axios.get('/achievements/'),
-                axios.get('/users/'),
+                axios.get('http://localhost:8000/perfomances/'),
+                axios.get('http://localhost:8000/actors/'),
+                axios.get('http://localhost:8000/directors/'),
+                axios.get('http://localhost:8000/news/'),
+                axios.get('http://localhost:8000/achievements/'),
+                axios.get('http://localhost:8000/users/'),
             ]);
 
             setStats({
@@ -92,10 +112,41 @@ const Dashboard: React.FC = () => {
                 users: usrRes.data.length,
             });
 
+            // Собираем последние обновления из всех категорий
             const recent = [
-                ...newsRes.data.slice(-3).map((i: any) => ({ id: i.id, title: i.title, date: i.created_at, type: 'news' as const })),
-                ...perfRes.data.slice(-2).map((i: any) => ({ id: i.id, title: i.title, date: i.created_at, type: 'performance' as const })),
-            ].slice(-5);
+                ...newsRes.data.slice(-3).map((i: any) => ({
+                    id: i.id,
+                    title: i.title,
+                    date: i.created_at || new Date().toISOString(),
+                    type: 'news' as const
+                })),
+                ...perfRes.data.slice(-2).map((i: any) => ({
+                    id: i.id,
+                    title: i.title,
+                    date: i.created_at || new Date().toISOString(),
+                    type: 'performance' as const
+                })),
+                ...actRes.data.slice(-2).map((i: any) => ({
+                    id: i.id,
+                    title: i.name,
+                    date: i.created_at || new Date().toISOString(),
+                    type: 'actor' as const
+                })),
+                ...achRes.data.slice(-2).map((i: any) => ({
+                    id: i.id,
+                    title: i.title,
+                    date: i.created_at || new Date().toISOString(),
+                    type: 'achievement' as const
+                })),
+                ...dirRes.data.slice(-1).map((i: any) => ({
+                    id: i.id,
+                    title: i.name,
+                    date: i.created_at || new Date().toISOString(),
+                    type: 'director' as const
+                })),
+            ]
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                .slice(0, 3);
 
             setRecentItems(recent);
         } catch (err) {
@@ -115,11 +166,69 @@ const Dashboard: React.FC = () => {
     ];
 
     const quickActions = [
-        { label: 'Добавить спектакль', icon: CFaTheaterMasks, color: primaryColor },
-        { label: 'Новая новость', icon: CFaNewspaper, color: '#4ECDC4' },
-        { label: 'Добавить актёра', icon: CFaUsers, color: '#FF6B35' },
-        { label: 'Новое достижение', icon: CFaTrophy, color: '#FFD700' },
+        {
+            label: 'Добавить спектакль',
+            icon: CFaTheaterMasks,
+            color: primaryColor,
+            action: () => {
+                setActiveForm('performance');
+                onOpen();
+            }
+        },
+        {
+            label: 'Новая новость',
+            icon: CFaNewspaper,
+            color: '#4ECDC4',
+            action: () => {
+                setActiveForm('news');
+                onOpen();
+            }
+        },
+        {
+            label: 'Добавить актёра',
+            icon: CFaUsers,
+            color: '#FF6B35',
+            action: () => {
+                setActiveForm('actor');
+                onOpen();
+            }
+        },
+        {
+            label: 'Добавить режиссёра',
+            icon: CFaEye,
+            color: '#9B59B6',
+            action: () => {
+                setActiveForm('director');
+                onOpen();
+            }
+        },
+        {
+            label: 'Новое достижение',
+            icon: CFaTrophy,
+            color: '#FFD700',
+            action: () => console.log('Добавить достижение')
+        },
     ];
+
+    const handleFormSuccess = () => {
+        onClose();
+        fetchDashboardData();
+    };
+
+    const renderForm = () => {
+        switch (activeForm) {
+            case 'actor':
+                return <ActorForm onSuccess={handleFormSuccess} onCancel={onClose} />;
+            case 'performance':
+                return <PerformanceForm onSuccess={handleFormSuccess} onCancel={onClose} />;
+            case 'news':
+                return <NewsForm onSuccess={handleFormSuccess} onCancel={onClose} />;
+            case 'director':
+                return <DirectorForm onSuccess={handleFormSuccess} onCancel={onClose} />;
+            default:
+                return null;
+        }
+    };
 
     if (loading) {
         return (
@@ -155,7 +264,7 @@ const Dashboard: React.FC = () => {
                             </Heading>
                         </HStack>
                         <Text fontSize="lg" color="gray.300">
-                            Добро пожаловать в админ‑панель театральной студии "Антракт"
+                            Добро пожаловать в админ-панель театральной студии "Антракт"
                         </Text>
                     </VStack>
                 </MotionBox>
@@ -196,6 +305,7 @@ const Dashboard: React.FC = () => {
                                             variant="ghost" justifyContent="flex-start" w="full" color="white"
                                             _hover={{ bg: `${action.color}20`, color: action.color, transform: 'translateX(5px)' }}
                                             transition="all 0.3s"
+                                            onClick={action.action}
                                         >
                                             {action.label}
                                         </Button>
@@ -219,11 +329,14 @@ const Dashboard: React.FC = () => {
                                             </VStack>
                                             <Badge colorScheme={
                                                 item.type === 'performance' ? 'red' :
-                                                    item.type === 'news' ? 'blue' : 'yellow'
+                                                    item.type === 'news' ? 'blue' :
+                                                        item.type === 'achievement' ? 'yellow' :
+                                                            item.type === 'actor' ? 'green' : 'purple'
                                             } size="sm">
                                                 {item.type === 'performance' ? 'Спектакль' :
                                                     item.type === 'news' ? 'Новость' :
-                                                        'Достижение'}
+                                                        item.type === 'achievement' ? 'Достижение' :
+                                                            item.type === 'actor' ? 'Актёр' : 'Режиссёр'}
                                             </Badge>
                                         </Flex>
                                     </MotionBox>
@@ -233,6 +346,23 @@ const Dashboard: React.FC = () => {
                     </MotionGridItem>
                 </Grid>
             </Container>
+
+            {/* Модальное окно для форм */}
+            <Modal isOpen={isOpen} onClose={onClose} size="4xl">
+                <ModalOverlay bg="blackAlpha.700" />
+                <ModalContent bg="#222222" color="white">
+                    <ModalHeader borderBottom="1px solid #333333" fontFamily="Playfair Display">
+                        {activeForm === 'actor' && 'Добавить актёра'}
+                        {activeForm === 'performance' && 'Добавить спектакль'}
+                        {activeForm === 'news' && 'Добавить новость'}
+                        {activeForm === 'director' && 'Добавить режиссёра'}
+                    </ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody py={6}>
+                        {renderForm()}
+                    </ModalBody>
+                </ModalContent>
+            </Modal>
         </Box>
     );
 };
