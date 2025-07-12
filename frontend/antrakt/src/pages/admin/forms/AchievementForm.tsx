@@ -14,7 +14,7 @@ import {
     IconButton,
     HStack,
     Badge,
-    Divider
+    Switch
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import {
@@ -30,7 +30,6 @@ import { chakra, useToast } from '@chakra-ui/react';
 import ImageUpload from '../../../components/ImageUpload';
 
 const MotionButton = motion(Button);
-const MotionBox = motion(Box);
 const CFaTrophy = chakra(FaTrophy as any);
 const CFaImage = chakra(FaImage as any);
 const CFaTimes = chakra(FaTimes as any);
@@ -181,19 +180,15 @@ export const AchievementForm: React.FC<{
 
     return (
         <>
-            <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={8}>
-                {/* Левая колонка - Достижения */}
-                <VStack spacing={6} align="stretch">
-                    <Box>
-                        <FormLabel display="flex" alignItems="center" gap={2} mb={4}>
+            <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={6}>
+                {/* Левая колонка */}
+                <VStack spacing={4} align="stretch">
+                    <FormControl>
+                        <FormLabel display="flex" alignItems="center" gap={2}>
                             <CFaTrophy color={primaryColor} />
-                            <Text as="span" fontWeight="semibold" fontSize="lg">
-                                Список достижений
-                            </Text>
+                            <Text as="span" fontWeight="semibold">Добавить достижение</Text>
                         </FormLabel>
-                        
-                        {/* Добавление нового достижения */}
-                        <HStack spacing={3} mb={4}>
+                        <HStack spacing={3}>
                             <Input
                                 placeholder="Введите достижение..."
                                 value={newAchievement}
@@ -205,38 +200,34 @@ export const AchievementForm: React.FC<{
                                 _hover={{ borderColor: '#555555' }}
                                 flex={1}
                             />
-                            <MotionButton
+                            <Button
                                 leftIcon={<CFaPlus />}
                                 onClick={addAchievement}
                                 colorScheme="green"
                                 size="md"
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
                                 isDisabled={!newAchievement.trim() || isSubmitting}
                             >
                                 Добавить
-                            </MotionButton>
+                            </Button>
                         </HStack>
+                        <FormHelperText color="#AAAAAA">
+                            Нажмите Enter или кнопку "Добавить" для добавления достижения
+                        </FormHelperText>
+                    </FormControl>
 
-                        {/* Список достижений */}
-                        <VStack spacing={3} align="stretch" maxH="400px" overflowY="auto">
+                    <FormControl>
+                        <FormLabel fontWeight="semibold">Список достижений</FormLabel>
+                        <VStack spacing={3} align="stretch" maxH="300px" overflowY="auto">
                             {(currentAchievement.achievements || []).map((achievement, index) => (
-                                <MotionBox
+                                <Box
                                     key={index}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    transition={{ duration: 0.3 }}
+                                    p={3}
+                                    bg="#333333"
+                                    borderRadius="md"
+                                    border="1px solid"
+                                    borderColor="#444444"
                                 >
-                                    <HStack
-                                        p={4}
-                                        bg="#2A2A2A"
-                                        borderRadius="lg"
-                                        border="1px solid"
-                                        borderColor="#444444"
-                                        _hover={{ borderColor: primaryColor }}
-                                        transition="all 0.2s"
-                                    >
+                                    <HStack spacing={3}>
                                         <Badge
                                             colorScheme="purple"
                                             variant="subtle"
@@ -255,7 +246,7 @@ export const AchievementForm: React.FC<{
                                             resize="none"
                                             rows={2}
                                             _focus={{ boxShadow: 'none' }}
-                                            _hover={{ bg: '#333333' }}
+                                            _hover={{ bg: '#444444' }}
                                             flex={1}
                                         />
                                         <IconButton
@@ -268,30 +259,19 @@ export const AchievementForm: React.FC<{
                                             isDisabled={isSubmitting}
                                         />
                                     </HStack>
-                                </MotionBox>
+                                </Box>
                             ))}
                         </VStack>
-
                         {(!currentAchievement.achievements || currentAchievement.achievements.length === 0) && (
-                            <Box
-                                p={6}
-                                bg="#2A2A2A"
-                                borderRadius="lg"
-                                border="2px dashed"
-                                borderColor="#444444"
-                                textAlign="center"
-                            >
-                                <CFaTrophy size={24} color="#666666" />
-                                <Text color="#666666" mt={2}>
-                                    Добавьте первое достижение
-                                </Text>
-                            </Box>
+                            <Text color="#666666" textAlign="center" py={4}>
+                                Добавьте первое достижение
+                            </Text>
                         )}
-                    </Box>
+                    </FormControl>
                 </VStack>
 
-                {/* Правая колонка - Изображение */}
-                <VStack spacing={6} align="stretch">
+                {/* Правая колонка */}
+                <VStack spacing={4} align="stretch">
                     <FormControl>
                         <FormLabel display="flex" alignItems="center" gap={2}>
                             <CFaImage color={primaryColor} />
@@ -310,11 +290,10 @@ export const AchievementForm: React.FC<{
                         </FormHelperText>
                     </FormControl>
 
-                    {/* Статистика */}
                     <Box
                         p={4}
-                        bg="#2A2A2A"
-                        borderRadius="lg"
+                        bg="#333333"
+                        borderRadius="md"
                         border="1px solid"
                         borderColor="#444444"
                     >
@@ -340,34 +319,26 @@ export const AchievementForm: React.FC<{
                 </VStack>
             </Grid>
 
-            <Divider my={6} borderColor="#444444" />
-
-            {/* Кнопки действий */}
-            <Flex justify="flex-end" gap={4}>
-                <MotionButton
-                    leftIcon={<CFaTimes />}
-                    onClick={onCancel}
+            <Flex justify="flex-end" mt={6}>
+                <Button
                     variant="outline"
-                    borderColor="#444444"
-                    color="#AAAAAA"
-                    _hover={{ borderColor: '#666666', color: 'white' }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    isDisabled={isSubmitting}
+                    mr={3}
+                    onClick={onCancel}
+                    leftIcon={<CFaTimes />}
+                    bg="#B00040"
+                    borderColor="#B00040"
+                    _hover={{ bg: 'red' }}
                 >
                     Отмена
-                </MotionButton>
+                </Button>
                 <MotionButton
-                    leftIcon={<CFaSave />}
-                    onClick={isEditing ? handleUpdateAchievement : handleCreateAchievement}
-                    bg={primaryColor}
-                    color="white"
-                    _hover={{ bg: '#600018' }}
-                    _active={{ bg: '#400012' }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    bg="#3182CE"
+                    _hover={{ bg: '#4299E1' }}
                     isLoading={isSubmitting}
-                    loadingText={isEditing ? "Обновление..." : "Создание..."}
+                    onClick={isEditing ? handleUpdateAchievement : handleCreateAchievement}
+                    leftIcon={<CFaSave />}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                 >
                     {isEditing ? 'Обновить' : 'Создать'}
                 </MotionButton>
