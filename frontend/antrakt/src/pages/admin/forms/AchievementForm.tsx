@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-    Button,
     VStack,
     FormControl,
     FormLabel,
-    Flex,
     Input,
     Textarea,
     FormHelperText,
@@ -14,7 +12,16 @@ import {
     IconButton,
     HStack,
     Badge,
-    Divider
+    Divider,
+    Button,
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalCloseButton,
+    ModalBody,
+    ModalFooter,
+    useToast
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import {
@@ -26,7 +33,7 @@ import {
     FaTrash
 } from 'react-icons/fa';
 import axios from 'axios';
-import { chakra, useToast } from '@chakra-ui/react';
+import { chakra } from '@chakra-ui/react';
 import ImageUpload from '../../../components/ImageUpload';
 
 const MotionButton = motion(Button);
@@ -47,19 +54,46 @@ interface Achievement {
     deleted_at?: string | null;
 }
 
-export const AchievementForm: React.FC<{
-    initialData?: Partial<Achievement>;
+interface AchievementFormProps {
+    isOpen: boolean;
+    onClose: () => void;
+    initialData?: Achievement | null;
     onSuccess: () => void;
-    onCancel: () => void;
-}> = ({ initialData, onSuccess, onCancel }) => {
-    const [currentAchievement, setCurrentAchievement] = useState<Partial<Achievement>>(initialData || {
+}
+
+export const AchievementForm: React.FC<AchievementFormProps> = ({
+    isOpen,
+    onClose,
+    initialData,
+    onSuccess
+}) => {
+    const [currentAchievement, setCurrentAchievement] = useState<Partial<Achievement>>({
         achievements: [],
         image_url: '',
         deleted_at: null
     });
     const [newAchievement, setNewAchievement] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const toast = useToast();
+
+    // Обновляем состояние при изменении initialData
+    useEffect(() => {
+        if (initialData) {
+            setCurrentAchievement({
+                ...initialData,
+                achievements: [...initialData.achievements]
+            });
+        } else {
+            setCurrentAchievement({
+                achievements: [],
+                image_url: '',
+                deleted_at: null
+            });
+        }
+        setNewAchievement('');
+        setErrors({});
+    }, [initialData, isOpen]);
 
     const handleImageUpload = (imageUrl: string) => {
         setCurrentAchievement(prev => ({
@@ -82,6 +116,7 @@ export const AchievementForm: React.FC<{
                 achievements: [...(prev.achievements || []), newAchievement.trim()]
             }));
             setNewAchievement('');
+            setErrors(prev => ({ ...prev, achievements: '' }));
         }
     };
 
@@ -101,34 +136,48 @@ export const AchievementForm: React.FC<{
         }));
     };
 
-    const handleCreateAchievement = async () => {
+    const validateForm = () => {
+        const newErrors: Record<string, string> = {};
+
         if (!currentAchievement.achievements || currentAchievement.achievements.length === 0) {
-            toast({
-                title: 'Ошибка',
-                description: 'Добавьте хотя бы одно достижение',
-                status: 'error',
-                duration: 3000,
-                isClosable: true,
-            });
-            return;
+            newErrors.achievements = 'Добавьте хотя бы одно достижение';
         }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = async () => {
+        if (!validateForm()) return;
 
         setIsSubmitting(true);
         try {
-            await axios.post('http://localhost:8000/achievements/', currentAchievement);
-            toast({
-                title: 'Успешно',
-                description: 'Достижения созданы',
-                status: 'success',
-                duration: 3000,
-                isClosable: true,
-            });
+            if (initialData?.id) {
+                await axios.put(`http://localhost:8000/achievements/${initialData.id}/`, currentAchievement);
+                toast({
+                    title: 'Успешно',
+                    description: 'Достижения обновлены',
+                    status: 'success',
+                    duration: 3000,
+                    isClosable: true,
+                });
+            } else {
+                await axios.post('http://localhost:8000/achievements/', currentAchievement);
+                toast({
+                    title: 'Успешно',
+                    description: 'Достижения созданы',
+                    status: 'success',
+                    duration: 3000,
+                    isClosable: true,
+                });
+            }
             onSuccess();
+            onClose();
         } catch (error) {
-            console.error('Ошибка при создании достижений:', error);
+            console.error('Ошибка при сохранении достижений:', error);
             toast({
                 title: 'Ошибка',
-                description: 'Не удалось создать достижения',
+                description: 'Не удалось сохранить достижения',
                 status: 'error',
                 duration: 3000,
                 isClosable: true,
@@ -138,240 +187,198 @@ export const AchievementForm: React.FC<{
         }
     };
 
-    const handleUpdateAchievement = async () => {
-        if (!currentAchievement.id) return;
-
-        if (!currentAchievement.achievements || currentAchievement.achievements.length === 0) {
-            toast({
-                title: 'Ошибка',
-                description: 'Добавьте хотя бы одно достижение',
-                status: 'error',
-                duration: 3000,
-                isClosable: true,
-            });
-            return;
-        }
-
-        setIsSubmitting(true);
-        try {
-            await axios.put(`http://localhost:8000/achievements/${currentAchievement.id}/`, currentAchievement);
-            toast({
-                title: 'Успешно',
-                description: 'Достижения обновлены',
-                status: 'success',
-                duration: 3000,
-                isClosable: true,
-            });
-            onSuccess();
-        } catch (error) {
-            console.error('Ошибка при обновлении достижений:', error);
-            toast({
-                title: 'Ошибка',
-                description: 'Не удалось обновить достижения',
-                status: 'error',
-                duration: 3000,
-                isClosable: true,
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const isEditing = !!currentAchievement.id;
+    const isEditing = !!initialData?.id;
 
     return (
-        <>
-            <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={8}>
-                {/* Левая колонка - Достижения */}
-                <VStack spacing={6} align="stretch">
-                    <Box>
-                        <FormLabel display="flex" alignItems="center" gap={2} mb={4}>
-                            <CFaTrophy color={primaryColor} />
-                            <Text as="span" fontWeight="semibold" fontSize="lg">
-                                Список достижений
-                            </Text>
-                        </FormLabel>
-                        
-                        {/* Добавление нового достижения */}
-                        <HStack spacing={3} mb={4}>
-                            <Input
-                                placeholder="Введите достижение..."
-                                value={newAchievement}
-                                onChange={(e) => setNewAchievement(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && addAchievement()}
-                                focusBorderColor={primaryColor}
-                                bg="#333333"
-                                borderColor="#444444"
-                                _hover={{ borderColor: '#555555' }}
-                                flex={1}
-                            />
-                            <MotionButton
-                                leftIcon={<CFaPlus />}
-                                onClick={addAchievement}
-                                colorScheme="green"
-                                size="md"
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                isDisabled={!newAchievement.trim() || isSubmitting}
-                            >
-                                Добавить
-                            </MotionButton>
-                        </HStack>
-
-                        {/* Список достижений */}
-                        <VStack spacing={3} align="stretch" maxH="400px" overflowY="auto">
-                            {(currentAchievement.achievements || []).map((achievement, index) => (
-                                <MotionBox
-                                    key={index}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    transition={{ duration: 0.3 }}
-                                >
-                                    <HStack
-                                        p={4}
-                                        bg="#2A2A2A"
-                                        borderRadius="lg"
-                                        border="1px solid"
+        <Modal isOpen={isOpen} onClose={onClose} size="6xl" scrollBehavior="inside" isCentered>
+            <ModalOverlay bg="blackAlpha.700" />
+            <ModalContent bg="#222222" color="white">
+                <ModalHeader borderBottom="1px solid #333333" fontWeight="semibold">
+                    <HStack spacing={3}>
+                        <CFaTrophy color={primaryColor} />
+                        <Text>{isEditing ? 'Редактировать достижения' : 'Создать достижения'}</Text>
+                    </HStack>
+                </ModalHeader>
+                <ModalCloseButton />
+                <ModalBody py={6}>
+                    <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={8}>
+                        {/* Левая колонка - Достижения */}
+                        <VStack spacing={6} align="stretch">
+                            <Box>
+                                <FormLabel display="flex" alignItems="center" gap={2} mb={4}>
+                                    <CFaTrophy color={primaryColor} />
+                                    <Text as="span" fontWeight="semibold" fontSize="lg">
+                                        Список достижений
+                                    </Text>
+                                </FormLabel>
+                                
+                                {/* Добавление нового достижения */}
+                                <HStack spacing={3} mb={4}>
+                                    <Input
+                                        placeholder="Введите достижение..."
+                                        value={newAchievement}
+                                        onChange={(e) => setNewAchievement(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && addAchievement()}
+                                        focusBorderColor={primaryColor}
+                                        bg="#333333"
                                         borderColor="#444444"
-                                        _hover={{ borderColor: primaryColor }}
-                                        transition="all 0.2s"
-                                    >
-                                        <Badge
-                                            colorScheme="purple"
-                                            variant="subtle"
-                                            px={2}
-                                            py={1}
-                                            borderRadius="full"
-                                            fontSize="xs"
+                                        _hover={{ borderColor: '#555555' }}
+                                        flex={1}
+                                    />
+                                    <IconButton
+                                        aria-label="Добавить достижение"
+                                        icon={<CFaPlus />}
+                                        onClick={addAchievement}
+                                        colorScheme="green"
+                                        variant="outline"
+                                        isDisabled={!newAchievement.trim()}
+                                        _hover={{ bg: 'green.500', color: 'white' }}
+                                    />
+                                </HStack>
+
+                                {/* Список достижений */}
+                                <VStack spacing={3} align="stretch" maxH="400px" overflowY="auto">
+                                    {currentAchievement.achievements?.map((achievement, index) => (
+                                        <Box
+                                            key={index}
+                                            p={4}
+                                            bg="#333333"
+                                            borderRadius="md"
+                                            border="1px solid #444444"
+                                            _hover={{ borderColor: '#555555' }}
                                         >
-                                            {index + 1}
-                                        </Badge>
-                                        <Textarea
-                                            value={achievement}
-                                            onChange={(e) => updateAchievement(index, e.target.value)}
-                                            bg="transparent"
-                                            border="none"
-                                            resize="none"
-                                            rows={2}
-                                            _focus={{ boxShadow: 'none' }}
-                                            _hover={{ bg: '#333333' }}
-                                            flex={1}
-                                        />
-                                        <IconButton
-                                            icon={<CFaTrash />}
-                                            onClick={() => removeAchievement(index)}
-                                            colorScheme="red"
-                                            variant="ghost"
-                                            size="sm"
-                                            aria-label="Удалить достижение"
-                                            isDisabled={isSubmitting}
-                                        />
-                                    </HStack>
-                                </MotionBox>
-                            ))}
-                        </VStack>
+                                            <HStack spacing={3} align="start">
+                                                <Badge
+                                                    colorScheme="purple"
+                                                    variant="subtle"
+                                                    px={2}
+                                                    py={1}
+                                                    borderRadius="full"
+                                                    flexShrink={0}
+                                                >
+                                                    {index + 1}
+                                                </Badge>
+                                                <Input
+                                                    value={achievement}
+                                                    onChange={(e) => updateAchievement(index, e.target.value)}
+                                                    bg="transparent"
+                                                    border="none"
+                                                    _focus={{ bg: '#444444', border: '1px solid #555555' }}
+                                                    flex={1}
+                                                />
+                                                <IconButton
+                                                    aria-label="Удалить достижение"
+                                                    icon={<CFaTrash />}
+                                                    onClick={() => removeAchievement(index)}
+                                                    colorScheme="red"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    _hover={{ bg: 'red.500', color: 'white' }}
+                                                />
+                                            </HStack>
+                                        </Box>
+                                    ))}
+                                </VStack>
 
-                        {(!currentAchievement.achievements || currentAchievement.achievements.length === 0) && (
-                            <Box
-                                p={6}
-                                bg="#2A2A2A"
-                                borderRadius="lg"
-                                border="2px dashed"
-                                borderColor="#444444"
-                                textAlign="center"
-                            >
-                                <CFaTrophy size={24} color="#666666" />
-                                <Text color="#666666" mt={2}>
-                                    Добавьте первое достижение
-                                </Text>
+                                {errors.achievements && (
+                                    <Text color="red.500" fontSize="sm" mt={2}>
+                                        {errors.achievements}
+                                    </Text>
+                                )}
+
+                                {currentAchievement.achievements && currentAchievement.achievements.length > 0 && (
+                                    <Box mt={4} p={3} bg="#444444" borderRadius="md">
+                                        <Text fontSize="sm" color="#CCCCCC">
+                                            Всего достижений: {currentAchievement.achievements.length}
+                                        </Text>
+                                    </Box>
+                                )}
                             </Box>
-                        )}
-                    </Box>
-                </VStack>
-
-                {/* Правая колонка - Изображение */}
-                <VStack spacing={6} align="stretch">
-                    <FormControl>
-                        <FormLabel display="flex" alignItems="center" gap={2}>
-                            <CFaImage color={primaryColor} />
-                            <Text as="span" fontWeight="semibold">Фотография достижений</Text>
-                        </FormLabel>
-                        <ImageUpload
-                            currentImageUrl={currentAchievement.image_url}
-                            onImageUpload={handleImageUpload}
-                            onImageRemove={handleImageRemove}
-                            contentType="achievements"
-                            maxSize={10}
-                            disabled={isSubmitting}
-                        />
-                        <FormHelperText color="#AAAAAA">
-                            Загрузите фотографию, связанную с достижениями
-                        </FormHelperText>
-                    </FormControl>
-
-                    {/* Статистика */}
-                    <Box
-                        p={4}
-                        bg="#2A2A2A"
-                        borderRadius="lg"
-                        border="1px solid"
-                        borderColor="#444444"
-                    >
-                        <Text fontWeight="semibold" mb={3}>Статистика</Text>
-                        <VStack spacing={2} align="stretch">
-                            <Flex justify="space-between">
-                                <Text color="#AAAAAA">Количество достижений:</Text>
-                                <Badge colorScheme="green" variant="subtle">
-                                    {currentAchievement.achievements?.length || 0}
-                                </Badge>
-                            </Flex>
-                            <Flex justify="space-between">
-                                <Text color="#AAAAAA">Изображение:</Text>
-                                <Badge 
-                                    colorScheme={currentAchievement.image_url ? "green" : "red"} 
-                                    variant="subtle"
-                                >
-                                    {currentAchievement.image_url ? "Загружено" : "Не загружено"}
-                                </Badge>
-                            </Flex>
                         </VStack>
-                    </Box>
-                </VStack>
-            </Grid>
 
-            <Divider my={6} borderColor="#444444" />
+                        {/* Правая колонка - Изображение */}
+                        <VStack spacing={6} align="stretch">
+                            <Box>
+                                <FormLabel display="flex" alignItems="center" gap={2} mb={4}>
+                                    <CFaImage color={primaryColor} />
+                                    <Text as="span" fontWeight="semibold" fontSize="lg">
+                                        Изображение достижений
+                                    </Text>
+                                </FormLabel>
+                                
+                                <ImageUpload
+                                    currentImageUrl={currentAchievement.image_url}
+                                    onImageUpload={handleImageUpload}
+                                    onImageRemove={handleImageRemove}
+                                    contentType="achievements"
+                                    maxSize={10}
+                                    disabled={isSubmitting}
+                                />
+                                
+                                <FormHelperText color="#AAAAAA" mt={2}>
+                                    Загрузите изображение, связанное с достижениями (максимум 10 МБ)
+                                </FormHelperText>
+                            </Box>
 
-            {/* Кнопки действий */}
-            <Flex justify="flex-end" gap={4}>
-                <MotionButton
-                    leftIcon={<CFaTimes />}
-                    onClick={onCancel}
-                    variant="outline"
-                    borderColor="#444444"
-                    color="#AAAAAA"
-                    _hover={{ borderColor: '#666666', color: 'white' }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    isDisabled={isSubmitting}
-                >
-                    Отмена
-                </MotionButton>
-                <MotionButton
-                    leftIcon={<CFaSave />}
-                    onClick={isEditing ? handleUpdateAchievement : handleCreateAchievement}
-                    bg={primaryColor}
-                    color="white"
-                    _hover={{ bg: '#600018' }}
-                    _active={{ bg: '#400012' }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    isLoading={isSubmitting}
-                    loadingText={isEditing ? "Обновление..." : "Создание..."}
-                >
-                    {isEditing ? 'Обновить' : 'Создать'}
-                </MotionButton>
-            </Flex>
-        </>
+                            {/* Предварительный просмотр */}
+                            {currentAchievement.image_url && (
+                                <Box>
+                                    <Text fontWeight="semibold" mb={3}>Предварительный просмотр</Text>
+                                    <Box
+                                        p={4}
+                                        bg="#333333"
+                                        borderRadius="md"
+                                        border="1px solid #444444"
+                                    >
+                                        <VStack spacing={3} align="stretch">
+                                            <Box position="relative">
+                                                <img
+                                                    src={currentAchievement.image_url}
+                                                    alt="Предварительный просмотр"
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '200px',
+                                                        objectFit: 'cover',
+                                                        borderRadius: '8px'
+                                                    }}
+                                                />
+                                            </Box>
+                                            <Text fontSize="sm" color="#CCCCCC">
+                                                Изображение будет отображаться вместе с достижениями
+                                            </Text>
+                                        </VStack>
+                                    </Box>
+                                </Box>
+                            )}
+                        </VStack>
+                    </Grid>
+                </ModalBody>
+                <ModalFooter borderTop="1px solid #333333">
+                    <HStack spacing={3}>
+                        <Button
+                            variant="outline"
+                            onClick={onClose}
+                            leftIcon={<CFaTimes />}
+                            isDisabled={isSubmitting}
+                        >
+                            Отмена
+                        </Button>
+                        <MotionButton
+                            colorScheme="red"
+                            bg={primaryColor}
+                            _hover={{ bg: '#A00030' }}
+                            onClick={handleSubmit}
+                            isLoading={isSubmitting}
+                            loadingText={isEditing ? 'Обновление...' : 'Создание...'}
+                            leftIcon={<CFaSave />}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            {isEditing ? 'Обновить' : 'Создать'}
+                        </MotionButton>
+                    </HStack>
+                </ModalFooter>
+            </ModalContent>
+        </Modal>
     );
 };
