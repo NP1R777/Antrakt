@@ -62,6 +62,7 @@ const MotionBox = motion(Box);
 const MotionCard = motion(Card);
 const MotionGrid = motion(Grid);
 const MotionGridItem = motion(GridItem);
+const MotionButton = motion(Button); // Добавляем MotionButton
 
 // Wrap each react-icon in chakra() with a cast to any
 const CFaTrophy = chakra(FaTrophy as any);
@@ -92,19 +93,19 @@ const AchievementsPage: React.FC = () => {
     const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [deleteId, setDeleteId] = useState<number | null>(null);
-    
+
     const { isOpen, onOpen, onClose } = useDisclosure();
-    const { 
-        isOpen: isDeleteOpen, 
-        onOpen: onDeleteOpen, 
-        onClose: onDeleteClose 
+    const {
+        isOpen: isDeleteOpen,
+        onOpen: onDeleteOpen,
+        onClose: onDeleteClose
     } = useDisclosure();
-    const { 
-        isOpen: isViewOpen, 
-        onOpen: onViewOpen, 
-        onClose: onViewClose 
+    const {
+        isOpen: isViewOpen,
+        onOpen: onViewOpen,
+        onClose: onViewClose
     } = useDisclosure();
-    
+
     const toast = useToast();
     const cancelRef = React.useRef<HTMLButtonElement>(null);
 
@@ -204,7 +205,7 @@ const AchievementsPage: React.FC = () => {
         return icons[Math.floor(Math.random() * icons.length)];
     };
 
-    const totalAchievements = achievements.reduce((total, achievement) => 
+    const totalAchievements = achievements.reduce((total, achievement) =>
         total + achievement.achievements.length, 0
     );
 
@@ -250,18 +251,18 @@ const AchievementsPage: React.FC = () => {
                             Создавайте и управляйте достижениями театральной студии
                         </Text>
                     </VStack>
-                    <Button
+                    <MotionButton
                         leftIcon={<CFaPlus />}
                         onClick={handleCreate}
                         bg={primaryColor}
                         color="white"
                         _hover={{ bg: '#600018' }}
                         _active={{ bg: '#400012' }}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileHover={{ scale: 1.05 }} // Анимация для MotionButton
+                        whileTap={{ scale: 0.95 }}   // Анимация для MotionButton
                     >
                         Добавить достижения
-                    </Button>
+                    </MotionButton>
                 </Flex>
 
                 {/* Статистика */}
@@ -324,17 +325,17 @@ const AchievementsPage: React.FC = () => {
                         <Text color="#888888">
                             Создайте первое достижение, чтобы начать
                         </Text>
-                        <Button
+                        <MotionButton
                             leftIcon={<CFaPlus />}
                             onClick={handleCreate}
                             bg={primaryColor}
                             color="white"
                             _hover={{ bg: '#600018' }}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                            whileHover={{ scale: 1.05 }} // Анимация для MotionButton
+                            whileTap={{ scale: 0.95 }}   // Анимация для MotionButton
                         >
                             Добавить достижения
-                        </Button>
+                        </MotionButton>
                     </VStack>
                 </Center>
             ) : (
@@ -359,7 +360,7 @@ const AchievementsPage: React.FC = () => {
                                     borderColor="#444444"
                                     borderWidth="1px"
                                     overflow="hidden"
-                                    whileHover={{ 
+                                    whileHover={{
                                         y: -5,
                                         boxShadow: "0 10px 25px rgba(0,0,0,0.3)"
                                     }}
@@ -424,7 +425,7 @@ const AchievementsPage: React.FC = () => {
                                                     </Text>
                                                 </Box>
                                             ))}
-                                            
+
                                             {achievement.achievements.length > 3 && (
                                                 <Text color="#AAAAAA" fontSize="sm" textAlign="center">
                                                     +{achievement.achievements.length - 3} ещё
@@ -444,7 +445,7 @@ const AchievementsPage: React.FC = () => {
 
                                     <CardFooter pt={0}>
                                         <HStack spacing={2} w="100%">
-                                            <Button
+                                            <MotionButton
                                                 leftIcon={<CFaEye />}
                                                 onClick={() => handleView(achievement)}
                                                 variant="outline"
@@ -453,12 +454,12 @@ const AchievementsPage: React.FC = () => {
                                                 borderColor="#444444"
                                                 color="#AAAAAA"
                                                 _hover={{ borderColor: primaryColor, color: 'white' }}
-                                                whileHover={{ scale: 1.02 }}
-                                                whileTap={{ scale: 0.98 }}
+                                                whileHover={{ scale: 1.02 }} // Анимация для MotionButton
+                                                whileTap={{ scale: 0.98 }}   // Анимация для MotionButton
                                             >
                                                 Просмотр
-                                            </Button>
-                                            <Button
+                                            </MotionButton>
+                                            <MotionButton
                                                 leftIcon={<CFaEdit />}
                                                 onClick={() => handleEdit(achievement)}
                                                 variant="outline"
@@ -467,11 +468,11 @@ const AchievementsPage: React.FC = () => {
                                                 borderColor="#444444"
                                                 color="#AAAAAA"
                                                 _hover={{ borderColor: '#4ECDC4', color: 'white' }}
-                                                whileHover={{ scale: 1.02 }}
-                                                whileTap={{ scale: 0.98 }}
+                                                whileHover={{ scale: 1.02 }} // Анимация для MotionButton
+                                                whileTap={{ scale: 0.98 }}   // Анимация для MotionButton
                                             >
                                                 Редактировать
-                                            </Button>
+                                            </MotionButton>
                                             <IconButton
                                                 icon={<CFaTrash />}
                                                 onClick={() => handleDelete(achievement.id)}
