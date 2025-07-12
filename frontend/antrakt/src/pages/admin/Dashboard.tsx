@@ -50,7 +50,6 @@ const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
 const MotionGridItem = motion(GridItem);
 
-// Wrap each react-icon in chakra() with a cast to any
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
 const CFaUsers = chakra(FaUsers as any);
 const CFaNewspaper = chakra(FaNewspaper as any);
@@ -84,7 +83,6 @@ const Dashboard: React.FC = () => {
     const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Состояния для управления модальными окнами
     const [activeForm, setActiveForm] = useState<'actor' | 'performance' | 'news' | 'director' | 'achievement' | null>(null);
     const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -113,7 +111,6 @@ const Dashboard: React.FC = () => {
                 users: usrRes.data.length,
             });
 
-            // Собираем последние обновления из всех категорий
             const recent = [
                 ...newsRes.data.slice(-3).map((i: any) => ({
                     id: i.id,
@@ -135,7 +132,7 @@ const Dashboard: React.FC = () => {
                 })),
                 ...achRes.data.slice(-2).map((i: any) => ({
                     id: i.id,
-                    title: i.title,
+                    title: i.achievements && i.achievements.length > 0 ? i.achievements[0] : 'Без названия',
                     date: i.created_at || new Date().toISOString(),
                     type: 'achievement' as const
                 })),
@@ -248,7 +245,6 @@ const Dashboard: React.FC = () => {
 
     return (
         <Box minH="100vh" bg="black" color="white" position="relative">
-            {/* Background effect */}
             <MotionBox
                 position="absolute" top="20%" right="10%"
                 w="300px" h="300px"
@@ -260,7 +256,6 @@ const Dashboard: React.FC = () => {
             />
 
             <Container maxW="container.xl" py={8}>
-                {/* Header */}
                 <MotionBox style={{ y: headerY }} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} mb={8}>
                     <VStack spacing={4} align="start">
                         <HStack spacing={4}>
@@ -275,7 +270,6 @@ const Dashboard: React.FC = () => {
                     </VStack>
                 </MotionBox>
 
-                {/* Stats cards */}
                 <MotionGrid templateColumns={{ base: '1fr', md: 'repeat(2,1fr)', lg: 'repeat(3,1fr)' }} gap={6} mb={8} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.2 }}>
                     {statCards.map((card, i) => (
                         <MotionGridItem key={card.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: i * 0.1 }} whileHover={{ y: -5 }}>
@@ -299,7 +293,6 @@ const Dashboard: React.FC = () => {
                 </MotionGrid>
 
                 <Grid templateColumns={{ base: '1fr', lg: '1fr 1fr' }} gap={8}>
-                    {/* Quick actions */}
                     <MotionGridItem initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.4 }}>
                         <Box bg="rgba(255,255,255,0.05)" p={6} borderRadius="xl" border="1px solid" borderColor="rgba(255,255,255,0.1)" h="full">
                             <Heading as="h3" size="lg" mb={6} color={primaryColor} fontFamily="Playfair Display">Быстрые действия</Heading>
@@ -321,7 +314,6 @@ const Dashboard: React.FC = () => {
                         </Box>
                     </MotionGridItem>
 
-                    {/* Recent items */}
                     <MotionGridItem initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.6 }}>
                         <Box bg="rgba(255,255,255,0.05)" p={6} borderRadius="xl" border="1px solid" borderColor="rgba(255,255,255,0.1)" h="full">
                             <Heading as="h3" size="lg" mb={6} color={primaryColor} fontFamily="Playfair Display">Последние обновления</Heading>
@@ -353,7 +345,6 @@ const Dashboard: React.FC = () => {
                 </Grid>
             </Container>
 
-            {/* Модальное окно для форм */}
             <Modal isOpen={isOpen} onClose={onClose} size="4xl">
                 <ModalOverlay bg="blackAlpha.700" />
                 <ModalContent bg="#222222" color="white">

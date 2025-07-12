@@ -11,6 +11,7 @@ import Navigation from "./components/Navigation";
 import ActorsPage from "./pages/admin/ActorsPage";
 import Performances from "./sections/Perfomances";
 import Testimonials from "./sections/Testimonials";
+import ArchivePage from "./pages/admin/ArchivePage";
 import { ChakraProvider, Box } from "@chakra-ui/react";
 import DirectorsPage from "./pages/admin/DirectorsPage";
 import AdminLayout from "./components/admin/AdminLayout";
@@ -140,10 +141,7 @@ function App() {
               element={
                 <ProtectedAdminRoute>
                   <AdminLayout>
-                    <Box p={8} color="white">
-                      <h1>Управление архивом</h1>
-                      <p>Скоро здесь будет CRUD для архива</p>
-                    </Box>
+                    <ArchivePage />
                   </AdminLayout>
                 </ProtectedAdminRoute>
               }

@@ -278,43 +278,21 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                         </Heading>
                     </HStack>
 
-                    <Menu>
-                        <MenuButton as={Button} variant="ghost" p={2}>
-                            <HStack spacing={3}>
-                                <Avatar size="sm" name={user?.email} bg={primaryColor} color="white" />
-                                <VStack
-                                    spacing={0}
-                                    align="start"
-                                    display={{ base: "none", md: "flex" }}
-                                >
-                                    <Text fontSize="sm" color="white" fontWeight="medium">
-                                        {user?.email}
-                                    </Text>
-                                    <Text fontSize="xs" color="gray.400">
-                                        Администратор
-                                    </Text>
-                                </VStack>
-                            </HStack>
-                        </MenuButton>
-                        <MenuList bg="rgba(0,0,0,0.9)" borderColor="rgba(255,255,255,0.1)">
-                            <MenuItem
-                                bg="transparent"
-                                _hover={{ bg: "rgba(255,255,255,0.1)" }}
-                                color="white"
-                                onClick={navigateToMain}
-                            >
-                                <CFaHome mr={3} /> На главную
-                            </MenuItem>
-                            <MenuItem
-                                bg="transparent"
-                                _hover={{ bg: "rgba(255,0,0,0.2)" }}
-                                color="white"
-                                onClick={handleLogout}
-                            >
-                                <CFaSignOutAlt mr={3} /> Выйти
-                            </MenuItem>
-                        </MenuList>
-                    </Menu>
+                    <HStack spacing={3}>
+                        <Avatar size="sm" name={user?.email} bg={primaryColor} color="white" />
+                        <VStack
+                            spacing={0}
+                            align="start"
+                            display={{ base: "none", md: "flex" }}
+                        >
+                            <Text fontSize="sm" color="white" fontWeight="medium">
+                                {user?.email}
+                            </Text>
+                            <Text fontSize="xs" color="gray.400">
+                                Администратор
+                            </Text>
+                        </VStack>
+                    </HStack>
                 </MotionFlex>
 
                 {/* Page Content */}

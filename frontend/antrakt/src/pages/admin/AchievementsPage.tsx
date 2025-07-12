@@ -4,102 +4,74 @@ import {
     Grid,
     GridItem,
     Heading,
-    Text,
     Flex,
     Button,
     VStack,
-    HStack,
     Badge,
     Container,
     chakra,
     useDisclosure,
-    useToast,
-    IconButton,
-    Image,
-    Card,
-    CardBody,
-    CardHeader,
-    CardFooter,
-    Divider,
-    Stat,
-    StatLabel,
-    StatNumber,
-    StatHelpText,
-    AlertDialog,
-    AlertDialogBody,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogContent,
-    AlertDialogOverlay,
-    Spinner,
-    Center,
-    Tooltip,
     Modal,
     ModalOverlay,
     ModalContent,
     ModalHeader,
     ModalCloseButton,
     ModalBody,
-    ModalFooter
+    ModalFooter,
+    AlertDialog,
+    AlertDialogOverlay,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogBody,
+    AlertDialogFooter,
+    useToast,
+    Spinner,
+    Text,
+    Tooltip,
+    Image
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import {
     FaTrophy,
     FaPlus,
-    FaEdit,
     FaTrash,
-    FaEye,
-    FaImage,
-    FaCalendar,
-    FaMedal,
-    FaStar,
-    FaAward
+    FaEdit,
+    FaUndo
 } from 'react-icons/fa';
 import axios from 'axios';
 import { AchievementForm } from './forms/AchievementForm';
 
 const MotionBox = motion(Box);
-const MotionCard = motion(Card);
-const MotionGrid = motion(Grid);
 const MotionGridItem = motion(GridItem);
 const MotionButton = motion(Button);
 
-// Wrap each react-icon in chakra() with a cast to any
+const primaryColor = '#800020';
+const secondaryColor = '#A00030';
+
 const CFaTrophy = chakra(FaTrophy as any);
 const CFaPlus = chakra(FaPlus as any);
-const CFaEdit = chakra(FaEdit as any);
 const CFaTrash = chakra(FaTrash as any);
-const CFaEye = chakra(FaEye as any);
-const CFaImage = chakra(FaImage as any);
-const CFaCalendar = chakra(FaCalendar as any);
-const CFaMedal = chakra(FaMedal as any);
-const CFaStar = chakra(FaStar as any);
-const CFaAward = chakra(FaAward as any);
+const CFaEdit = chakra(FaEdit as any);
+const CFaUndo = chakra(FaUndo as any);
 
 interface Achievement {
     id: number;
-    achievements: string[];
+    achievement: string;
     image_url: string;
     created_at: string;
     updated_at: string;
     deleted_at?: string | null;
 }
 
-const primaryColor = '#800020';
-const secondaryColor = '#A00030';
-
 const AchievementsPage: React.FC = () => {
     const [achievements, setAchievements] = useState<Achievement[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [deleteId, setDeleteId] = useState<number | null>(null);
+    const [currentAchievement, setCurrentAchievement] = useState<Achievement | null>(null);
+    const toast = useToast();
 
     const { isOpen: isFormOpen, onOpen: onFormOpen, onClose: onFormClose } = useDisclosure();
     const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
-    const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
-
-    const toast = useToast();
     const cancelRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
@@ -108,7 +80,7 @@ const AchievementsPage: React.FC = () => {
 
     const fetchAchievements = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/achievements/');
+            const response = await axios.get('http://localhost:8000/achievements-admin/');
             setAchievements(response.data);
         } catch (error) {
             console.error('Ошибка при загрузке достижений:', error);
@@ -120,23 +92,18 @@ const AchievementsPage: React.FC = () => {
                 isClosable: true,
             });
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     };
 
     const handleCreate = () => {
-        setSelectedAchievement(null);
+        setCurrentAchievement(null);
         onFormOpen();
     };
 
     const handleEdit = (achievement: Achievement) => {
-        setSelectedAchievement(achievement);
+        setCurrentAchievement(achievement);
         onFormOpen();
-    };
-
-    const handleView = (achievement: Achievement) => {
-        setSelectedAchievement(achievement);
-        onViewOpen();
     };
 
     const handleDelete = (id: number) => {
@@ -144,59 +111,84 @@ const AchievementsPage: React.FC = () => {
         onDeleteOpen();
     };
 
-    const confirmDelete = async () => {
-        if (!deleteId) return;
+    const handleSoftDelete = async (id: number) => {
+        if (!id) return;
 
-        setIsDeleting(true);
         try {
-            await axios.delete(`http://localhost:8000/achievements/${deleteId}/`);
+            await axios.put(`http://localhost:8000/achievement${id}/`, {
+                deleted_at: new Date().toISOString()
+            });
             toast({
                 title: 'Успешно',
-                description: 'Достижения удалены',
+                description: 'Достижение удалено',
                 status: 'success',
                 duration: 3000,
                 isClosable: true,
             });
-            fetchAchievements();
+
+            setAchievements(prev =>
+                prev.map(a =>
+                    a.id === id
+                        ? { ...a, deleted_at: new Date().toISOString() }
+                        : a
+                )
+            );
         } catch (error) {
-            console.error('Ошибка при удалении достижений:', error);
+            console.error('Ошибка при удалении достижения:', error);
             toast({
                 title: 'Ошибка',
-                description: 'Не удалось удалить достижения',
+                description: 'Не удалось удалить достижение',
                 status: 'error',
                 duration: 3000,
                 isClosable: true,
             });
         } finally {
-            setIsDeleting(false);
             onDeleteClose();
             setDeleteId(null);
         }
     };
 
+    const handleRestore = async (id: number) => {
+        if (!id) return;
+
+        try {
+            await axios.put(`http://localhost:8000/achievement${id}/`, {
+                deleted_at: null
+            });
+            toast({
+                title: 'Успешно',
+                description: 'Достижение восстановлено',
+                status: 'success',
+                duration: 3000,
+                isClosable: true,
+            });
+
+            setAchievements(prev =>
+                prev.map(a =>
+                    a.id === id
+                        ? { ...a, deleted_at: null }
+                        : a
+                )
+            );
+        } catch (error) {
+            console.error('Ошибка при восстановлении достижения:', error);
+            toast({
+                title: 'Ошибка',
+                description: 'Не удалось восстановить достижение',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
+
     const handleFormSuccess = () => {
         onFormClose();
-        onViewClose();
         fetchAchievements();
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('ru-RU', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
-
-    const getRandomIcon = () => {
-        const icons = [CFaTrophy, CFaMedal, CFaStar, CFaAward];
-        return icons[Math.floor(Math.random() * icons.length)];
-    };
-
     const renderAchievementCards = () => {
-        if (loading) {
+        if (isLoading) {
             return (
                 <Flex justify="center" align="center" minH="200px">
                     <Spinner size="xl" color={primaryColor} />
@@ -222,362 +214,228 @@ const AchievementsPage: React.FC = () => {
                 }}
                 gap={6}
             >
-                {achievements.map((achievement) => {
-                    const IconComponent = getRandomIcon();
-                    return (
-                        <MotionGridItem
-                            key={achievement.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
+                {achievements.map((achievement) => (
+                    <MotionGridItem
+                        key={achievement.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <MotionBox
+                            bg={achievement.deleted_at ? "rgba(50,50,50,0.5)" : "rgba(255,255,255,0.05)"}
+                            p={4}
+                            borderRadius="xl"
+                            border="1px solid"
+                            borderColor={achievement.deleted_at ? "#555" : "rgba(255,255,255,0.1)"}
+                            backdropFilter="blur(10px)"
+                            position="relative"
+                            overflow="hidden"
+                            whileHover={{
+                                borderColor: achievement.deleted_at ? "#666" : secondaryColor,
+                                boxShadow: achievement.deleted_at ? "none" : `0 0 20px ${secondaryColor}50`
+                            }}
                             transition={{ duration: 0.3 }}
+                            minH="300px"
                         >
-                            <MotionCard
-                                bg="#222222"
-                                border="1px solid #333333"
-                                borderRadius="lg"
-                                overflow="hidden"
-                                _hover={{
-                                    transform: 'translateY(-4px)',
-                                    boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
-                                    borderColor: primaryColor
-                                }}
-                                transition="all 0.3s ease"
-                            >
-                                <CardHeader bg="#333333" pb={2}>
-                                    <Flex align="center" justify="space-between">
-                                        <HStack spacing={2}>
-                                            <IconComponent color={primaryColor} size={20} />
-                                            <Text fontWeight="semibold" fontSize="md">
-                                                Достижения #{achievement.id}
-                                            </Text>
-                                        </HStack>
-                                        <Badge colorScheme="green" variant="subtle">
-                                            {achievement.achievements.length} шт.
-                                        </Badge>
-                                    </Flex>
-                                </CardHeader>
+                            {achievement.deleted_at && (
+                                <Badge
+                                    position="absolute"
+                                    top={2}
+                                    right={2}
+                                    colorScheme="red"
+                                    zIndex={1}
+                                >
+                                    Удалено
+                                </Badge>
+                            )}
 
-                                <CardBody p={4}>
-                                    {achievement.image_url && (
-                                        <Box mb={4} position="relative">
+                            <Flex direction="column" h="100%">
+                                <Box flex="1">
+                                    <Box
+                                        position="relative"
+                                        h="150px"
+                                        mb={4}
+                                        borderRadius="md"
+                                        overflow="hidden"
+                                    >
+                                        {achievement.image_url ? (
                                             <Image
                                                 src={achievement.image_url}
-                                                alt="Достижения"
-                                                borderRadius="md"
+                                                alt="Достижение"
                                                 w="full"
-                                                h="120px"
+                                                h="full"
                                                 objectFit="cover"
-                                                fallback={
-                                                    <Flex
-                                                        bg="#444444"
-                                                        h="120px"
-                                                        align="center"
-                                                        justify="center"
-                                                        borderRadius="md"
-                                                    >
-                                                        <CFaImage color="#666666" size={40} />
-                                                    </Flex>
-                                                }
+                                                opacity={achievement.deleted_at ? 0.6 : 1}
                                             />
-                                        </Box>
-                                    )}
-
-                                    <VStack spacing={2} align="stretch">
-                                        {achievement.achievements.slice(0, 3).map((item, index) => (
-                                            <Text
-                                                key={index}
-                                                fontSize="sm"
-                                                color="#CCCCCC"
-                                                noOfLines={2}
-                                                lineHeight="1.4"
+                                        ) : (
+                                            <Flex
+                                                bg="#333"
+                                                h="full"
+                                                align="center"
+                                                justify="center"
+                                                opacity={achievement.deleted_at ? 0.6 : 1}
                                             >
-                                                • {item}
-                                            </Text>
-                                        ))}
-                                        {achievement.achievements.length > 3 && (
-                                            <Text fontSize="sm" color="#888888">
-                                                +{achievement.achievements.length - 3} ещё
-                                            </Text>
+                                                <CFaTrophy size={50} color="#666" />
+                                            </Flex>
                                         )}
+                                    </Box>
+
+                                    <VStack align="start" spacing={2}>
+                                        <Heading
+                                            size="md"
+                                            color={achievement.deleted_at ? "#999" : "white"}
+                                            opacity={achievement.deleted_at ? 0.6 : 1}
+                                        >
+                                            Достижение #{achievement.id}
+                                        </Heading>
+
+                                        <Text
+                                            fontSize="sm"
+                                            color={achievement.deleted_at ? "#999" : "#CCCCCC"}
+                                            noOfLines={4}
+                                            opacity={achievement.deleted_at ? 0.6 : 1}
+                                        >
+                                            {achievement.achievement}
+                                        </Text>
                                     </VStack>
+                                </Box>
 
-                                    <Divider my={3} borderColor="#444444" />
+                                <Flex justify="flex-end" mt={4} gap={2}>
+                                    <Tooltip label="Редактировать" hasArrow>
+                                        <MotionButton
+                                            size="sm"
+                                            iconSpacing={0}
+                                            bg="transparent"
+                                            color="#3182CE"
+                                            onClick={() => handleEdit(achievement)}
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.9 }}
+                                            isDisabled={!!achievement.deleted_at}
+                                        >
+                                            <CFaEdit />
+                                        </MotionButton>
+                                    </Tooltip>
 
-                                    <HStack spacing={2} color="#888888" fontSize="xs">
-                                        <CFaCalendar />
-                                        <Text>{formatDate(achievement.created_at)}</Text>
-                                    </HStack>
-                                </CardBody>
-
-                                <CardFooter bg="#333333" pt={2}>
-                                    <HStack spacing={2} w="full" justify="center">
-                                        <Tooltip label="Просмотр" placement="top">
-                                            <IconButton
-                                                aria-label="Просмотр"
-                                                icon={<CFaEye />}
+                                    {achievement.deleted_at ? (
+                                        <Tooltip label="Восстановить" hasArrow>
+                                            <MotionButton
                                                 size="sm"
-                                                colorScheme="blue"
-                                                variant="ghost"
-                                                onClick={() => handleView(achievement)}
-                                                _hover={{ bg: 'blue.500', color: 'white' }}
-                                            />
+                                                iconSpacing={0}
+                                                bg="transparent"
+                                                color="#48BB78"
+                                                onClick={() => handleRestore(achievement.id)}
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
+                                            >
+                                                <CFaUndo />
+                                            </MotionButton>
                                         </Tooltip>
-                                        <Tooltip label="Редактировать" placement="top">
-                                            <IconButton
-                                                aria-label="Редактировать"
-                                                icon={<CFaEdit />}
+                                    ) : (
+                                        <Tooltip label="Удалить" hasArrow>
+                                            <MotionButton
                                                 size="sm"
-                                                colorScheme="yellow"
-                                                variant="ghost"
-                                                onClick={() => handleEdit(achievement)}
-                                                _hover={{ bg: 'yellow.500', color: 'white' }}
-                                            />
-                                        </Tooltip>
-                                        <Tooltip label="Удалить" placement="top">
-                                            <IconButton
-                                                aria-label="Удалить"
-                                                icon={<CFaTrash />}
-                                                size="sm"
-                                                colorScheme="red"
-                                                variant="ghost"
+                                                iconSpacing={0}
+                                                bg="transparent"
+                                                color="#E53E3E"
                                                 onClick={() => handleDelete(achievement.id)}
-                                                _hover={{ bg: 'red.500', color: 'white' }}
-                                            />
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
+                                            >
+                                                <CFaTrash />
+                                            </MotionButton>
                                         </Tooltip>
-                                    </HStack>
-                                </CardFooter>
-                            </MotionCard>
-                        </MotionGridItem>
-                    );
-                })}
+                                    )}
+                                </Flex>
+                            </Flex>
+                        </MotionBox>
+                    </MotionGridItem>
+                ))}
             </Grid>
         );
     };
 
     return (
-        <Container maxW="container.xl" py={8}>
-            <MotionBox
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-            >
-                {/* Заголовок страницы */}
-                <Flex justify="space-between" align="center" mb={8}>
-                    <VStack align="start" spacing={2}>
-                        <Heading
-                            size="lg"
-                            color="white"
-                            display="flex"
-                            alignItems="center"
-                            gap={3}
-                        >
-                            <CFaTrophy color={primaryColor} size={28} />
+        <Box minH="100vh" bg="black" color="white" py={8} overflow="hidden" position="relative" zIndex={0}>
+            <Container maxW="container.xl" px={{ base: 4, md: 6 }} overflow="hidden" position="relative" zIndex={1}>
+                <Flex justify="space-between" align="center" mb={8} flexWrap="wrap">
+                    <VStack align="start" spacing={2} mb={{ base: 4, md: 0 }} maxW="100%">
+                        <Heading fontSize="3xl" fontFamily="Playfair Display" textShadow={`0 0 15px ${primaryColor}50`}>
                             Управление достижениями
                         </Heading>
-                        <Text color="#AAAAAA" fontSize="md">
+                        <Text color="#AAAAAA">
                             Создавайте и управляйте достижениями театра
                         </Text>
                     </VStack>
 
                     <MotionButton
                         leftIcon={<CFaPlus />}
-                        colorScheme="red"
                         bg={primaryColor}
-                        _hover={{ bg: secondaryColor }}
+                        _hover={{ bg: '#900030' }}
                         onClick={handleCreate}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        mb={{ base: 4, md: 0 }}
                     >
-                        Добавить достижения
+                        Добавить достижение
                     </MotionButton>
                 </Flex>
 
-                {/* Статистика */}
-                <Grid templateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap={6} mb={8}>
-                    <MotionBox
-                        bg="#222222"
-                        p={6}
-                        borderRadius="lg"
-                        border="1px solid #333333"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <Stat>
-                            <StatLabel color="#AAAAAA" fontSize="sm">Всего достижений</StatLabel>
-                            <StatNumber color="white" fontSize="2xl">
-                                {achievements.length}
-                            </StatNumber>
-                            <StatHelpText color="#888888">
-                                Записей в базе данных
-                            </StatHelpText>
-                        </Stat>
-                    </MotionBox>
-
-                    <MotionBox
-                        bg="#222222"
-                        p={6}
-                        borderRadius="lg"
-                        border="1px solid #333333"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3, delay: 0.1 }}
-                    >
-                        <Stat>
-                            <StatLabel color="#AAAAAA" fontSize="sm">Всего наград</StatLabel>
-                            <StatNumber color="white" fontSize="2xl">
-                                {achievements.reduce((sum, achievement) => sum + achievement.achievements.length, 0)}
-                            </StatNumber>
-                            <StatHelpText color="#888888">
-                                Индивидуальных достижений
-                            </StatHelpText>
-                        </Stat>
-                    </MotionBox>
-
-                    <MotionBox
-                        bg="#222222"
-                        p={6}
-                        borderRadius="lg"
-                        border="1px solid #333333"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3, delay: 0.2 }}
-                    >
-                        <Stat>
-                            <StatLabel color="#AAAAAA" fontSize="sm">С изображениями</StatLabel>
-                            <StatNumber color="white" fontSize="2xl">
-                                {achievements.filter(a => a.image_url).length}
-                            </StatNumber>
-                            <StatHelpText color="#888888">
-                                Записей с медиа
-                            </StatHelpText>
-                        </Stat>
-                    </MotionBox>
-                </Grid>
-
-                {/* Список достижений */}
                 {renderAchievementCards()}
-            </MotionBox>
+            </Container>
 
-            {/* Модальное окно формы */}
-            <AchievementForm
-                isOpen={isFormOpen}
-                onClose={onFormClose}
-                initialData={selectedAchievement}
-                onSuccess={handleFormSuccess}
-            />
+            <Modal isOpen={isFormOpen} onClose={onFormClose} size="2xl" isCentered>
+                <ModalOverlay bg="blackAlpha.700" />
+                <ModalContent bg="#222222" color="white">
+                    <ModalHeader borderBottom="1px solid #333333" fontFamily="Playfair Display">
+                        {currentAchievement ? 'Редактировать достижение' : 'Добавить новое достижение'}
+                    </ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody py={6}>
+                        <AchievementForm
+                            initialData={currentAchievement || undefined}
+                            onSuccess={handleFormSuccess}
+                            onCancel={onFormClose}
+                        />
+                    </ModalBody>
+                    <ModalFooter borderTop="1px solid #333333" />
+                </ModalContent>
+            </Modal>
 
-            {/* Модальное окно просмотра */}
-            {selectedAchievement && (
-                <Modal isOpen={isViewOpen} onClose={onViewClose} size="xl" isCentered>
-                    <ModalOverlay bg="blackAlpha.700" />
-                    <ModalContent bg="#222222" color="white">
-                        <ModalHeader borderBottom="1px solid #333333">
-                            <HStack spacing={3}>
-                                <CFaTrophy color={primaryColor} />
-                                <Text>Просмотр достижений #{selectedAchievement.id}</Text>
-                            </HStack>
-                        </ModalHeader>
-                        <ModalCloseButton />
-                        <ModalBody py={6}>
-                            <VStack spacing={6} align="stretch">
-                                {selectedAchievement.image_url && (
-                                    <Box>
-                                        <Text fontWeight="semibold" mb={3}>Изображение</Text>
-                                        <Image
-                                            src={selectedAchievement.image_url}
-                                            alt="Достижения"
-                                            borderRadius="md"
-                                            w="full"
-                                            maxH="300px"
-                                            objectFit="cover"
-                                        />
-                                    </Box>
-                                )}
-
-                                <Box>
-                                    <Text fontWeight="semibold" mb={3}>
-                                        Список достижений ({selectedAchievement.achievements.length})
-                                    </Text>
-                                    <VStack spacing={2} align="stretch">
-                                        {selectedAchievement.achievements.map((achievement, index) => (
-                                            <Box
-                                                key={index}
-                                                p={3}
-                                                bg="#333333"
-                                                borderRadius="md"
-                                                border="1px solid #444444"
-                                            >
-                                                <Text color="#CCCCCC">
-                                                    {index + 1}. {achievement}
-                                                </Text>
-                                            </Box>
-                                        ))}
-                                    </VStack>
-                                </Box>
-
-                                <HStack spacing={4} color="#888888" fontSize="sm">
-                                    <HStack>
-                                        <CFaCalendar />
-                                        <Text>Создано: {formatDate(selectedAchievement.created_at)}</Text>
-                                    </HStack>
-                                    <HStack>
-                                        <CFaCalendar />
-                                        <Text>Обновлено: {formatDate(selectedAchievement.updated_at)}</Text>
-                                    </HStack>
-                                </HStack>
-                            </VStack>
-                        </ModalBody>
-                        <ModalFooter borderTop="1px solid #333333">
-                            <HStack spacing={3}>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => {
-                                        onViewClose();
-                                        handleEdit(selectedAchievement);
-                                    }}
-                                    leftIcon={<CFaEdit />}
-                                >
-                                    Редактировать
-                                </Button>
-                                <Button onClick={onViewClose}>Закрыть</Button>
-                            </HStack>
-                        </ModalFooter>
-                    </ModalContent>
-                </Modal>
-            )}
-
-            {/* Диалог подтверждения удаления */}
             <AlertDialog
                 isOpen={isDeleteOpen}
                 leastDestructiveRef={cancelRef}
                 onClose={onDeleteClose}
             >
-                <AlertDialogOverlay bg="blackAlpha.700" />
-                <AlertDialogContent bg="#222222" color="white">
-                    <AlertDialogHeader borderBottom="1px solid #333333">
-                        Удалить достижения
-                    </AlertDialogHeader>
-                    <AlertDialogBody>
-                        Вы уверены, что хотите удалить эти достижения? Это действие нельзя отменить.
-                    </AlertDialogBody>
-                    <AlertDialogFooter borderTop="1px solid #333333">
-                        <Button ref={cancelRef} onClick={onDeleteClose} variant="outline">
-                            Отмена
-                        </Button>
-                        <Button
-                            colorScheme="red"
-                            onClick={confirmDelete}
-                            ml={3}
-                            isLoading={isDeleting}
-                            loadingText="Удаление..."
-                        >
-                            Удалить
-                        </Button>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
+                <AlertDialogOverlay>
+                    <AlertDialogContent bg="#222222" color="white">
+                        <AlertDialogHeader fontSize="lg" fontWeight="bold" fontFamily="Playfair Display">
+                            Удаление достижения
+                        </AlertDialogHeader>
+                        <AlertDialogBody>
+                            Вы уверены, что хотите удалить это достижение?
+                        </AlertDialogBody>
+                        <AlertDialogFooter>
+                            <Button
+                                ref={cancelRef}
+                                onClick={onDeleteClose}
+                                borderColor="#555555"
+                                _hover={{ bg: '#333333' }}
+                            >
+                                Отмена
+                            </Button>
+                            <Button
+                                bg="#E53E3E"
+                                _hover={{ bg: '#F56565' }}
+                                onClick={() => deleteId && handleSoftDelete(deleteId)}
+                                ml={3}
+                            >
+                                Удалить
+                            </Button>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialogOverlay>
             </AlertDialog>
-        </Container>
+        </Box>
     );
 };
 

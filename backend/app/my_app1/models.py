@@ -73,8 +73,8 @@ class Perfomances(ImageUploadMixin, models.Model): # Спектакли
     ) # Актёрский состав
 
     description = models.CharField(max_length=2000, null=False)
-    afisha = models.BooleanField(default=False) # Если False -> то отображать в разделе "Спектакли",
-                                                # если True -> то отображать в разделе "Афиша".
+    afisha = models.BooleanField(default=False) # Если False -> то отображать в разделе "Афиша",
+                                                # если True -> то отображать в разделе "Спектакли".
     image_url = models.URLField(null=False, blank=True)
 
 
@@ -199,6 +199,7 @@ class Archive(ImageUploadMixin, models.Model): # Архив
     created_at = models.DateTimeField(auto_now_add=True, null=False)
     updated_at = models.DateTimeField(null=True)
     deleted_at = models.DateTimeField(null=True)
+    title = models.CharField(max_length=100, null=False)
     description = models.CharField(max_length=2000, null=False)
     premiere_date = models.DateField(null=True)
     afisha = models.BooleanField(default=True) # Если False -> то нужно отображать в разделе "Архив",
@@ -213,14 +214,5 @@ class Achievements(ImageUploadMixin, models.Model): # Достижения
     created_at = models.DateTimeField(auto_now_add=True, null=False)
     updated_at = models.DateTimeField(null=True)
     deleted_at = models.DateTimeField(null=True)
-    achievements = fields.ArrayField(
-        models.CharField(max_length=500),
-        blank=True,
-        default=list
-    )
-
-    images_urls = fields.ArrayField(
-        models.URLField(null=False, blank=True),
-        blank=True,
-        default=list
-    )
+    achievement = models.CharField(max_length=500, null=False)
+    image_url = models.URLField(null=False, blank=True)

@@ -26,6 +26,17 @@ class UserList(APIView):
         return Response(serializer.data)
 
 
+class UserListAdmin(APIView):
+    model_class = User
+    serializer_class = UserSerializer
+
+
+    def get(self, request, format=None):
+        users = self.model_class.objects.order_by('id')
+        serializer = self.serializer_class(users, many=True)
+        return Response(serializer.data)
+
+
 class UserDetail(APIView):
     model_class = User
     serializer_class = UserSerializer
@@ -170,7 +181,7 @@ class PefomancesList(APIView):
 
     def get(self, request, format=None):
         perfomances = self.model_class.objects.filter(deleted_at=None,
-                                                      afisha=False)
+                                                      afisha=True)
         serializer = self.serializer_class(perfomances, many=True)
         return Response(serializer.data)
     
@@ -421,6 +432,17 @@ class ArchiveList(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class ArchiveListAdmin(APIView):
+    model_class = Archive
+    serializer_class = ArchiveSerializer
+
+
+    def get(self, request, format=None):
+        archive_data = self.model_class.objects.order_by('id')
+        serializer = self.serializer_class(archive_data, many=True)
+        return Response(serializer.data)
+
+
 class ArchiveDetail(APIView):
     model_class = Archive
     serializer_class = ArchiveSerializer
@@ -467,7 +489,18 @@ class AchievementsList(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+
+class AchievementListAdmin(APIView):
+    model_class = Achievements
+    serializer_class = AchievementsSerializer
+
+
+    def get(self, request, format=None):
+        achievements = self.model_class.objects.order_by('id')
+        serializer = self.serializer_class(achievements, many=True)
+        return Response(serializer.data)
+
 
 class AchievementDetail(APIView):
     model_class = Achievements
