@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     VStack,
     FormControl,
@@ -58,6 +58,25 @@ export const UserForm: React.FC<UserFormProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
+    // Обновляем состояние user при изменении initialData
+    useEffect(() => {
+        if (initialData) {
+            setUser({
+                ...initialData,
+                password: '', // Пароль не загружаем из базы
+                confirmPassword: ''
+            });
+        } else {
+            setUser({
+                email: '',
+                phone_number: '',
+                is_superuser: false,
+                password: '',
+                confirmPassword: ''
+            });
+        }
+    }, [initialData]);
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, checked, type } = e.target;
         setUser(prev => ({
@@ -75,14 +94,16 @@ export const UserForm: React.FC<UserFormProps> = ({
             newErrors.email = 'Некорректный формат email';
         }
 
-        if (!initialData && !user.password) {
+        // Проверяем пароль только если он был введён
+        if (user.password) {
+            if (user.password.length < 6) {
+                newErrors.password = 'Пароль должен быть не менее 6 символов';
+            }
+            if (user.password !== user.confirmPassword) {
+                newErrors.confirmPassword = 'Пароли не совпадают';
+            }
+        } else if (!initialData) {
             newErrors.password = 'Пароль обязателен';
-        } else if (!initialData && user.password && user.password.length < 6) {
-            newErrors.password = 'Пароль должен быть не менее 6 символов';
-        }
-
-        if (!initialData && user.password !== user.confirmPassword) {
-            newErrors.confirmPassword = 'Пароли не совпадают';
         }
 
         setErrors(newErrors);
@@ -94,12 +115,16 @@ export const UserForm: React.FC<UserFormProps> = ({
 
         setIsSubmitting(true);
         try {
-            const userData = {
+            const userData: Partial<User> = {
                 email: user.email,
                 phone_number: user.phone_number,
-                is_superuser: user.is_superuser,
-                password: user.password
+                is_superuser: user.is_superuser
             };
+
+            // Добавляем пароль только если он был введён
+            if (user.password) {
+                userData.password = user.password;
+            }
 
             if (initialData) {
                 await axios.put(`http://localhost:8000/user${initialData.id}/`, userData);
@@ -141,7 +166,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                                 bg="#333333"
                                 borderColor="#444444"
                                 _hover={{ borderColor: '#555555' }}
-                                isDisabled={false} // Разрешаем редактирование email
+                                isDisabled={false}
                             />
                             {errors.email && <Text color="red.500" fontSize="sm">{errors.email}</Text>}
                         </FormControl>
@@ -162,45 +187,41 @@ export const UserForm: React.FC<UserFormProps> = ({
                             />
                         </FormControl>
 
-                        {!initialData && (
-                            <>
-                                <FormControl isInvalid={!!errors.password} isRequired>
-                                    <FormLabel display="flex" alignItems="center" gap={2}>
-                                        <Text as="span" fontWeight="semibold">Пароль</Text>
-                                    </FormLabel>
-                                    <Input
-                                        name="password"
-                                        type="password"
-                                        value={user.password || ''}
-                                        onChange={handleInputChange}
-                                        placeholder="Введите пароль"
-                                        focusBorderColor={primaryColor}
-                                        bg="#333333"
-                                        borderColor="#444444"
-                                        _hover={{ borderColor: '#555555' }}
-                                    />
-                                    {errors.password && <Text color="red.500" fontSize="sm">{errors.password}</Text>}
-                                </FormControl>
+                        <FormControl isInvalid={!!errors.password}>
+                            <FormLabel display="flex" alignItems="center" gap={2}>
+                                <Text as="span" fontWeight="semibold">{initialData ? 'Новый пароль' : 'Пароль'}</Text>
+                            </FormLabel>
+                            <Input
+                                name="password"
+                                type="password"
+                                value={user.password || ''}
+                                onChange={handleInputChange}
+                                placeholder={initialData ? 'Введите новый пароль (если нужно)' : 'Введите пароль'}
+                                focusBorderColor={primaryColor}
+                                bg="#333333"
+                                borderColor="#444444"
+                                _hover={{ borderColor: '#555555' }}
+                            />
+                            {errors.password && <Text color="red.500" fontSize="sm">{errors.password}</Text>}
+                        </FormControl>
 
-                                <FormControl isInvalid={!!errors.confirmPassword} isRequired>
-                                    <FormLabel display="flex" alignItems="center" gap={2}>
-                                        <Text as="span" fontWeight="semibold">Подтверждение пароля</Text>
-                                    </FormLabel>
-                                    <Input
-                                        name="confirmPassword"
-                                        type="password"
-                                        value={user.confirmPassword || ''}
-                                        onChange={handleInputChange}
-                                        placeholder="Подтвердите пароль"
-                                        focusBorderColor={primaryColor}
-                                        bg="#333333"
-                                        borderColor="#444444"
-                                        _hover={{ borderColor: '#555555' }}
-                                    />
-                                    {errors.confirmPassword && <Text color="red.500" fontSize="sm">{errors.confirmPassword}</Text>}
-                                </FormControl>
-                            </>
-                        )}
+                        <FormControl isInvalid={!!errors.confirmPassword}>
+                            <FormLabel display="flex" alignItems="center" gap={2}>
+                                <Text as="span" fontWeight="semibold">{initialData ? 'Подтверждение нового пароля' : 'Подтверждение пароля'}</Text>
+                            </FormLabel>
+                            <Input
+                                name="confirmPassword"
+                                type="password"
+                                value={user.confirmPassword || ''}
+                                onChange={handleInputChange}
+                                placeholder="Подтвердите пароль"
+                                focusBorderColor={primaryColor}
+                                bg="#333333"
+                                borderColor="#444444"
+                                _hover={{ borderColor: '#555555' }}
+                            />
+                            {errors.confirmPassword && <Text color="red.500" fontSize="sm">{errors.confirmPassword}</Text>}
+                        </FormControl>
 
                         <FormControl display="flex" alignItems="center">
                             <FormLabel htmlFor="is_superuser" mb="0">

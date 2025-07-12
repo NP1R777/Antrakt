@@ -219,4 +219,8 @@ class Achievements(ImageUploadMixin, models.Model): # Достижения
         default=list
     )
 
-    image_url = models.URLField(null=False, blank=True)
+    images_urls = fields.ArrayField(
+        models.URLField(null=False, blank=True),
+        blank=True,
+        default=list
+    )
