@@ -102,7 +102,7 @@ export const UserForm: React.FC<UserFormProps> = ({
             };
 
             if (initialData) {
-                await axios.put(`http://localhost:8000/users/${initialData.id}/`, userData);
+                await axios.put(`http://localhost:8000/user${initialData.id}/`, userData);
             } else {
                 await axios.post('http://localhost:8000/users/', userData);
             }
