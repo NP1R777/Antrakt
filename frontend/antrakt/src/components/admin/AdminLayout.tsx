@@ -279,7 +279,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     </HStack>
 
                     <Menu>
-                        <MenuButton as={Button} variant="ghost" p={2}>
+                        <MenuButton as={Button} variant="ghost" p={2} _hover={{ bg: 'none', color: 'white' }}>
                             <HStack spacing={3}>
                                 <Avatar size="sm" name={user?.email} bg={primaryColor} color="white" />
                                 <VStack
