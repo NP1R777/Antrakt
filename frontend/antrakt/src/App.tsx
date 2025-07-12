@@ -15,6 +15,7 @@ import { ChakraProvider, Box } from "@chakra-ui/react";
 import DirectorsPage from "./pages/admin/DirectorsPage";
 import AdminLayout from "./components/admin/AdminLayout";
 import PerformancesPage from './pages/admin/PerformancesPage'
+import AchievementsPage from './pages/admin/AchievementsPage'
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
@@ -128,10 +129,7 @@ function App() {
               element={
                 <ProtectedAdminRoute>
                   <AdminLayout>
-                    <Box p={8} color="white">
-                      <h1>Управление достижениями</h1>
-                      <p>Скоро здесь будет CRUD для достижений</p>
-                    </Box>
+                    <AchievementsPage />
                   </AdminLayout>
                 </ProtectedAdminRoute>
               }

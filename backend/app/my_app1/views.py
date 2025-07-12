@@ -474,8 +474,10 @@ class AchievementDetail(APIView):
     serializer_class = AchievementsSerializer
 
 
-    '''def get(self, request, id, format=None):
-        ...''' # Надо подумать, потому что и да, и нет.
+    def get(self, request, id, format=None):
+        achievement = get_object_or_404(self.model_class, id=id)
+        serializer = self.serializer_class(achievement)
+        return Response(serializer.data)
     
 
     @swagger_auto_schema(request_body=AchievementsSerializer)
@@ -486,6 +488,13 @@ class AchievementDetail(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+    def delete(self, request, id, format=None):
+        achievement = get_object_or_404(self.model_class, id=id)
+        achievement.deleted_at = datetime.now()
+        achievement.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ImageUploadView(APIView):
