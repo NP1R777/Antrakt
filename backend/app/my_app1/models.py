@@ -201,7 +201,7 @@ class Archive(ImageUploadMixin, models.Model): # Архив
     deleted_at = models.DateTimeField(null=True)
     description = models.CharField(max_length=2000, null=False)
     premiere_date = models.DateField(null=True)
-    afisha = models.BooleanField(default=False) # Если False -> то нужно отображать в разделе "Архив",
+    afisha = models.BooleanField(default=True) # Если False -> то нужно отображать в разделе "Архив",
                                                 # если True -> то отображать в разделе "Афиша".
     image_url = models.URLField(null=False, blank=True)
 

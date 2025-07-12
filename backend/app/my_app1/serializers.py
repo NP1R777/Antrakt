@@ -41,7 +41,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class PerfomanceSerializer(serializers.ModelSerializer):
-    afisha = serializers.BooleanField(default=False)
+    afisha = serializers.BooleanField(default=True)
 
     class Meta:
         model = Perfomances
