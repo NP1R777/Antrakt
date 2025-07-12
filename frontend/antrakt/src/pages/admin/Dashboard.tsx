@@ -44,6 +44,7 @@ import { ActorForm } from './forms/ActorForm';
 import { PerformanceForm } from './forms/PerformancesForm';
 import { NewsForm } from './forms/NewsForm';
 import { DirectorForm } from './forms/DirectorForm';
+import { AchievementForm } from './forms/AchievementForm';
 
 const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
@@ -84,7 +85,7 @@ const Dashboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     // Состояния для управления модальными окнами
-    const [activeForm, setActiveForm] = useState<'actor' | 'performance' | 'news' | 'director' | null>(null);
+    const [activeForm, setActiveForm] = useState<'actor' | 'performance' | 'news' | 'director' | 'achievement' | null>(null);
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const { scrollY } = useScroll();
@@ -206,7 +207,10 @@ const Dashboard: React.FC = () => {
             label: 'Новое достижение',
             icon: CFaTrophy,
             color: '#FFD700',
-            action: () => console.log('Добавить достижение')
+            action: () => {
+                setActiveForm('achievement');
+                onOpen();
+            }
         },
     ];
 
@@ -225,6 +229,8 @@ const Dashboard: React.FC = () => {
                 return <NewsForm onSuccess={handleFormSuccess} onCancel={onClose} />;
             case 'director':
                 return <DirectorForm onSuccess={handleFormSuccess} onCancel={onClose} />;
+            case 'achievement':
+                return <AchievementForm onSuccess={handleFormSuccess} onCancel={onClose} />;
             default:
                 return null;
         }
@@ -356,6 +362,7 @@ const Dashboard: React.FC = () => {
                         {activeForm === 'performance' && 'Добавить спектакль'}
                         {activeForm === 'news' && 'Добавить новость'}
                         {activeForm === 'director' && 'Добавить режиссёра'}
+                        {activeForm === 'achievement' && 'Добавить достижения'}
                     </ModalHeader>
                     <ModalCloseButton />
                     <ModalBody py={6}>
