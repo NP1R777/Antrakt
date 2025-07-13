@@ -27,12 +27,12 @@ const lightText = "#ffffff";
 
 const NAV_ITEMS = [
     { label: "Афиша", href: "afisha" },
-    { label: "Новости", href: "#news" },
-    { label: "Команда", href: "#team" },
-    { label: "Спектакли", href: "#performances" },
-    { label: "Достижения", href: "#achievements" },
-    { label: "О театре", href: "#about" },
-    { label: "Архив", href: "#archive" },
+    { label: "Новости", href: "news" },
+    { label: "Команда", href: "team" },
+    { label: "Спектакли", href: "performances" },
+    { label: "Достижения", href: "achievements" },
+    { label: "О театре", href: "about" },
+    { label: "Архив", href: "archive" },
 ];
 
 export default function Navigation() {
@@ -139,7 +139,7 @@ export default function Navigation() {
                 py={4}
             >
                 <Box>
-                    <Link href="#" _hover={{ textDecoration: "none" }}>
+                    <Link href="/" _hover={{ textDecoration: "none" }}>
                         <Text fontSize="xl" fontWeight="bold" color={lightText} letterSpacing="wide">
                             ТЕАТР СТУДИЯ <Text as="span" color={primaryColor}>АНТРАКТ</Text>
                         </Text>

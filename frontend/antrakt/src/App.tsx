@@ -15,10 +15,17 @@ import ArchivePage from "./pages/admin/ArchivePage";
 import { ChakraProvider, Box } from "@chakra-ui/react";
 import DirectorsPage from "./pages/admin/DirectorsPage";
 import AdminLayout from "./components/admin/AdminLayout";
-import PerformancesPage from './pages/admin/PerformancesPage'
+import PerformancesPageAdmin from './pages/admin/PerformancesPageAdmin'
 import AchievementsPage from './pages/admin/AchievementsPage'
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+// Добавленные импорты
+import TeamPage from "./pages/TeamPage";
+import ActorDetail from "./pages/cards/ActorDetail";
+import PerformancesPage from "./pages/PerformancesPage";
+import DirectorDetail from "./pages/cards/DirectorDetail";
+import PerformanceDetail from "./pages/cards/PerfomancesDetail";
 
 // Главная страница сайта
 const MainPage = () => (
@@ -68,6 +75,13 @@ function App() {
             {/* Главная страница */}
             <Route path="/" element={<MainPage />} />
 
+            {/* Новые маршруты для страницы команды и актеров */}
+            <Route path="/team" element={<TeamPage />} />
+            <Route path="/actor/:id" element={<ActorDetail />} />
+            <Route path="/director/:id" element={<DirectorDetail />} />
+            <Route path="/performances" element={<PerformancesPage />} />
+            <Route path="/performance/:id" element={<PerformanceDetail />} />
+
             {/* Админ-панель */}
             <Route
               path="/admin"
@@ -86,7 +100,7 @@ function App() {
               element={
                 <ProtectedAdminRoute>
                   <AdminLayout>
-                    <PerformancesPage />
+                    <PerformancesPageAdmin />
                   </AdminLayout>
                 </ProtectedAdminRoute>
               }

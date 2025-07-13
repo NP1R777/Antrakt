@@ -76,6 +76,7 @@ class Perfomances(ImageUploadMixin, models.Model): # Спектакли
     afisha = models.BooleanField(default=False) # Если False -> то отображать в разделе "Афиша",
                                                 # если True -> то отображать в разделе "Спектакли".
     image_url = models.URLField(null=False, blank=True)
+    performances_image = models.URLField(null=True, blank=True) # Изображение для раздела "Спектакли"
 
 
 class Actors(ImageUploadMixin, models.Model):
