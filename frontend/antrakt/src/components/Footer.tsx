@@ -11,6 +11,7 @@ import {
     FaClock
 } from "react-icons/fa";
 import type { ComponentWithAs, IconProps } from "@chakra-ui/react";
+import { url } from "inspector";
 
 const MotionBox = motion(Box);
 const MotionLink = motion(Link);
@@ -28,21 +29,20 @@ export default function Footer() {
     const hours = "Пн-Сб: 10:00 - 22:00, Вс: 11:00 - 20:00";
 
     const socialLinks = [
-        { icon: FaVk, url: "https://vk.com/tsantrakt", label: "ВКонтакте" },
+        { icon: FaVk, url: "https://vk.com/tc_antrakt?from=groups", label: "ВКонтакте" },
         { icon: FaTelegram, url: "https://t.me/tsantrakt", label: "Telegram" },
         { icon: FaInstagram, url: "https://instagram.com/tsantrakt", label: "Instagram" },
         { icon: FaYoutube, url: "https://youtube.com/tsantrakt", label: "YouTube" }
     ];
 
     const navLinks = [
-        { label: "Главная", url: "#" },
-        { label: "О студии", url: "#about" },
-        { label: "Спектакли", url: "#performances" },
-        { label: "Расписание", url: "#schedule" },
-        { label: "Галерея", url: "#gallery" },
+        { label: "Афиша", url: "afisha" },
         { label: "Новости", url: "#news" },
-        { label: "Отзывы", url: "#testimonials" },
-        { label: "Контакты", url: "#contacts" }
+        { label: "Команда", url: "#team" },
+        { label: "Спектакли", url: "#performances" },
+        { label: "Достижения", url: "#achievements" },
+        { label: "О театре", url: "#about" },
+        { label: "Архив", url: "#archive" },
     ];
 
     return (

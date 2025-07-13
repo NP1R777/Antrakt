@@ -26,13 +26,13 @@ const darkBg = "#0a0a0a";
 const lightText = "#ffffff";
 
 const NAV_ITEMS = [
-    { label: "Главная", href: "#" },
-    { label: "О студии", href: "#about" },
-    { label: "Наша команда", href: "#team" },
+    { label: "Афиша", href: "afisha" },
+    { label: "Новости", href: "#news" },
+    { label: "Команда", href: "#team" },
     { label: "Спектакли", href: "#performances" },
-    { label: "Расписание", href: "#schedule" },
-    { label: "Галерея", href: "#gallery" },
-    { label: "Контакты", href: "#contacts" },
+    { label: "Достижения", href: "#achievements" },
+    { label: "О театре", href: "#about" },
+    { label: "Архив", href: "#archive" },
 ];
 
 export default function Navigation() {
