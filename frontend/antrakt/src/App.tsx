@@ -11,6 +11,7 @@ import Navigation from "./components/Navigation";
 import ActorsPage from "./pages/admin/ActorsPage";
 import Performances from "./sections/Perfomances";
 import Testimonials from "./sections/Testimonials";
+import TeamSection from "./sections/TeamSection";
 import ArchivePage from "./pages/admin/ArchivePage";
 import { ChakraProvider, Box } from "@chakra-ui/react";
 import DirectorsPage from "./pages/admin/DirectorsPage";
@@ -28,6 +29,7 @@ const MainPage = () => (
     <Hero />
     <Performances />
     <NewsSection />
+    <TeamSection />
     <Testimonials />
     <Footer />
   </Box>
