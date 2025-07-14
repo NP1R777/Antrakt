@@ -37,12 +37,12 @@ export default function Footer() {
 
     const navLinks = [
         { label: "Афиша", url: "afisha" },
-        { label: "Новости", url: "#news" },
-        { label: "Команда", url: "#team" },
-        { label: "Спектакли", url: "#performances" },
-        { label: "Достижения", url: "#achievements" },
-        { label: "О театре", url: "#about" },
-        { label: "Архив", url: "#archive" },
+        { label: "Новости", url: "news" },
+        { label: "Команда", url: "team" },
+        { label: "Спектакли", url: "performances" },
+        { label: "Достижения", url: "achievements" },
+        { label: "О театре", url: "about" },
+        { label: "Архив", url: "archive" },
     ];
 
     return (

@@ -14,7 +14,8 @@ import {
     Alert,
     AlertIcon,
     AlertTitle,
-    AlertDescription
+    AlertDescription,
+    Container
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import Navigation from "../components/Navigation";
@@ -30,8 +31,9 @@ interface Performance {
     title: string;
     author: string;
     premiere_date: string | null;
-    perfomances_image: string | null;
+    performances_image: string | null;
     afisha: boolean;
+    age_limit: string;
 }
 
 const PerformancesPage: React.FC = () => {
@@ -45,7 +47,7 @@ const PerformancesPage: React.FC = () => {
             try {
                 setLoading(true);
                 const response = await axios.get("http://localhost:8000/perfomances");
-                const pastPerformances = response.data.filter((perf: Performance) => perf.afisha === true);
+                const pastPerformances = response.data.filter((perf: Performance) => perf.afisha === false);
                 setPerformances(pastPerformances);
             } catch (err) {
                 setError("Ошибка загрузки данных спектаклей");
@@ -93,7 +95,7 @@ const PerformancesPage: React.FC = () => {
     return (
         <Box bg="black" minH="100vh" display="flex" flexDirection="column" overflowX="hidden">
             <Navigation />
-            <Box flex="1" py={20} px={{ base: 4, md: 8 }} position="relative">
+            <Box flex="1" py={20} position="relative" px={{ base: 4, md: 8 }}> {/* Добавлены горизонтальные отступы */}
                 {/* Декоративный элемент */}
                 <MotionBox
                     position="absolute"
@@ -109,7 +111,12 @@ const PerformancesPage: React.FC = () => {
                     transition={{ duration: 6, repeat: Infinity, repeatType: "reverse" }}
                 />
 
-                <Box maxW="container.xl" mx="auto" position="relative" zIndex="1" overflowX="hidden">
+                <Container
+                    maxW="container.xl"
+                    position="relative"
+                    zIndex="1"
+                    px={{ base: 0, md: 4 }} // Убраны внутренние отступы на мобильных
+                >
                     <MotionBox
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -117,6 +124,7 @@ const PerformancesPage: React.FC = () => {
                         transition={{ duration: 0.8 }}
                         mb={12}
                         textAlign="center"
+                        px={{ base: 4, md: 0 }} // Добавлены отступы для заголовка
                     >
                         <Heading as="h1" fontSize={{ base: "2xl", md: "3xl" }} color="white" mb={4}>
                             Прошедшие спектакли
@@ -128,10 +136,12 @@ const PerformancesPage: React.FC = () => {
 
                     {performances.length > 0 ? (
                         <MotionGrid
-                            templateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }}
-                            gap={8}
-                            maxWidth="100%"
-                            overflowX="hidden"
+                            templateColumns={{
+                                base: "1fr",
+                                md: "repeat(2, minmax(0, 1fr))", // Исправлено для предотвращения переполнения
+                                lg: "repeat(3, minmax(0, 1fr))"
+                            }}
+                            gap={{ base: 6, md: 8 }} // Увеличен отступ между карточками
                             initial="hidden"
                             animate="visible"
                             variants={{
@@ -141,6 +151,7 @@ const PerformancesPage: React.FC = () => {
                                     transition: { staggerChildren: 0.2 }
                                 }
                             }}
+                            width="100%" // Гарантирует, что сетка не выходит за пределы
                         >
                             {performances.map((performance) => (
                                 <MotionGridItem
@@ -149,6 +160,7 @@ const PerformancesPage: React.FC = () => {
                                         hidden: { opacity: 0, y: 30 },
                                         visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
                                     }}
+                                    minW="0" // Предотвращает переполнение
                                 >
                                     <MotionBox
                                         as="div"
@@ -165,26 +177,35 @@ const PerformancesPage: React.FC = () => {
                                         }}
                                         onClick={() => navigate(`/performance/${performance.id}`)}
                                         cursor="pointer"
-                                        maxWidth="100%"
+                                        display="flex"
+                                        flexDirection="column"
                                     >
                                         <Image
-                                            src={performance.perfomances_image || "/placeholder-image.jpg"}
+                                            src={performance.performances_image || "/placeholder-image.jpg"}
                                             alt={performance.title}
                                             height="200px"
                                             objectFit="cover"
                                             fallbackSrc="/placeholder-image.jpg"
                                             w="100%"
                                         />
-                                        <Box p={6}>
-                                            <Heading as="h3" size="md" color="white" mb={2}>
-                                                {performance.title}
-                                            </Heading>
-                                            <Text color="gray.400" fontSize="sm" mb={2}>
-                                                Автор: {performance.author || "Неизвестен"}
-                                            </Text>
-                                            <Text color="gray.400" fontSize="sm">
-                                                Премьера: {performance.premiere_date ? new Date(performance.premiere_date).toLocaleDateString() : "Дата неизвестна"}
-                                            </Text>
+                                        <Box
+                                            p={6}
+                                            flex="1"
+                                            display="flex"
+                                            flexDirection="column"
+                                            justifyContent="space-between"
+                                        >
+                                            <Box>
+                                                <Heading as="h3" size="md" color="white" mb={2} noOfLines={1}>
+                                                    {performance.title}
+                                                </Heading>
+                                                <Text color="gray.400" fontSize="sm" mb={2} noOfLines={1}>
+                                                    Возрастное ограничение: {performance.age_limit}
+                                                </Text>
+                                                <Text color="gray.400" fontSize="sm" noOfLines={1}>
+                                                    Премьера: {performance.premiere_date ? new Date(performance.premiere_date).toLocaleDateString() : "Дата неизвестна"}
+                                                </Text>
+                                            </Box>
                                         </Box>
                                     </MotionBox>
                                 </MotionGridItem>
@@ -195,7 +216,7 @@ const PerformancesPage: React.FC = () => {
                             Нет данных о прошедших спектаклях
                         </Text>
                     )}
-                </Box>
+                </Container>
             </Box>
             <Footer />
         </Box>

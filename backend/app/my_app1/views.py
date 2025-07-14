@@ -181,7 +181,7 @@ class PefomancesList(APIView):
 
     def get(self, request, format=None):
         perfomances = self.model_class.objects.filter(deleted_at=None,
-                                                      afisha=True)
+                                                      afisha=False).order_by('premiere_date')
         serializer = self.serializer_class(perfomances, many=True)
         return Response(serializer.data)
     

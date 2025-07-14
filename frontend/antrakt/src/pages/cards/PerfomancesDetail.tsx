@@ -16,13 +16,20 @@ import {
     Alert,
     AlertIcon,
     AlertTitle,
-    AlertDescription
+    AlertDescription,
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalCloseButton,
+    useDisclosure,
+    IconButton,
+    Center
 } from "@chakra-ui/react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion"; // Добавлен AnimatePresence
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
-import { ChevronLeftIcon } from "@chakra-ui/icons";
-import { FaTheaterMasks, FaFilm, FaUserTie, FaClock, FaUsers } from "react-icons/fa";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import { FaTheaterMasks, FaFilm, FaUserTie, FaClock, FaUsers, FaExpand } from "react-icons/fa";
 
 // Стилизованные компоненты для иконок
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
@@ -30,8 +37,10 @@ const CFaFilm = chakra(FaFilm as any);
 const CFaUserTie = chakra(FaUserTie as any);
 const CFaClock = chakra(FaClock as any);
 const CFaUsers = chakra(FaUsers as any);
+const CFaExpand = chakra(FaExpand as any)
 
 const MotionBox = motion(Box);
+const MotionImage = motion(Image);
 
 interface Performance {
     id: number;
@@ -46,6 +55,7 @@ interface Performance {
     description: string;
     afisha: boolean;
     image_url: string;
+    images_list: string[] | null;
 }
 
 const PerformanceDetail: React.FC = () => {
@@ -54,17 +64,21 @@ const PerformanceDetail: React.FC = () => {
     const [performance, setPerformance] = useState<Performance | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const { isOpen, onOpen, onClose } = useDisclosure();
+    const [galleryIndex, setGalleryIndex] = useState(0);
+    const [direction, setDirection] = useState(1); // Для определения направления анимации
 
     useEffect(() => {
         const fetchPerformance = async () => {
             try {
                 setLoading(true);
                 const response = await axios.get(`http://localhost:8000/perfomance${id}`);
-                console.log("API response:", response.data); // Логирование ответа API
                 setPerformance({
                     ...response.data,
                     production_team: response.data.production_team || [],
-                    the_cast: response.data.the_cast || []
+                    the_cast: response.data.the_cast || [],
+                    images_list: response.data.images_list || []
                 });
             } catch (err) {
                 setError("Ошибка загрузки данных спектакля");
@@ -78,6 +92,50 @@ const PerformanceDetail: React.FC = () => {
             fetchPerformance();
         }
     }, [id]);
+
+    useEffect(() => {
+        if (!performance?.images_list?.length) return;
+
+        const interval = setInterval(() => {
+            setDirection(1); // Устанавливаем направление вперед
+            setGalleryIndex(prev => (prev + 1) % performance.images_list!.length);
+        }, 4000);
+
+        return () => clearInterval(interval);
+    }, [performance?.images_list]);
+
+    const handleImageClick = (index: number) => {
+        setCurrentImageIndex(index);
+        onOpen();
+    };
+
+    const nextImage = () => {
+        if (!performance?.images_list) return;
+        setDirection(1); // Устанавливаем направление вперед
+        setCurrentImageIndex(prev => (prev + 1) % performance.images_list.length);
+    };
+
+    const prevImage = () => {
+        if (!performance?.images_list) return;
+        setDirection(-1); // Устанавливаем направление назад
+        setCurrentImageIndex(prev => (prev - 1 + performance.images_list.length) % performance.images_list.length);
+    };
+
+    // Анимация для фотогалереи
+    const variants = {
+        enter: (direction: number) => ({
+            x: direction > 0 ? 1000 : -1000,
+            opacity: 0
+        }),
+        center: {
+            x: 0,
+            opacity: 1
+        },
+        exit: (direction: number) => ({
+            x: direction > 0 ? -1000 : 1000,
+            opacity: 0
+        })
+    };
 
     if (loading) {
         return (
@@ -143,7 +201,6 @@ const PerformanceDetail: React.FC = () => {
         <Box bg="black" display="flex" flexDirection="column" minH="100vh">
             <Navigation />
             <Box flex="1" py={20} px={{ base: 4, md: 8 }} bg="black" position="relative">
-                {/* Декоративный элемент */}
                 <MotionBox
                     position="absolute"
                     bottom="-20%"
@@ -259,9 +316,227 @@ const PerformanceDetail: React.FC = () => {
                             </VStack>
                         </GridItem>
                     </Grid>
+
+                    {performance.images_list && performance.images_list.length > 0 && (
+                        <Box mt={16}>
+                            <Heading
+                                as="h2"
+                                size="md"
+                                mb={6}
+                                color="white"
+                                textAlign="center"
+                                position="relative"
+                                _after={{
+                                    content: '""',
+                                    position: "absolute",
+                                    bottom: "-8px",
+                                    left: "50%",
+                                    transform: "translateX(-50%)",
+                                    width: "60px",
+                                    height: "3px",
+                                    bg: "#F56565",
+                                    borderRadius: "full"
+                                }}
+                            >
+                                Фотогалерея
+                            </Heading>
+
+                            <Flex
+                                position="relative"
+                                align="center"
+                                justify="center"
+                                overflow="hidden"
+                                h={{ base: "250px", md: "400px" }} // Увеличенная высота
+                                w="100%" // Занимает всю доступную ширину
+                                borderRadius="xl"
+                                bg="rgba(20, 20, 20, 0.5)"
+                                border="1px solid"
+                                borderColor="rgba(64, 0, 16, 0.7)"
+                                boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
+                                p={2}
+                            >
+                                <IconButton
+                                    aria-label="Предыдущее фото"
+                                    icon={<ChevronLeftIcon />}
+                                    position="absolute"
+                                    left="10px"
+                                    zIndex="1"
+                                    bg="rgba(0, 0, 0, 0.5)"
+                                    color="white"
+                                    _hover={{ bg: "#F56565" }}
+                                    onClick={() => {
+                                        setDirection(-1);
+                                        setGalleryIndex(prev =>
+                                            (prev - 1 + performance.images_list!.length) % performance.images_list!.length
+                                        );
+                                    }}
+                                />
+
+                                <IconButton
+                                    aria-label="Следующее фото"
+                                    icon={<ChevronRightIcon />}
+                                    position="absolute"
+                                    right="10px"
+                                    zIndex="1"
+                                    bg="rgba(0, 0, 0, 0.5)"
+                                    color="white"
+                                    _hover={{ bg: "#F56565" }}
+                                    onClick={() => {
+                                        setDirection(1);
+                                        setGalleryIndex(prev =>
+                                            (prev + 1) % performance.images_list!.length
+                                        );
+                                    }}
+                                />
+
+                                {/* Анимированное изображение */}
+                                <AnimatePresence initial={false} custom={direction}>
+                                    <MotionImage
+                                        key={galleryIndex}
+                                        custom={direction}
+                                        variants={variants}
+                                        initial="enter"
+                                        animate="center"
+                                        exit="exit"
+                                        transition={{
+                                            x: { type: "spring", stiffness: 300, damping: 30 },
+                                            opacity: { duration: 0.2 }
+                                        }}
+                                        src={performance.images_list[galleryIndex]}
+                                        alt={`Фото спектакля ${galleryIndex + 1}`}
+                                        position="absolute"
+                                        h="100%"
+                                        w="auto"
+                                        maxW="100%"
+                                        objectFit="contain"
+                                        cursor="pointer"
+                                        onClick={() => handleImageClick(galleryIndex)}
+                                        borderRadius="md"
+                                    />
+                                </AnimatePresence>
+
+                                <IconButton
+                                    aria-label="Увеличить фото"
+                                    icon={<CFaExpand />}
+                                    position="absolute"
+                                    bottom="10px"
+                                    right="10px"
+                                    zIndex="1"
+                                    bg="rgba(0, 0, 0, 0.5)"
+                                    color="white"
+                                    _hover={{ bg: "#F56565" }}
+                                    onClick={() => handleImageClick(galleryIndex)}
+                                />
+
+                                <Flex
+                                    position="absolute"
+                                    bottom="10px"
+                                    left="50%"
+                                    transform="translateX(-50%)"
+                                    gap={2}
+                                    zIndex="1"
+                                >
+                                    {performance.images_list.map((_, index) => (
+                                        <Box
+                                            key={index}
+                                            w="10px"
+                                            h="10px"
+                                            borderRadius="full"
+                                            bg={index === galleryIndex ? "#F56565" : "gray.600"}
+                                            cursor="pointer"
+                                            onClick={() => setGalleryIndex(index)}
+                                            _hover={{ bg: "#F56565" }}
+                                        />
+                                    ))}
+                                </Flex>
+                            </Flex>
+                        </Box>
+                    )}
                 </Box>
             </Box>
             <Footer />
+
+            {/* Модальное окно для просмотра фото */}
+            <Modal isOpen={isOpen} onClose={onClose} size="6xl" isCentered>
+                <ModalOverlay bg="rgba(0, 0, 0, 0.8)" />
+                <ModalContent bg="transparent" boxShadow="none">
+                    <ModalCloseButton
+                        color="white"
+                        bg="rgba(0, 0, 0, 0.5)"
+                        _hover={{ bg: "#F56565" }}
+                        size="lg"
+                        zIndex="overlay" // Исправление: увеличен z-index
+                        onClick={onClose} // Явное указание обработчика
+                    />
+
+                    <Flex position="relative" h="85vh" align="center" justify="center">
+                        <IconButton
+                            aria-label="Предыдущее фото"
+                            icon={<ChevronLeftIcon />}
+                            position="absolute"
+                            left="10px"
+                            zIndex="1"
+                            bg="rgba(0, 0, 0, 0.5)"
+                            color="white"
+                            fontSize="xl"
+                            size="lg"
+                            _hover={{ bg: "#F56565" }}
+                            onClick={prevImage}
+                        />
+
+                        <IconButton
+                            aria-label="Следующее фото"
+                            icon={<ChevronRightIcon />}
+                            position="absolute"
+                            right="10px"
+                            zIndex="1"
+                            bg="rgba(0, 0, 0, 0.5)"
+                            color="white"
+                            fontSize="xl"
+                            size="lg"
+                            _hover={{ bg: "#F56565" }}
+                            onClick={nextImage}
+                        />
+
+                        {/* Анимированное изображение в модальном окне */}
+                        <AnimatePresence initial={false} custom={direction}>
+                            <MotionImage
+                                key={currentImageIndex}
+                                custom={direction}
+                                variants={variants}
+                                initial="enter"
+                                animate="center"
+                                exit="exit"
+                                transition={{
+                                    x: { type: "spring", stiffness: 300, damping: 30 },
+                                    opacity: { duration: 0.2 }
+                                }}
+                                src={performance?.images_list?.[currentImageIndex] || ""}
+                                alt={`Фото спектакля ${currentImageIndex + 1}`}
+                                maxH="85vh"
+                                maxW="100%"
+                                objectFit="contain"
+                                borderRadius="md"
+                            />
+                        </AnimatePresence>
+
+                        <Text
+                            position="absolute"
+                            bottom="20px"
+                            left="50%"
+                            transform="translateX(-50%)"
+                            color="white"
+                            bg="rgba(0, 0, 0, 0.5)"
+                            px={3}
+                            py={1}
+                            borderRadius="md"
+                            zIndex="1"
+                        >
+                            {currentImageIndex + 1} / {performance?.images_list?.length}
+                        </Text>
+                    </Flex>
+                </ModalContent>
+            </Modal>
         </Box>
     );
 };

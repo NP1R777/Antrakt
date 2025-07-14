@@ -16,7 +16,18 @@ import {
     Wrap,
     Tag,
     TagLabel,
-    TagCloseButton
+    TagCloseButton,
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalFooter,
+    ModalBody,
+    ModalCloseButton,
+    useDisclosure,
+    Box,
+    Image,
+    Center
 } from '@chakra-ui/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -29,7 +40,8 @@ import {
     FaTimes,
     FaSave,
     FaUsers,
-    FaChild
+    FaChild,
+    FaTrash
 } from 'react-icons/fa';
 import axios from 'axios';
 import { chakra, useToast } from '@chakra-ui/react';
@@ -37,6 +49,7 @@ import ImageUpload from '../../../components/ImageUpload';
 
 const MotionButton = motion(Button);
 const MotionTag = motion(Tag);
+const MotionBox = motion(Box);
 const CFaPlus = chakra(FaPlus as any);
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
 const CFaUser = chakra(FaUser as any);
@@ -47,6 +60,7 @@ const CFaTimes = chakra(FaTimes as any);
 const CFaSave = chakra(FaSave as any);
 const CFaUsers = chakra(FaUsers as any);
 const CFaChild = chakra(FaChild as any);
+const CFaTrash = chakra(FaTrash as any);
 
 const primaryColor = '#800020';
 const accentColor = '#4ECDC4';
@@ -66,6 +80,8 @@ interface Performance {
     the_cast: string[];
     afisha: boolean;
     deleted_at?: string | null;
+    performances_image: string;
+    images_list: string[]; // Добавлено поле для галереи
 }
 
 const genres = [
@@ -99,11 +115,15 @@ export const PerformanceForm: React.FC<{
         production_team: [],
         the_cast: [],
         afisha: true,
-        deleted_at: null
+        deleted_at: null,
+        performances_image: '',
+        images_list: [] // Инициализация галереи
     });
     const [listInputs, setListInputs] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isGalleryUploading, setIsGalleryUploading] = useState(false);
     const toast = useToast();
+    const { isOpen, onOpen, onClose } = useDisclosure();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -144,17 +164,40 @@ export const PerformanceForm: React.FC<{
         }));
     };
 
-    const handleImageUpload = (imageUrl: string) => {
+    const handleImageUpload = (imageUrl: string, field: string) => {
         setCurrentPerformance(prev => ({
             ...prev,
-            image_url: imageUrl
+            [field]: imageUrl
         }));
     };
 
-    const handleImageRemove = () => {
+    const handleImageRemove = (field: string) => {
         setCurrentPerformance(prev => ({
             ...prev,
-            image_url: ''
+            [field]: ''
+        }));
+    };
+
+    // Добавление изображения в галерею
+    const handleAddGalleryImage = (imageUrl: string) => {
+        if (!imageUrl) return;
+
+        setCurrentPerformance(prev => ({
+            ...prev,
+            images_list: [...(prev.images_list || []), imageUrl]
+        }));
+    };
+
+    // Удаление изображения из галереи
+    const handleRemoveGalleryImage = (index: number) => {
+        if (!currentPerformance.images_list) return;
+
+        const newImages = [...currentPerformance.images_list];
+        newImages.splice(index, 1);
+
+        setCurrentPerformance(prev => ({
+            ...prev,
+            images_list: newImages
         }));
     };
 
@@ -398,6 +441,21 @@ export const PerformanceForm: React.FC<{
                             {currentPerformance.afisha ? "В 'Афиша'" : "В 'Спектакли'"}
                         </Text>
                     </FormControl>
+
+                    <FormControl>
+                        <FormLabel display="flex" alignItems="center" gap={2}>
+                            <CFaImage color={primaryColor} />
+                            <Text as="span" fontWeight="semibold">Фото спектакля</Text>
+                        </FormLabel>
+                        <ImageUpload
+                            currentImageUrl={currentPerformance.performances_image}
+                            onImageUpload={(imageUrl) => handleImageUpload(imageUrl, 'performances_image')}
+                            onImageRemove={() => handleImageRemove('performances_image')}
+                            contentType="perfomances"
+                            maxSize={10}
+                            disabled={isSubmitting}
+                        />
+                    </FormControl>
                 </VStack>
 
                 {/* Правая колонка */}
@@ -409,8 +467,8 @@ export const PerformanceForm: React.FC<{
                         </FormLabel>
                         <ImageUpload
                             currentImageUrl={currentPerformance.image_url}
-                            onImageUpload={handleImageUpload}
-                            onImageRemove={handleImageRemove}
+                            onImageUpload={(imageUrl) => handleImageUpload(imageUrl, 'image_url')}
+                            onImageRemove={() => handleImageRemove('image_url')}
                             contentType="perfomances"
                             maxSize={10}
                             disabled={isSubmitting}
@@ -419,6 +477,78 @@ export const PerformanceForm: React.FC<{
 
                     {renderListField('production_team', 'Постановочная команда', <CFaUsers color={accentColor} />)}
                     {renderListField('the_cast', 'Актёрский состав', <CFaUser color={accentColor} />)}
+
+                    {/* Секция фотогалереи */}
+                    <FormControl>
+                        <FormLabel display="flex" alignItems="center" gap={2}>
+                            <CFaImage color={primaryColor} />
+                            <Text as="span" fontWeight="semibold">Фотогалерея спектакля</Text>
+                        </FormLabel>
+
+                        <Box
+                            border="1px dashed"
+                            borderColor="gray.600"
+                            borderRadius="md"
+                            p={4}
+                            mb={4}
+                            bg="rgba(30, 30, 30, 0.5)"
+                        >
+                            {currentPerformance.images_list?.length ? (
+                                <Wrap spacing={3} mb={4}>
+                                    <AnimatePresence>
+                                        {currentPerformance.images_list.map((url, index) => (
+                                            <MotionBox
+                                                key={index}
+                                                position="relative"
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 0.8 }}
+                                                whileHover={{ scale: 1.05 }}
+                                                transition={{ duration: 0.2 }}
+                                            >
+                                                <Image
+                                                    src={url}
+                                                    boxSize="100px"
+                                                    objectFit="cover"
+                                                    borderRadius="md"
+                                                    border="1px solid"
+                                                    borderColor="gray.600"
+                                                />
+                                                <IconButton
+                                                    aria-label="Удалить фото"
+                                                    icon={<CFaTrash />}
+                                                    size="xs"
+                                                    position="absolute"
+                                                    top="-8px"
+                                                    right="-8px"
+                                                    borderRadius="full"
+                                                    bg="red.500"
+                                                    color="white"
+                                                    _hover={{ bg: 'red.600' }}
+                                                    onClick={() => handleRemoveGalleryImage(index)}
+                                                />
+                                            </MotionBox>
+                                        ))}
+                                    </AnimatePresence>
+                                </Wrap>
+                            ) : (
+                                <Center minH="100px" color="gray.500" fontSize="sm">
+                                    Нет загруженных фотографий
+                                </Center>
+                            )}
+
+                            <Button
+                                leftIcon={<CFaPlus />}
+                                colorScheme="teal"
+                                variant="outline"
+                                onClick={onOpen}
+                                isLoading={isGalleryUploading}
+                                w="full"
+                            >
+                                Добавить фотографию
+                            </Button>
+                        </Box>
+                    </FormControl>
 
                     <FormControl>
                         <FormLabel fontWeight="semibold">Описание спектакля</FormLabel>
@@ -461,6 +591,33 @@ export const PerformanceForm: React.FC<{
                     {currentPerformance.id ? 'Обновить' : 'Создать'}
                 </MotionButton>
             </Flex>
+
+            {/* Модальное окно для загрузки фотографий в галерею */}
+            <Modal isOpen={isOpen} onClose={onClose} size="lg">
+                <ModalOverlay />
+                <ModalContent bg="gray.800" color="white">
+                    <ModalHeader>Добавить фотографию в галерею</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <ImageUpload
+                            currentImageUrl={null}
+                            onImageUpload={(imageUrl) => {
+                                handleAddGalleryImage(imageUrl);
+                                onClose();
+                            }}
+                            onImageRemove={() => { }}
+                            contentType="perfomances"
+                            maxSize={10}
+                            disabled={isSubmitting}
+                        />
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="red" mr={3} onClick={onClose}>
+                            Отмена
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </>
     );
 };

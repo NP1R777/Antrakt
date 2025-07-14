@@ -15,17 +15,20 @@ import ArchivePage from "./pages/admin/ArchivePage";
 import { ChakraProvider, Box } from "@chakra-ui/react";
 import DirectorsPage from "./pages/admin/DirectorsPage";
 import AdminLayout from "./components/admin/AdminLayout";
-import PerformancesPageAdmin from './pages/admin/PerformancesPageAdmin'
-import AchievementsPage from './pages/admin/AchievementsPage'
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import AchievementsPageAdmin from './pages/admin/AchievementsPageAdmin'
+import PerformancesPageAdmin from './pages/admin/PerformancesPageAdmin'
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Добавленные импорты
 import TeamPage from "./pages/TeamPage";
+import AchievementsPage from "./pages/AchievementsPage";
 import ActorDetail from "./pages/cards/ActorDetail";
 import PerformancesPage from "./pages/PerformancesPage";
 import DirectorDetail from "./pages/cards/DirectorDetail";
+import AchievementDetail from "./pages/cards/AchievementDetail";
 import PerformanceDetail from "./pages/cards/PerfomancesDetail";
+import AboutTheatre from "./pages/AboutTheatre";
 
 // Главная страница сайта
 const MainPage = () => (
@@ -81,6 +84,9 @@ function App() {
             <Route path="/director/:id" element={<DirectorDetail />} />
             <Route path="/performances" element={<PerformancesPage />} />
             <Route path="/performance/:id" element={<PerformanceDetail />} />
+            <Route path="/achievements" element={<AchievementsPage />} />
+            <Route path="/achievement/:id" element={<AchievementDetail />} />
+            <Route path="/about" element={<AboutTheatre />} />
 
             {/* Админ-панель */}
             <Route
@@ -144,7 +150,7 @@ function App() {
               element={
                 <ProtectedAdminRoute>
                   <AdminLayout>
-                    <AchievementsPage />
+                    <AchievementsPageAdmin />
                   </AdminLayout>
                 </ProtectedAdminRoute>
               }

@@ -63,7 +63,7 @@ interface Achievement {
     deleted_at?: string | null;
 }
 
-const AchievementsPage: React.FC = () => {
+const AchievementsPageAdmin: React.FC = () => {
     const [achievements, setAchievements] = useState<Achievement[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -439,4 +439,4 @@ const AchievementsPage: React.FC = () => {
     );
 };
 
-export default AchievementsPage;
+export default AchievementsPageAdmin;

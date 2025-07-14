@@ -77,6 +77,11 @@ class Perfomances(ImageUploadMixin, models.Model): # Спектакли
                                                 # если True -> то отображать в разделе "Спектакли".
     image_url = models.URLField(null=False, blank=True)
     performances_image = models.URLField(null=True, blank=True) # Изображение для раздела "Спектакли"
+    images_list = fields.ArrayField(
+        models.URLField(null=True),
+        blank=True,
+        default=list
+    ) # Список фотографий со спектакля для карусели внизу карточки спектакля.
 
 
 class Actors(ImageUploadMixin, models.Model):

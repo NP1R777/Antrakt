@@ -94,7 +94,7 @@ const Dashboard: React.FC = () => {
     const fetchDashboardData = async () => {
         try {
             const [perfRes, actRes, dirRes, newsRes, achRes, usrRes] = await Promise.all([
-                axios.get('http://localhost:8000/perfomances/'),
+                axios.get('http://localhost:8000/perfomances-admin/'),
                 axios.get('http://localhost:8000/actors/'),
                 axios.get('http://localhost:8000/directors/'),
                 axios.get('http://localhost:8000/news/'),
@@ -155,7 +155,7 @@ const Dashboard: React.FC = () => {
     };
 
     const statCards = [
-        { label: 'Спектакли', value: stats.performances, icon: CFaTheaterMasks, color: primaryColor, helpText: 'Активных постановок' },
+        { label: 'Спектакли', value: stats.performances, icon: CFaTheaterMasks, color: primaryColor, helpText: 'Сыгранные постановки' },
         { label: 'Актёры', value: stats.actors, icon: CFaUsers, color: '#FF6B35', helpText: 'В труппе театра' },
         { label: 'Новости', value: stats.news, icon: CFaNewspaper, color: '#4ECDC4', helpText: 'Опубликованных статей' },
         { label: 'Достижения', value: stats.achievements, icon: CFaTrophy, color: '#FFD700', helpText: 'Наград и призов' },
