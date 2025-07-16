@@ -196,6 +196,12 @@ class News(ImageUploadMixin, models.Model):
     summary = models.CharField(max_length=300, blank=True) # Краткое описание новости
     is_published = models.BooleanField(default=False, blank=True) # Опубликована или нет новость
     image_url = models.URLField(null=False, blank=True)
+    date_publish = models.DateField(null=True, blank=True) # Дата публикации новости
+    images_list = fields.ArrayField(
+        models.URLField(null=True),
+        blank=True,
+        default=list
+    ) # Карусель фотографий для новости.
 
 
 class Archive(ImageUploadMixin, models.Model): # Архив

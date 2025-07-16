@@ -438,7 +438,7 @@ export const PerformanceForm: React.FC<{
                             colorScheme="green"
                         />
                         <Text ml={3} color={currentPerformance.afisha ? "green.300" : "purple.300"}>
-                            {currentPerformance.afisha ? "В 'Афиша'" : "В 'Спектакли'"}
+                            {currentPerformance.afisha ? "В афише" : "В спектаклях"}
                         </Text>
                     </FormControl>
 

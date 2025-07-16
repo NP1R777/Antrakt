@@ -29,6 +29,7 @@ const MotionButton = motion(Button);
 interface NewsItem {
     id: number;
     created_at: string;
+    date_publish?: string;
     title: string;
     description: string;
     summary: string;
@@ -132,7 +133,7 @@ const NewsPage: React.FC = () => {
                         <Heading
                             as="h1"
                             fontSize={{ base: "2xl", md: "3xl" }}
-                            color="white" // Цвет текста как в TeamPage.tsx
+                            color="white"
                             mb={4}
                             position="relative"
                             display="inline-block"
@@ -144,7 +145,7 @@ const NewsPage: React.FC = () => {
                                 transform: "translateX(-50%)",
                                 width: "80px",
                                 height: "4px",
-                                bg: primaryColor, // Бордовый декоративный элемент
+                                bg: primaryColor,
                                 borderRadius: "full"
                             }}
                         >
@@ -253,7 +254,7 @@ const NewsPage: React.FC = () => {
                                                     mb={2}
                                                     fontWeight="medium"
                                                 >
-                                                    {formatDate(item.created_at)}
+                                                    Дата публикации: {item.date_publish ? formatDate(item.date_publish) : 'неизвестно'}
                                                 </Text>
 
                                                 <Heading as="h3" size="md" color={lightText} mb={3} noOfLines={2}>

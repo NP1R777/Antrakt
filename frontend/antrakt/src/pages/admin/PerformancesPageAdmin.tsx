@@ -308,7 +308,7 @@ const PerformancesPage: React.FC = () => {
 
                             <Flex justify="space-between" align="center" mt={4}>
                                 <Badge colorScheme={performance.afisha ? "green" : "purple"}>
-                                    {performance.afisha ? "В афише" : "В архиве"}
+                                    {performance.afisha ? "В афише" : "В спектаклях"}
                                 </Badge>
 
                                 <Flex justify="flex-end" gap={2}>

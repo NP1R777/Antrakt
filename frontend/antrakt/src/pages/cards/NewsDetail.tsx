@@ -16,17 +16,26 @@ import {
     Alert,
     AlertIcon,
     AlertTitle,
-    AlertDescription
+    AlertDescription,
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalCloseButton,
+    IconButton,
+    Center,
+    useDisclosure
 } from "@chakra-ui/react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
-import { ChevronLeftIcon } from "@chakra-ui/icons";
-import { FaNewspaper, FaCalendarAlt } from "react-icons/fa";
+import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import { FaNewspaper, FaCalendarAlt, FaExpand } from "react-icons/fa";
 
 const MotionBox = motion(Box);
+const MotionImage = motion(Image);
 const CFaNewspaper = chakra(FaNewspaper as any);
 const CFaCalendarAlt = chakra(FaCalendarAlt as any);
+const CFaExpand = chakra(FaExpand as any);
 
 interface News {
     id: number;
@@ -38,6 +47,7 @@ interface News {
     summary: string;
     is_published: boolean;
     image_url: string;
+    images_list: string[] | null;
 }
 
 const NewsDetail: React.FC = () => {
@@ -46,6 +56,10 @@ const NewsDetail: React.FC = () => {
     const [news, setNews] = useState<News | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const { isOpen, onOpen, onClose } = useDisclosure();
+    const [galleryIndex, setGalleryIndex] = useState(0);
+    const [direction, setDirection] = useState(1);
 
     useEffect(() => {
         const fetchNews = async () => {
@@ -65,6 +79,49 @@ const NewsDetail: React.FC = () => {
             fetchNews();
         }
     }, [id]);
+
+    useEffect(() => {
+        if (!news?.images_list?.length) return;
+
+        const interval = setInterval(() => {
+            setDirection(1);
+            setGalleryIndex(prev => (prev + 1) % news.images_list!.length);
+        }, 4000);
+
+        return () => clearInterval(interval);
+    }, [news?.images_list]);
+
+    const handleImageClick = (index: number) => {
+        setCurrentImageIndex(index);
+        onOpen();
+    };
+
+    const nextImage = () => {
+        if (!news?.images_list) return;
+        setDirection(1);
+        setCurrentImageIndex(prev => (prev + 1) % news.images_list.length);
+    };
+
+    const prevImage = () => {
+        if (!news?.images_list) return;
+        setDirection(-1);
+        setCurrentImageIndex(prev => (prev - 1 + news.images_list.length) % news.images_list.length);
+    };
+
+    const variants = {
+        enter: (direction: number) => ({
+            x: direction > 0 ? 1000 : -1000,
+            opacity: 0
+        }),
+        center: {
+            x: 0,
+            opacity: 1
+        },
+        exit: (direction: number) => ({
+            x: direction > 0 ? -1000 : 1000,
+            opacity: 0
+        })
+    };
 
     if (loading) {
         return (
@@ -130,7 +187,7 @@ const NewsDetail: React.FC = () => {
                     right="-10%"
                     w="400px"
                     h="400px"
-                    bg="linear-gradient(135deg, #D4A017, #80002010)"
+                    bg="linear-gradient(135deg, #800020, #40001010)"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.2}
@@ -222,9 +279,224 @@ const NewsDetail: React.FC = () => {
                             </VStack>
                         </GridItem>
                     </Grid>
+
+                    {news.images_list && news.images_list.length > 0 && (
+                        <Box mt={16}>
+                            <Heading
+                                as="h2"
+                                size="md"
+                                mb={6}
+                                color="white"
+                                textAlign="center"
+                                position="relative"
+                                _after={{
+                                    content: '""',
+                                    position: "absolute",
+                                    bottom: "-8px",
+                                    left: "50%",
+                                    transform: "translateX(-50%)",
+                                    width: "60px",
+                                    height: "3px",
+                                    bg: "#800020",
+                                    borderRadius: "full"
+                                }}
+                            >
+                                Фотогалерея
+                            </Heading>
+
+                            <Flex
+                                position="relative"
+                                align="center"
+                                justify="center"
+                                overflow="hidden"
+                                h={{ base: "250px", md: "400px" }}
+                                w="100%"
+                                borderRadius="xl"
+                                bg="rgba(20, 20, 20, 0.5)"
+                                border="1px solid"
+                                borderColor="rgba(64, 0, 16, 0.7)"
+                                boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
+                                p={2}
+                            >
+                                <IconButton
+                                    aria-label="Предыдущее фото"
+                                    icon={<ChevronLeftIcon />}
+                                    position="absolute"
+                                    left="10px"
+                                    zIndex="1"
+                                    bg="rgba(0, 0, 0, 0.5)"
+                                    color="white"
+                                    _hover={{ bg: "#800020" }}
+                                    onClick={() => {
+                                        setDirection(-1);
+                                        setGalleryIndex(prev =>
+                                            (prev - 1 + news.images_list!.length) % news.images_list!.length
+                                        );
+                                    }}
+                                />
+
+                                <IconButton
+                                    aria-label="Следующее фото"
+                                    icon={<ChevronRightIcon />}
+                                    position="absolute"
+                                    right="10px"
+                                    zIndex="1"
+                                    bg="rgba(0, 0, 0, 0.5)"
+                                    color="white"
+                                    _hover={{ bg: "#800020" }}
+                                    onClick={() => {
+                                        setDirection(1);
+                                        setGalleryIndex(prev =>
+                                            (prev + 1) % news.images_list!.length
+                                        );
+                                    }}
+                                />
+
+                                <AnimatePresence initial={false} custom={direction}>
+                                    <MotionImage
+                                        key={galleryIndex}
+                                        custom={direction}
+                                        variants={variants}
+                                        initial="enter"
+                                        animate="center"
+                                        exit="exit"
+                                        transition={{
+                                            x: { type: "spring", stiffness: 300, damping: 30 },
+                                            opacity: { duration: 0.2 }
+                                        }}
+                                        src={news.images_list[galleryIndex]}
+                                        alt={`Фото новости ${galleryIndex + 1}`}
+                                        position="absolute"
+                                        h="100%"
+                                        w="auto"
+                                        maxW="100%"
+                                        objectFit="contain"
+                                        cursor="pointer"
+                                        onClick={() => handleImageClick(galleryIndex)}
+                                        borderRadius="md"
+                                    />
+                                </AnimatePresence>
+
+                                <IconButton
+                                    aria-label="Увеличить фото"
+                                    icon={<CFaExpand />}
+                                    position="absolute"
+                                    bottom="10px"
+                                    right="10px"
+                                    zIndex="1"
+                                    bg="rgba(0, 0, 0, 0.5)"
+                                    color="white"
+                                    _hover={{ bg: "#800020" }}
+                                    onClick={() => handleImageClick(galleryIndex)}
+                                />
+
+                                <Flex
+                                    position="absolute"
+                                    bottom="10px"
+                                    left="50%"
+                                    transform="translateX(-50%)"
+                                    gap={2}
+                                    zIndex="1"
+                                >
+                                    {news.images_list.map((_, index) => (
+                                        <Box
+                                            key={index}
+                                            w="10px"
+                                            h="10px"
+                                            borderRadius="full"
+                                            bg={index === galleryIndex ? "#800020" : "gray.600"}
+                                            cursor="pointer"
+                                            onClick={() => setGalleryIndex(index)}
+                                            _hover={{ bg: "#800020" }}
+                                        />
+                                    ))}
+                                </Flex>
+                            </Flex>
+                        </Box>
+                    )}
                 </Box>
             </Box>
             <Footer />
+
+            <Modal isOpen={isOpen} onClose={onClose} size="6xl" isCentered>
+                <ModalOverlay bg="rgba(0, 0, 0, 0.8)" />
+                <ModalContent bg="transparent" boxShadow="none">
+                    <ModalCloseButton
+                        color="white"
+                        bg="rgba(0, 0, 0, 0.5)"
+                        _hover={{ bg: "#800020" }}
+                        size="lg"
+                        zIndex="overlay"
+                        onClick={onClose}
+                    />
+
+                    <Flex position="relative" h="85vh" align="center" justify="center">
+                        <IconButton
+                            aria-label="Предыдущее фото"
+                            icon={<ChevronLeftIcon />}
+                            position="absolute"
+                            left="10px"
+                            zIndex="1"
+                            bg="rgba(0, 0, 0, 0.5)"
+                            color="white"
+                            fontSize="xl"
+                            size="lg"
+                            _hover={{ bg: "#800020" }}
+                            onClick={prevImage}
+                        />
+
+                        <IconButton
+                            aria-label="Следующее фото"
+                            icon={<ChevronRightIcon />}
+                            position="absolute"
+                            right="10px"
+                            zIndex="1"
+                            bg="rgba(0, 0, 0, 0.5)"
+                            color="white"
+                            fontSize="xl"
+                            size="lg"
+                            _hover={{ bg: "#800020" }}
+                            onClick={nextImage}
+                        />
+
+                        <AnimatePresence initial={false} custom={direction}>
+                            <MotionImage
+                                key={currentImageIndex}
+                                custom={direction}
+                                variants={variants}
+                                initial="enter"
+                                animate="center"
+                                exit="exit"
+                                transition={{
+                                    x: { type: "spring", stiffness: 300, damping: 30 },
+                                    opacity: { duration: 0.2 }
+                                }}
+                                src={news?.images_list?.[currentImageIndex] || ""}
+                                alt={`Фото новости ${currentImageIndex + 1}`}
+                                maxH="85vh"
+                                maxW="100%"
+                                objectFit="contain"
+                                borderRadius="md"
+                            />
+                        </AnimatePresence>
+
+                        <Text
+                            position="absolute"
+                            bottom="20px"
+                            left="50%"
+                            transform="translateX(-50%)"
+                            color="white"
+                            bg="rgba(0, 0, 0, 0.5)"
+                            px={3}
+                            py={1}
+                            borderRadius="md"
+                            zIndex="1"
+                        >
+                            {currentImageIndex + 1} / {news?.images_list?.length}
+                        </Text>
+                    </Flex>
+                </ModalContent>
+            </Modal>
         </Box>
     );
 };
