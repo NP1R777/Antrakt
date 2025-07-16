@@ -70,7 +70,7 @@ interface News {
     deleted_at?: string | null;
 }
 
-const NewsPage: React.FC = () => {
+const NewsPageAdmin: React.FC = () => {
     const [news, setNews] = useState<News[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -432,4 +432,4 @@ const NewsPage: React.FC = () => {
     );
 };
 
-export default NewsPage;
+export default NewsPageAdmin;

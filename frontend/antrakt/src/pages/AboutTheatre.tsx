@@ -49,8 +49,9 @@ const AboutTheatre: React.FC = () => {
                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                     >
                         <GridItem>
-                            <VStack align="start" spacing={6}>
-                                <Text color="gray.300" lineHeight="tall" fontSize="xl">
+                            <VStack align="center" justify="center" spacing={6}>
+                                <Text color="gray.300" lineHeight="tall"
+                                    fontSize={20} textAlign="center">
                                     Театр-студия "Антракт" была основана в 2021 году под руководством художественного руководителя Андрея Аидмазоновича Дустимова.
                                 </Text>
                             </VStack>
@@ -71,11 +72,11 @@ const AboutTheatre: React.FC = () => {
                         </GridItem>
 
                         <GridItem>
-                            <VStack align="start" spacing={6}>
-                                <Heading size="xl" color="#F56565" mb={4}>
+                            <VStack align="center" spacing={6}>
+                                <Heading fontSize={40} textAlign="center" color="#F56565" mb={4}>
                                     Наша миссия
                                 </Heading>
-                                <Text color="gray.300" lineHeight="tall">
+                                <Text color="gray.300" lineHeight="tall" textAlign="center" fontSize={20}>
                                     Театр-студия "Антракт" – это творческая площадка, где каждый может раскрыть свой потенциал и стать частью большого театрального сообщества.
                                     Мы верим в силу искусства объединять людей и вдохновлять на создание лучшего будущего.
                                     Наша миссия – создавать качественные спектакли, которые будут затрагивать сердца зрителей и поднимать важные социальные вопросы.
@@ -88,7 +89,7 @@ const AboutTheatre: React.FC = () => {
                 </Box>
             </Box>
             <Footer />
-        </Box>
+        </Box >
     );
 };
 

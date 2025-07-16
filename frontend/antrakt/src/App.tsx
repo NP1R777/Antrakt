@@ -3,7 +3,6 @@ import theme from "./styles/theme";
 import Hero from "./sections/Hero";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import NewsPage from "./pages/admin/NewsPage";
 import UsersPage from "./pages/admin/UsersPage";
 import Dashboard from "./pages/admin/Dashboard";
 import NewsSection from "./sections/NewsSection";
@@ -13,6 +12,7 @@ import Performances from "./sections/Perfomances";
 import Testimonials from "./sections/Testimonials";
 import ArchivePage from "./pages/admin/ArchivePage";
 import { ChakraProvider, Box } from "@chakra-ui/react";
+import NewsPageAdmin from "./pages/admin/NewsPageAdmin";
 import DirectorsPage from "./pages/admin/DirectorsPage";
 import AdminLayout from "./components/admin/AdminLayout";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
@@ -22,13 +22,15 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Добавленные импорты
 import TeamPage from "./pages/TeamPage";
-import AchievementsPage from "./pages/AchievementsPage";
+import NewsPage from "./pages/NewsPage";
+import AboutTheatre from "./pages/AboutTheatre";
 import ActorDetail from "./pages/cards/ActorDetail";
+import AchievementsPage from "./pages/AchievementsPage";
 import PerformancesPage from "./pages/PerformancesPage";
 import DirectorDetail from "./pages/cards/DirectorDetail";
 import AchievementDetail from "./pages/cards/AchievementDetail";
 import PerformanceDetail from "./pages/cards/PerfomancesDetail";
-import AboutTheatre from "./pages/AboutTheatre";
+import NewsDetail from "./pages/cards/NewsDetail";
 
 // Главная страница сайта
 const MainPage = () => (
@@ -87,6 +89,8 @@ function App() {
             <Route path="/achievements" element={<AchievementsPage />} />
             <Route path="/achievement/:id" element={<AchievementDetail />} />
             <Route path="/about" element={<AboutTheatre />} />
+            <Route path="/news" element={<NewsPage />} />
+            <Route path="/news/:id" element={<NewsDetail />} />
 
             {/* Админ-панель */}
             <Route
@@ -139,7 +143,7 @@ function App() {
               element={
                 <ProtectedAdminRoute>
                   <AdminLayout>
-                    <NewsPage />
+                    <NewsPageAdmin />
                   </AdminLayout>
                 </ProtectedAdminRoute>
               }
