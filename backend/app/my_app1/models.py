@@ -82,6 +82,7 @@ class Perfomances(ImageUploadMixin, models.Model): # Спектакли
         blank=True,
         default=list
     ) # Список фотографий со спектакля для карусели внизу карточки спектакля.
+    ticket_url = models.URLField(null=True, blank=True) # Ссылка на покупку билетов.
 
 
 class Actors(ImageUploadMixin, models.Model):

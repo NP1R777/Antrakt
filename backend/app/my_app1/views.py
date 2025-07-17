@@ -530,6 +530,17 @@ class AchievementDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class AfishaList(APIView):
+    model_class = Perfomances
+    serializer_class = PerfomanceSerializer
+
+
+    def get(self, request, format=None):
+        performances_in_afisha = self.model_class.objects.filter(afisha=True).order_by('id')
+        serializer = self.serializer_class(performances_in_afisha, many=True)
+        return Response(serializer.data)
+
+
 class ImageUploadView(APIView):
     """
     API endpoint для загрузки изображений в MinIO

@@ -59,7 +59,6 @@ const DirectorDetail: React.FC = () => {
             try {
                 setLoading(true);
                 const response = await axios.get(`http://localhost:8000/director${id}`);
-                console.log("API response:", response.data); // Логирование ответа API
                 setDirector({
                     ...response.data,
                     perfomances: response.data.perfomances || [],

@@ -41,7 +41,8 @@ import {
     FaSave,
     FaUsers,
     FaChild,
-    FaTrash
+    FaTrash,
+    FaLink
 } from 'react-icons/fa';
 import axios from 'axios';
 import { chakra, useToast } from '@chakra-ui/react';
@@ -61,6 +62,7 @@ const CFaSave = chakra(FaSave as any);
 const CFaUsers = chakra(FaUsers as any);
 const CFaChild = chakra(FaChild as any);
 const CFaTrash = chakra(FaTrash as any);
+const CFaLink = chakra(FaLink as any);
 
 const primaryColor = '#800020';
 const accentColor = '#4ECDC4';
@@ -81,7 +83,8 @@ interface Performance {
     afisha: boolean;
     deleted_at?: string | null;
     performances_image: string;
-    images_list: string[]; // Добавлено поле для галереи
+    images_list: string[];
+    ticket_url?: string; // Added field for ticket purchase link
 }
 
 const genres = [
@@ -117,7 +120,8 @@ export const PerformanceForm: React.FC<{
         afisha: true,
         deleted_at: null,
         performances_image: '',
-        images_list: [] // Инициализация галереи
+        images_list: [],
+        ticket_url: '' // Initialize ticket_url
     });
     const [listInputs, setListInputs] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -178,7 +182,6 @@ export const PerformanceForm: React.FC<{
         }));
     };
 
-    // Добавление изображения в галерею
     const handleAddGalleryImage = (imageUrl: string) => {
         if (!imageUrl) return;
 
@@ -188,7 +191,6 @@ export const PerformanceForm: React.FC<{
         }));
     };
 
-    // Удаление изображения из галереи
     const handleRemoveGalleryImage = (index: number) => {
         if (!currentPerformance.images_list) return;
 
@@ -442,6 +444,26 @@ export const PerformanceForm: React.FC<{
                         </Text>
                     </FormControl>
 
+                    {/* Conditional ticket_url field */}
+                    {currentPerformance.afisha && (
+                        <FormControl>
+                            <FormLabel display="flex" alignItems="center" gap={2}>
+                                <CFaLink color={primaryColor} />
+                                <Text as="span" fontWeight="semibold">Ссылка на покупку билетов</Text>
+                            </FormLabel>
+                            <Input
+                                name="ticket_url"
+                                placeholder="URL для покупки билетов"
+                                value={currentPerformance.ticket_url || ''}
+                                onChange={handleInputChange}
+                                focusBorderColor={primaryColor}
+                                bg="#333333"
+                                borderColor="#444444"
+                                _hover={{ borderColor: '#555555' }}
+                            />
+                        </FormControl>
+                    )}
+
                     <FormControl>
                         <FormLabel display="flex" alignItems="center" gap={2}>
                             <CFaImage color={primaryColor} />
@@ -478,7 +500,6 @@ export const PerformanceForm: React.FC<{
                     {renderListField('production_team', 'Постановочная команда', <CFaUsers color={accentColor} />)}
                     {renderListField('the_cast', 'Актёрский состав', <CFaUser color={accentColor} />)}
 
-                    {/* Секция фотогалереи */}
                     <FormControl>
                         <FormLabel display="flex" alignItems="center" gap={2}>
                             <CFaImage color={primaryColor} />
@@ -592,7 +613,6 @@ export const PerformanceForm: React.FC<{
                 </MotionButton>
             </Flex>
 
-            {/* Модальное окно для загрузки фотографий в галерею */}
             <Modal isOpen={isOpen} onClose={onClose} size="lg">
                 <ModalOverlay />
                 <ModalContent bg="gray.800" color="white">

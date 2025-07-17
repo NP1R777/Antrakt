@@ -69,7 +69,6 @@ const ActorDetail: React.FC = () => {
             try {
                 setLoading(true);
                 const response = await axios.get(`http://localhost:8000/actor${id}`);
-                console.log("API response:", response.data); // Логирование ответа API
                 setActor({
                     ...response.data,
                     favorite_writer: response.data.favorite_writer || [],

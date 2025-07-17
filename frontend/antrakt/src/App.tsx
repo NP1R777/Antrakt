@@ -31,6 +31,8 @@ import DirectorDetail from "./pages/cards/DirectorDetail";
 import AchievementDetail from "./pages/cards/AchievementDetail";
 import PerformanceDetail from "./pages/cards/PerfomancesDetail";
 import NewsDetail from "./pages/cards/NewsDetail";
+import AfishaPage from "./pages/AfishaPage";
+import AfishaDetail from "./pages/cards/AfishaDetail";
 
 // Главная страница сайта
 const MainPage = () => (
@@ -91,6 +93,9 @@ function App() {
             <Route path="/about" element={<AboutTheatre />} />
             <Route path="/news" element={<NewsPage />} />
             <Route path="/news/:id" element={<NewsDetail />} />
+            <Route path="/afisha" element={<AfishaPage />} />
+            <Route path="/afisha/:id" element={<AfishaDetail />} />
+            <Route path="/archive" element={<ArchivePage />} />
 
             {/* Админ-панель */}
             <Route

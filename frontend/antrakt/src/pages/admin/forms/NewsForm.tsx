@@ -152,7 +152,7 @@ export const NewsForm: React.FC<{
 
         setIsSubmitting(true);
         try {
-            await axios.put(`http://localhost:8000/news/${currentNews.id}/`, currentNews);
+            await axios.put(`http://localhost:8000/news${currentNews.id}/`, currentNews);
             toast({
                 title: 'Успешно',
                 description: 'Новость обновлена',
