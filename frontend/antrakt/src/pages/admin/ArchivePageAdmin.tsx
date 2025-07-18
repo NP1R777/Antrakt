@@ -63,9 +63,12 @@ interface Archive {
     created_at: string;
     updated_at: string;
     deleted_at?: string | null;
+    archive_image: string | null;
+    images_list: [];
+    age_limit: string;
 }
 
-const ArchivePage: React.FC = () => {
+const ArchivePageAdmin: React.FC = () => {
     const [archives, setArchives] = useState<Archive[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -424,4 +427,4 @@ const ArchivePage: React.FC = () => {
     );
 };
 
-export default ArchivePage;
+export default ArchivePageAdmin;

@@ -42,6 +42,8 @@ const PerformancesPage: React.FC = () => {
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
+    const primaryColor = "#800020";
+
     useEffect(() => {
         const fetchPerformances = async () => {
             try {
@@ -95,7 +97,7 @@ const PerformancesPage: React.FC = () => {
     return (
         <Box bg="black" minH="100vh" display="flex" flexDirection="column" overflowX="hidden">
             <Navigation />
-            <Box flex="1" py={20} position="relative" px={{ base: 4, md: 8 }}> {/* Добавлены горизонтальные отступы */}
+            <Box flex="1" py={20} position="relative" px={{ base: 4, md: 8 }}>
                 {/* Декоративный элемент */}
                 <MotionBox
                     position="absolute"
@@ -115,7 +117,7 @@ const PerformancesPage: React.FC = () => {
                     maxW="container.xl"
                     position="relative"
                     zIndex="1"
-                    px={{ base: 0, md: 4 }} // Убраны внутренние отступы на мобильных
+                    px={{ base: 0, md: 4 }}
                 >
                     <MotionBox
                         initial={{ opacity: 0, y: 20 }}
@@ -124,9 +126,27 @@ const PerformancesPage: React.FC = () => {
                         transition={{ duration: 0.8 }}
                         mb={12}
                         textAlign="center"
-                        px={{ base: 4, md: 0 }} // Добавлены отступы для заголовка
+                        px={{ base: 4, md: 0 }}
                     >
-                        <Heading as="h1" fontSize={{ base: "2xl", md: "3xl" }} color="white" mb={4}>
+                        <Heading
+                            as="h1"
+                            fontSize={{ base: "2xl", md: "3xl" }}
+                            color="white"
+                            mb={4}
+                            position="relative"
+                            display="inline-block"
+                            _after={{
+                                content: '""',
+                                position: "absolute",
+                                bottom: "-10px",
+                                left: "50%",
+                                transform: "translateX(-50%)",
+                                width: "80px",
+                                height: "4px",
+                                bg: primaryColor,
+                                borderRadius: "full"
+                            }}
+                        >
                             Прошедшие спектакли
                         </Heading>
                         <Text fontSize="md" color="gray.400" maxW="2xl" mx="auto">
@@ -138,10 +158,10 @@ const PerformancesPage: React.FC = () => {
                         <MotionGrid
                             templateColumns={{
                                 base: "1fr",
-                                md: "repeat(2, minmax(0, 1fr))", // Исправлено для предотвращения переполнения
+                                md: "repeat(2, minmax(0, 1fr))",
                                 lg: "repeat(3, minmax(0, 1fr))"
                             }}
-                            gap={{ base: 6, md: 8 }} // Увеличен отступ между карточками
+                            gap={{ base: 6, md: 8 }}
                             initial="hidden"
                             animate="visible"
                             variants={{
@@ -151,7 +171,7 @@ const PerformancesPage: React.FC = () => {
                                     transition: { staggerChildren: 0.2 }
                                 }
                             }}
-                            width="100%" // Гарантирует, что сетка не выходит за пределы
+                            width="100%"
                         >
                             {performances.map((performance) => (
                                 <MotionGridItem
@@ -160,7 +180,7 @@ const PerformancesPage: React.FC = () => {
                                         hidden: { opacity: 0, y: 30 },
                                         visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
                                     }}
-                                    minW="0" // Предотвращает переполнение
+                                    minW="0"
                                 >
                                     <MotionBox
                                         as="div"
@@ -183,7 +203,7 @@ const PerformancesPage: React.FC = () => {
                                         <Image
                                             src={performance.performances_image || "/placeholder-image.jpg"}
                                             alt={performance.title}
-                                            height="200px"
+                                            height="300px"
                                             objectFit="cover"
                                             fallbackSrc="/placeholder-image.jpg"
                                             w="100%"

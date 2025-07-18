@@ -214,10 +214,17 @@ class Archive(ImageUploadMixin, models.Model): # Архив
     deleted_at = models.DateTimeField(null=True)
     title = models.CharField(max_length=100, null=False)
     description = models.CharField(max_length=2000, null=False)
+    age_limit = models.CharField(max_length=5, null=True, blank=True)
     premiere_date = models.DateField(null=True)
     afisha = models.BooleanField(default=True) # Если False -> то нужно отображать в разделе "Архив",
                                                 # если True -> то отображать в разделе "Афиша".
     image_url = models.URLField(null=False, blank=True)
+    archive_image = models.URLField(null=True, blank=True) # Изображение со спектакля для раздела "Архив".
+    images_list = fields.ArrayField(
+        models.URLField(null=True),
+        blank=True,
+        default=list
+    ) # Ссылки на изображения со спектаклей.
 
 
 class Achievements(ImageUploadMixin, models.Model): # Достижения

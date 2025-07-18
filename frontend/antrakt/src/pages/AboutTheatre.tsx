@@ -7,6 +7,8 @@ import Footer from "../components/Footer";
 const MotionBox = motion(Box);
 
 const AboutTheatre: React.FC = () => {
+    const primaryColor = "#800020";
+
     return (
         <Box bg="#0a0a0a" minH="100vh" display="flex" flexDirection="column" color="#ffffff">
             <Navigation />
@@ -33,7 +35,24 @@ const AboutTheatre: React.FC = () => {
                         mb={12}
                         textAlign="center"
                     >
-                        <Heading as="h1" fontSize={{ base: "2xl", md: "4xl" }} color="#ffffff">
+                        <Heading
+                            as="h1"
+                            fontSize={{ base: "2xl", md: "4xl" }}
+                            color="#ffffff"
+                            position="relative"
+                            display="inline-block"
+                            _after={{
+                                content: '""',
+                                position: "absolute",
+                                bottom: "-10px",
+                                left: "50%",
+                                transform: "translateX(-50%)",
+                                width: "80px",
+                                height: "4px",
+                                bg: primaryColor,
+                                borderRadius: "full"
+                            }}
+                        >
                             О театре
                         </Heading>
                     </MotionBox>
@@ -62,7 +81,7 @@ const AboutTheatre: React.FC = () => {
                                 src="http://localhost:9000/antrakt-images/%D0%9E%D0%B1%D1%89%D0%B0%D1%8F.jpg"
                                 alt="Театр-студия Антракт"
                                 w="100%"
-                                h="700px" // Увеличена высота для горизонтального вида
+                                h="700px"
                                 objectFit="cover"
                                 borderRadius="lg"
                                 border="2px solid"
