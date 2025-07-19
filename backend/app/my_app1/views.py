@@ -1,7 +1,9 @@
 from .models import *
+from itertools import chain
 from datetime import datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from queryset_sequence import QuerySetSequence
 from drf_yasg.utils import swagger_auto_schema
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import permission_classes
@@ -536,9 +538,46 @@ class AfishaList(APIView):
 
 
     def get(self, request, format=None):
-        performances_in_afisha = self.model_class.objects.filter(afisha=True).order_by('id')
-        serializer = self.serializer_class(performances_in_afisha, many=True)
-        return Response(serializer.data)
+        performances = Perfomances.objects.filter(afisha=True).values(
+            'id', 'title', 'description', 'premiere_date',
+            'age_limit', 'image_url', 'the_cast', 'genre'
+        )
+
+        archives = Archive.objects.filter(afisha=True).values(
+            'id', 'title', 'description', 'premiere_date', 'age_limit', 'image_url'
+        )
+
+        performances_list = [
+            {
+                'type': 'performance',
+                'id': p['id'],
+                'title': p['title'],
+                'description': p['description'],
+                'premiere_date': p['premiere_date'],
+                'age_limit': p['age_limit'],
+                'image_url': p['image_url'],
+                'the_cast': p['the_cast'],
+                'genre': p['genre']
+            } for p in performances
+        ]
+
+        archives_list = [
+            {
+                'type': 'archive',
+                'id': a['id'],
+                'title': a['title'],
+                'description': a['description'],
+                'premiere_date': a['premiere_date'],
+                'age_limit': a['age_limit'],
+                'image_url': a['image_url']
+            } for a in archives
+        ]
+
+        all_perf_afisha = performances_list + archives_list
+
+        return Response(all_perf_afisha)
+
+
 
 
 class ImageUploadView(APIView):

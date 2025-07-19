@@ -139,7 +139,7 @@ const ArchiveDetail: React.FC = () => {
                         _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
                         size="sm"
                         fontSize="sm"
-                        onClick={() => navigate("/archive")}
+                        onClick={() => navigate(-1)}
                     >
                         Назад
                     </Button>

@@ -96,7 +96,7 @@ function App() {
             <Route path="/news" element={<NewsPage />} />
             <Route path="/news/:id" element={<NewsDetail />} />
             <Route path="/afisha" element={<AfishaPage />} />
-            <Route path="/afisha/:id" element={<AfishaDetail />} />
+            <Route path="/:type/:id" element={<AfishaDetail />} />
             <Route path="/archive" element={<ArchivePage />} />
             <Route path="/archive/:id" element={<ArchiveDetail />} />
 

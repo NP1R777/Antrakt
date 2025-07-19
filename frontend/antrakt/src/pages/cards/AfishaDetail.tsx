@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
     Box,
     VStack,
@@ -10,11 +9,6 @@ import {
     Grid,
     GridItem,
     Flex,
-    Spinner,
-    Alert,
-    AlertIcon,
-    AlertTitle,
-    AlertDescription,
     Button,
     chakra
 } from "@chakra-ui/react";
@@ -28,92 +22,32 @@ const CFaTheaterMasks = chakra(FaTheaterMasks as any);
 
 const MotionBox = motion(Box);
 
-interface Performance {
+// Интерфейс для данных, общий для спектаклей и мероприятий
+interface AfishaItem {
     id: number;
+    type: 'performance' | 'archive';
     title: string;
-    genre: string;
-    age_limit: string;
-    the_cast: string[] | null;
     description: string;
-    afisha: boolean;
-    image_url: string;
-    ticket_url?: string; // Added field for ticket purchase link
+    premiere_date: string | null;
+    age_limit: string | null;
+    image_url: string | null;
+    genre?: string; // Только для performance
+    the_cast?: string[]; // Только для performance
+    ticket_url?: string; // Только для performance
 }
 
 const AfishaDetail: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
+    const { state } = useLocation(); // Получаем данные из состояния навигации
     const navigate = useNavigate();
-    const [performance, setPerformance] = useState<Performance | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const item: AfishaItem | undefined = state?.item; // Извлекаем переданный объект
 
-    useEffect(() => {
-        const fetchPerformance = async () => {
-            try {
-                setLoading(true);
-                const response = await axios.get(`http://localhost:8000/perfomance${id}`);
-                setPerformance({
-                    id: response.data.id,
-                    title: response.data.title,
-                    genre: response.data.genre,
-                    age_limit: response.data.age_limit,
-                    the_cast: response.data.the_cast || [],
-                    description: response.data.description,
-                    afisha: response.data.afisha,
-                    image_url: response.data.image_url,
-                    ticket_url: response.data.ticket_url
-                });
-            } catch (err) {
-                setError("Ошибка загрузки данных спектакля");
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (id) {
-            fetchPerformance();
-        }
-    }, [id]);
-
-    if (loading) {
+    // Если данные не переданы, показываем сообщение об ошибке
+    if (!item) {
         return (
-            <Box>
-                <Navigation />
-                <Flex justify="center" align="center" minH="70vh" bg="black">
-                    <Spinner size="xl" color="#F56565" />
-                </Flex>
-                <Footer />
-            </Box>
-        );
-    }
-
-    if (error) {
-        return (
-            <Box>
+            <Box bg="black" display="flex" flexDirection="column" minH="100vh">
                 <Navigation />
                 <Box textAlign="center" py={20} bg="black">
-                    <Alert status="error" variant="subtle" flexDirection="column" alignItems="center">
-                        <AlertIcon boxSize="40px" mr={0} />
-                        <AlertTitle mt={4} mb={1} fontSize="md" color="white">
-                            Ошибка загрузки
-                        </AlertTitle>
-                        <AlertDescription maxWidth="sm" color="gray.400" fontSize="sm">
-                            {error}
-                        </AlertDescription>
-                    </Alert>
-                </Box>
-                <Footer />
-            </Box>
-        );
-    }
-
-    if (!performance) {
-        return (
-            <Box>
-                <Navigation />
-                <Box textAlign="center" py={20} bg="black">
-                    <Heading size="md" mb={4} color="white">Спектакль не найден</Heading>
+                    <Heading size="md" mb={4} color="white">Запись не найдена</Heading>
                     <Button
                         variant="outline"
                         color="#FC8181"
@@ -157,7 +91,7 @@ const AfishaDetail: React.FC = () => {
                         _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
                         size="sm"
                         fontSize="sm"
-                        onClick={() => navigate(-1)}
+                        onClick={() => navigate('/afisha')}
                     >
                         Назад
                     </Button>
@@ -174,8 +108,8 @@ const AfishaDetail: React.FC = () => {
                     >
                         <GridItem>
                             <Image
-                                src={performance.image_url}
-                                alt={performance.title}
+                                src={item.image_url || "/placeholder-image.jpg"}
+                                alt={item.title}
                                 width="300px"
                                 height="auto"
                                 objectFit="contain"
@@ -189,11 +123,11 @@ const AfishaDetail: React.FC = () => {
                         <GridItem>
                             <VStack align="start" spacing={6} w="full">
                                 <Heading as="h1" size="lg" color="white">
-                                    {performance.title}
+                                    {item.title}
                                 </Heading>
 
                                 <Text color="whiteAlpha.800" fontSize="sm">
-                                    Спектакль
+                                    {item.type === 'performance' ? 'Спектакль' : 'Мероприятие'}
                                 </Text>
 
                                 <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6} w="full">
@@ -202,27 +136,31 @@ const AfishaDetail: React.FC = () => {
                                             <CFaTheaterMasks mr={2} color="#F56565" />
                                             Основная информация
                                         </Heading>
-                                        <Text fontSize="md" color="gray.400">
-                                            <b>Жанр:</b> {performance.genre}
-                                        </Text>
-                                        <Text fontSize="md" color="gray.400">
-                                            <b>Возрастное ограничение:</b> {performance.age_limit}
-                                        </Text>
-                                        {performance.the_cast?.length > 0 && (
+                                        {item.genre && (
                                             <Text fontSize="md" color="gray.400">
-                                                <b>Актёрский состав:</b> {performance.the_cast.join(", ")}
+                                                <b>Жанр:</b> {item.genre}
+                                            </Text>
+                                        )}
+                                        {item.age_limit && (
+                                            <Text fontSize="md" color="gray.400">
+                                                <b>Возрастное ограничение:</b> {item.age_limit}
+                                            </Text>
+                                        )}
+                                        {item.the_cast && item.the_cast.length > 0 && (
+                                            <Text fontSize="md" color="gray.400">
+                                                <b>Актёрский состав:</b> {item.the_cast.join(", ")}
                                             </Text>
                                         )}
                                     </VStack>
 
                                     <VStack align="start">
-                                        {performance.ticket_url && (
+                                        {item.ticket_url && (
                                             <Button
                                                 variant="solid"
                                                 colorScheme="red"
                                                 size="md"
                                                 mt={-100}
-                                                onClick={() => window.location.href = performance.ticket_url!}
+                                                onClick={() => window.location.href = item.ticket_url!}
                                             >
                                                 Купить билет!
                                             </Button>
@@ -233,7 +171,7 @@ const AfishaDetail: React.FC = () => {
                                                 Описание
                                             </Heading>
                                             <Text fontSize="md" color="gray.400" w="full">
-                                                {performance.description}
+                                                {item.description}
                                             </Text>
                                         </Box>
                                     </VStack>

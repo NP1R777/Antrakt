@@ -77,18 +77,6 @@ export default function Hero() {
                     <Text fontSize="xl" mb={10} color="white">
                         Где каждый находит свою сцену и раскрывает творческий потенциал
                     </Text>
-
-                    <Button
-                        variant="theater"
-                        size="lg"
-                        maxW="350px"
-                        mx="auto"
-                        _hover={{
-                            boxShadow: "0 0 15px rgba(255, 0, 0, 0.5)",
-                        }}
-                    >
-                        Записаться на пробный урок
-                    </Button>
                 </MotionDiv>
             </Flex>
         </Box>

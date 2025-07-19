@@ -236,7 +236,7 @@ export const ArchiveForm: React.FC<{
                             colorScheme="green"
                         />
                         <Text ml={3} color={currentArchive.afisha ? "green.300" : "purple.300"}>
-                            {currentArchive.afisha ? "В архиве" : "В спектаклях"}
+                            {currentArchive.afisha ? "В афише" : "В архиве"}
                         </Text>
                     </FormControl>
 

@@ -15,7 +15,8 @@ import {
     AlertIcon,
     AlertTitle,
     AlertDescription,
-    Container
+    Container,
+    Badge // Добавлено для отображения типа записи
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import Navigation from "../components/Navigation";
@@ -26,30 +27,32 @@ const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
 const MotionGridItem = motion(GridItem);
 
-interface Performance {
+// Новый интерфейс для объединённых данных
+interface AfishaItem {
     id: number;
+    type: 'performance' | 'archive'; // Поле для различения типа записи
     title: string;
-    genre: string;
-    age_limit: string;
-    the_cast: string[];
     description: string;
-    afisha: boolean;
+    premiere_date: string | null;
+    age_limit: string | null;
     image_url: string | null;
+    genre?: string;
+    the_cast?: string[];
 }
 
 const AfishaPage: React.FC = () => {
-    const [performances, setPerformances] = useState<Performance[]>([]);
+    const [afishaItems, setAfishaItems] = useState<AfishaItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchPerformances = async () => {
+        const fetchAfishaItems = async () => {
             try {
                 setLoading(true);
                 const response = await axios.get("http://localhost:8000/afisha");
-                const afishaPerformances = response.data.filter((perf: Performance) => perf.afisha === true);
-                setPerformances(afishaPerformances);
+                // Фильтрация по afisha=true убрана, так как API возвращает объединённый список
+                setAfishaItems(response.data);
             } catch (err) {
                 setError("Ошибка загрузки данных афиши");
                 console.error(err);
@@ -58,7 +61,7 @@ const AfishaPage: React.FC = () => {
             }
         };
 
-        fetchPerformances();
+        fetchAfishaItems();
     }, []);
 
     if (loading) {
@@ -97,7 +100,7 @@ const AfishaPage: React.FC = () => {
         <Box bg="black" minH="100vh" display="flex" flexDirection="column" overflowX="hidden">
             <Navigation />
             <Box flex="1" py={20} position="relative" px={{ base: 4, md: 8 }}>
-                {/* Декоративный элемент */}
+                {/* Декоративные элементы */}
                 <MotionBox
                     position="absolute"
                     top="-10%"
@@ -163,11 +166,11 @@ const AfishaPage: React.FC = () => {
                             Афиша
                         </Heading>
                         <Text fontSize="md" color="gray.400" maxW="2xl" mx="auto">
-                            Актуальные постановки, ждущие вашего внимания
+                            Актуальные постановки и мероприятия, ждущие вашего внимания
                         </Text>
                     </MotionBox>
 
-                    {performances.length > 0 ? (
+                    {afishaItems.length > 0 ? (
                         <MotionGrid
                             templateColumns={{
                                 base: "1fr",
@@ -186,9 +189,9 @@ const AfishaPage: React.FC = () => {
                             }}
                             width="100%"
                         >
-                            {performances.map((performance) => (
+                            {afishaItems.map((item) => (
                                 <MotionGridItem
-                                    key={performance.id}
+                                    key={`${item.type}-${item.id}`} // Уникальный ключ с учётом типа
                                     variants={{
                                         hidden: { opacity: 0, y: 30 },
                                         visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
@@ -208,7 +211,7 @@ const AfishaPage: React.FC = () => {
                                             boxShadow: "0 10px 25px rgba(128, 0, 32, 0.4)",
                                             transition: { duration: 0.3 }
                                         }}
-                                        onClick={() => navigate(`/afisha/${performance.id}`)}
+                                        onClick={() => navigate(`/${item.type}/${item.id}`, { state: { item, from: '/afisha' } })}
                                         cursor="pointer"
                                         display="flex"
                                         flexDirection="column"
@@ -216,8 +219,8 @@ const AfishaPage: React.FC = () => {
                                     >
                                         <Box position="relative" h="400px">
                                             <Image
-                                                src={performance.image_url || "/placeholder-image.jpg"}
-                                                alt={performance.title}
+                                                src={item.image_url || "/placeholder-image.jpg"}
+                                                alt={item.title}
                                                 h="100%"
                                                 w="100%"
                                                 objectFit="contain"
@@ -235,7 +238,7 @@ const AfishaPage: React.FC = () => {
                                                 fontSize="lg"
                                                 textAlign="center"
                                             >
-                                                {performance.title} ({performance.age_limit})
+                                                {item.title} {item.age_limit && `(${item.age_limit})`}
                                             </Box>
                                         </Box>
                                     </MotionBox>
