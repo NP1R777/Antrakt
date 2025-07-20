@@ -40,6 +40,7 @@ class User(AbstractBaseUser):
     phone_number = models.CharField(max_length=20)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
+    profile_photo = models.URLField(null=False, blank=True)
     access_token = models.CharField(max_length=500, blank=True, null=True)
     refresh_token = models.CharField(max_length=500, blank=True, null=True)
 
@@ -96,25 +97,25 @@ class Actors(ImageUploadMixin, models.Model):
     place_of_work = models.CharField(max_length=200, blank=True) # Место работы
     time_in_theatre = models.CharField(max_length=10, blank=True) # В студии
     favorite_writer = fields.ArrayField(
-        models.CharField(max_length=30),
+        models.CharField(max_length=250),
         blank=True,
         default=list
     )
 
     favorite_character = fields.ArrayField(
-      models.CharField(max_length=30),
+      models.CharField(max_length=250),
       blank=True,
       default=list  
     ) # Любимый персонаж
 
     favorite_painter = fields.ArrayField(
-        models.CharField(max_length=30),
+        models.CharField(max_length=350),
         blank=True,
         default=list
     ) # Любимый художник
 
     favorite_film = fields.ArrayField(
-        models.CharField(max_length=50),
+        models.CharField(max_length=250),
         blank=True,
         default=list
     ) # Любимый фильм
@@ -128,13 +129,13 @@ class Actors(ImageUploadMixin, models.Model):
     favorite_quote = models.CharField(max_length=1000, null=False) # Любимая цитата о театре
     author_quote = models.CharField(max_length=50, null=False) # Автор цитаты
     favorite_song = fields.ArrayField(
-        models.CharField(max_length=50),
+        models.CharField(max_length=250),
         blank=True,
         default=list
     ) # Любимая песня
 
     author_song = fields.ArrayField(
-        models.CharField(max_length=50),
+        models.CharField(max_length=250),
         blank=True,
         default=list
     ) # Автор песни

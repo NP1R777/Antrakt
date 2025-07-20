@@ -166,7 +166,7 @@ const TeamPage: React.FC = () => {
     }
 
     return (
-        <Box minH="100vh" bg="black" display="flex" flexDirection="column">
+        <Box minH="100vh" bg="black" display="flex" flexDirection="column" overflowY="hidden">
             <Navigation />
 
             <Box flex="1" py={20} px={{ base: 4, md: 8 }} position="relative">
