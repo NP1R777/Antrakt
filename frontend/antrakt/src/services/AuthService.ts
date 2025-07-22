@@ -7,6 +7,7 @@ export interface User {
   email: string;
   phone_number: string;
   is_superuser: boolean;
+  profile_photo: string;
 }
 
 export interface AuthResponse {

@@ -18,6 +18,7 @@ import {
 } from "@chakra-ui/react";
 import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Добавлен импорт useNavigate
 import AuthModal from "./AuthModal";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -41,11 +42,8 @@ export default function Navigation() {
     const [authMode, setAuthMode] = useState<"login" | "register">("login");
     const [registeredEmail, setRegisteredEmail] = useState("");
     const toast = useToast();
-
-    // Используем новый AuthContext
+    const navigate = useNavigate(); // Добавлен хук useNavigate
     const { user, isAuthenticated, login, register, logout } = useAuth();
-
-    // Больше не нужно - управляется через AuthContext
 
     const handleLoginClick = () => {
         setAuthMode("login");
@@ -182,17 +180,21 @@ export default function Navigation() {
                                 />
                             </MenuButton>
                             <MenuList bg={darkBg} borderColor="#1a1a1a">
-                                <MenuItem bg={darkBg} _hover={{ bg: "#1a1a1a" }} color={lightText}>
+                                <MenuItem
+                                    bg={darkBg}
+                                    _hover={{ bg: "#1a1a1a" }}
+                                    color={lightText}
+                                    onClick={() => navigate(`/profile/${user.id}`)} // Добавлена навигация на страницу профиля
+                                >
                                     Профиль
                                 </MenuItem>
 
-                                {/* Пункт "Админ-панель" только для суперпользователей */}
                                 {user?.is_superuser && (
                                     <MenuItem
                                         bg={darkBg}
                                         _hover={{ bg: "#1a1a1a" }}
                                         color={lightText}
-                                        onClick={() => window.location.href = "/admin"}
+                                        onClick={() => navigate('/admin')} // Заменено window.location.href на navigate для согласованности
                                     >
                                         Админ-панель
                                     </MenuItem>

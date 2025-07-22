@@ -35,6 +35,7 @@ import PerformancesPage from "./pages/PerformancesPage";
 import DirectorDetail from "./pages/cards/DirectorDetail";
 import AchievementDetail from "./pages/cards/AchievementDetail";
 import PerformanceDetail from "./pages/cards/PerfomancesDetail";
+import ProfilePage from "./pages/ProfilePage";
 
 // Главная страница сайта
 const MainPage = () => (
@@ -99,6 +100,7 @@ function App() {
             <Route path="/:type/:id" element={<AfishaDetail />} />
             <Route path="/archive" element={<ArchivePage />} />
             <Route path="/archive/:id" element={<ArchiveDetail />} />
+            <Route path="/profile/:id" element={<ProfilePage />} />
 
             {/* Админ-панель */}
             <Route

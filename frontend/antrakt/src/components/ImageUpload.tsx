@@ -31,10 +31,11 @@ interface ImageUploadProps {
     currentImageUrl?: string;
     onImageUpload: (imageUrl: string) => void;
     onImageRemove?: () => void;
-    contentType: 'perfomances' | 'actors' | 'directors' | 'news' | 'archive' | 'achievements';
+    contentType: 'perfomances' | 'actors' | 'directors' | 'news' | 'archive' | 'achievements' | 'profile';
     maxSize?: number; // в MB
     aspectRatio?: number; // соотношение сторон (например, 16/9)
     disabled?: boolean;
+    compact?: boolean;
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({

@@ -9,6 +9,7 @@ interface AuthContextType {
   register: (email: string, password: string, phone: string) => Promise<boolean>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  updateUser: (updatedUser: User | null) => void; // Добавлено
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,15 +23,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Функция для обновления данных пользователя в контексте
+  const updateUser = (updatedUser: User | null) => {
+    setUser(updatedUser);
+    setIsAuthenticated(!!updatedUser);
+
+    // Обновляем данные в localStorage
+    if (updatedUser) {
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    } else {
+      localStorage.removeItem('user');
+    }
+  };
+
   const refreshUser = async () => {
     try {
       const currentUser = await AuthService.getCurrentUser();
-      setUser(currentUser);
-      setIsAuthenticated(!!currentUser);
+      updateUser(currentUser); // Используем updateUser вместо setUser
     } catch (error) {
       console.error('Ошибка получения пользователя:', error);
-      setUser(null);
-      setIsAuthenticated(false);
+      updateUser(null);
     }
   };
 
@@ -48,13 +60,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async (): Promise<void> => {
     await AuthService.logout();
-    setUser(null);
-    setIsAuthenticated(false);
+    updateUser(null); // Используем updateUser вместо setUser
   };
 
   useEffect(() => {
     const initializeAuth = async () => {
       setIsLoading(true);
+
+      // Проверяем наличие пользователя в localStorage
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          updateUser(parsedUser);
+        } catch (e) {
+          console.error('Ошибка при парсинге пользователя из localStorage', e);
+          localStorage.removeItem('user');
+        }
+      }
+
       if (AuthService.isAuthenticated()) {
         await refreshUser();
       } else {
@@ -74,6 +98,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     refreshUser,
+    updateUser, // Добавлено
   };
 
   return (
