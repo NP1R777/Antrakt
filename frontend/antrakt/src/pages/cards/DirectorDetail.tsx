@@ -16,7 +16,15 @@ import {
     Alert,
     AlertIcon,
     AlertTitle,
-    AlertDescription
+    AlertDescription,
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalFooter,
+    ModalBody,
+    ModalCloseButton,
+    useDisclosure
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import Footer from "../../components/Footer";
@@ -47,24 +55,69 @@ interface ServerDirector {
     team_name: string[] | null;
 }
 
+// Интерфейс для спектакля
+interface Performance {
+    id: number;
+    title: string;
+    author: string;
+    genre: string;
+    age_limit: string;
+    duration: string | null;
+    premiere_date: string | null;
+    production_team: string[] | null;
+    the_cast: string[] | null;
+    description: string;
+    afisha: boolean;
+    image_url: string;
+    images_list: string[] | null;
+}
+
 const DirectorDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [director, setDirector] = useState<ServerDirector | null>(null);
+    const [performances, setPerformances] = useState<Performance[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [notFoundPerformance, setNotFoundPerformance] = useState<string>("");
+    const { isOpen, onOpen, onClose } = useDisclosure();
+
+    // Функция для получения ID спектакля по названию
+    const findPerformanceIdByTitle = (title: string): number | null => {
+        const performance = performances.find(p => p.title.toLowerCase() === title.toLowerCase());
+        return performance ? performance.id : null;
+    };
+
+    // Функция для обработки клика по карточке спектакля
+    const handlePerformanceClick = (performanceTitle: string) => {
+        const performanceId = findPerformanceIdByTitle(performanceTitle);
+        if (performanceId) {
+            navigate(`/performance/${performanceId}`);
+        } else {
+            setNotFoundPerformance(performanceTitle);
+            onOpen();
+        }
+    };
 
     useEffect(() => {
-        const fetchDirector = async () => {
+        const fetchData = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`http://localhost:8000/director${id}`);
+                
+                // Загружаем данные режиссёра и список всех спектаклей параллельно
+                const [directorResponse, performancesResponse] = await Promise.all([
+                    axios.get(`http://localhost:8000/director${id}`),
+                    axios.get(`http://localhost:8000/perfomances/`)
+                ]);
+
                 setDirector({
-                    ...response.data,
-                    perfomances: response.data.perfomances || [],
-                    years: response.data.years || [],
-                    team_name: response.data.team_name || []
+                    ...directorResponse.data,
+                    perfomances: directorResponse.data.perfomances || [],
+                    years: directorResponse.data.years || [],
+                    team_name: directorResponse.data.team_name || []
                 });
+
+                setPerformances(performancesResponse.data);
             } catch (err) {
                 setError("Ошибка загрузки данных режиссёра");
                 console.error(err);
@@ -74,7 +127,7 @@ const DirectorDetail: React.FC = () => {
         };
 
         if (id) {
-            fetchDirector();
+            fetchData();
         }
     }, [id]);
 
@@ -215,12 +268,18 @@ const DirectorDetail: React.FC = () => {
                                                     borderColor="rgba(64, 0, 16, 0.5)"
                                                     borderRadius="md"
                                                     bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(64, 0, 16, 0.2))"
+                                                    cursor="pointer"
                                                     whileHover={{
                                                         scale: 1.05,
                                                         boxShadow: "0 10px 25px rgba(245, 101, 101, 0.4)",
                                                         transition: { duration: 0.3 }
                                                     }}
+                                                    whileTap={{
+                                                        scale: 0.98,
+                                                        transition: { duration: 0.1 }
+                                                    }}
                                                     initial={{ scale: 1, boxShadow: "0 5px 20px rgba(0, 0, 0, 0.5)" }}
+                                                    onClick={() => handlePerformanceClick(perfomance)}
                                                 >
                                                     <Text fontWeight="bold" color="white" fontSize="sm">
                                                         {perfomance}
@@ -246,6 +305,53 @@ const DirectorDetail: React.FC = () => {
                 </Box>
             </Box>
             <Footer />
+
+            {/* Модальное окно для ошибки */}
+            <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
+                <ModalOverlay bg="rgba(0, 0, 0, 0.8)" />
+                <ModalContent 
+                    bg="#1a1a1a" 
+                    color="white" 
+                    borderRadius="xl" 
+                    border="1px solid" 
+                    borderColor="rgba(64, 0, 16, 0.7)"
+                >
+                    <ModalHeader>
+                        <Flex align="center">
+                            <CFaTheaterMasks mr={2} color="#F56565" />
+                            Спектакль не найден
+                        </Flex>
+                    </ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <Text mb={4}>
+                            К сожалению, спектакль <Text as="span" fontWeight="bold" color="#F56565">"{notFoundPerformance}"</Text> не найден в нашей базе данных.
+                        </Text>
+                        <Text fontSize="sm" color="gray.400">
+                            Возможно, этот спектакль ещё не добавлен на сайт или был удалён из репертуара.
+                        </Text>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button 
+                            colorScheme="red" 
+                            mr={3} 
+                            onClick={onClose}
+                            size="sm"
+                        >
+                            Понятно
+                        </Button>
+                        <Button 
+                            variant="ghost" 
+                            onClick={() => navigate('/performances')}
+                            size="sm"
+                            color="gray.400"
+                            _hover={{ color: "white" }}
+                        >
+                            Посмотреть все спектакли
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </Box>
     );
 };
