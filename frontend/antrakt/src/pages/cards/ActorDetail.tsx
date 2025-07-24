@@ -57,30 +57,65 @@ interface ServerActor {
     role_in_perfomances: string[] | null;
 }
 
+// Интерфейс для спектакля
+interface Performance {
+    id: number;
+    title: string;
+    author: string;
+    genre: string;
+    age_limit: string;
+}
+
 const ActorDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [actor, setActor] = useState<ServerActor | null>(null);
+    const [performances, setPerformances] = useState<Performance[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    // Функция для получения ID спектакля по названию
+    const findPerformanceIdByTitle = (title: string): number | null => {
+        const performance = performances.find(p => p.title.toLowerCase() === title.toLowerCase());
+        return performance ? performance.id : null;
+    };
+
+    // Функция для обработки клика по карточке спектакля
+    const handlePerformanceClick = (performanceTitle: string) => {
+        const performanceId = findPerformanceIdByTitle(performanceTitle);
+        if (performanceId) {
+            navigate(`/performance/${performanceId}`);
+        } else {
+            // Если спектакль не найден, можно показать уведомление или попробовать другой подход
+            console.warn(`Спектакль "${performanceTitle}" не найден в базе данных`);
+        }
+    };
+
     useEffect(() => {
-        const fetchActor = async () => {
+        const fetchData = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`http://localhost:8000/actor${id}`);
+                
+                // Загружаем данные актера и список всех спектаклей параллельно
+                const [actorResponse, performancesResponse] = await Promise.all([
+                    axios.get(`http://localhost:8000/actor${id}`),
+                    axios.get(`http://localhost:8000/perfomances/`)
+                ]);
+
                 setActor({
-                    ...response.data,
-                    favorite_writer: response.data.favorite_writer || [],
-                    favorite_character: response.data.favorite_character || [],
-                    favorite_painter: response.data.favorite_painter || [],
-                    favorite_film: response.data.favorite_film || [],
-                    favorite_piece: response.data.favorite_piece || [],
-                    favorite_song: response.data.favorite_song || [],
-                    author_song: response.data.author_song || [],
-                    perfomances: response.data.perfomances || [],
-                    role_in_perfomances: response.data.role_in_perfomances || []
+                    ...actorResponse.data,
+                    favorite_writer: actorResponse.data.favorite_writer || [],
+                    favorite_character: actorResponse.data.favorite_character || [],
+                    favorite_painter: actorResponse.data.favorite_painter || [],
+                    favorite_film: actorResponse.data.favorite_film || [],
+                    favorite_piece: actorResponse.data.favorite_piece || [],
+                    favorite_song: actorResponse.data.favorite_song || [],
+                    author_song: actorResponse.data.author_song || [],
+                    perfomances: actorResponse.data.perfomances || [],
+                    role_in_perfomances: actorResponse.data.role_in_perfomances || []
                 });
+
+                setPerformances(performancesResponse.data);
             } catch (err) {
                 setError("Ошибка загрузки данных актера");
                 console.error(err);
@@ -90,7 +125,7 @@ const ActorDetail: React.FC = () => {
         };
 
         if (id) {
-            fetchActor();
+            fetchData();
         }
     }, [id]);
 
@@ -309,13 +344,19 @@ const ActorDetail: React.FC = () => {
                                                     borderColor="gray.800"
                                                     borderRadius="md"
                                                     bg="rgba(25, 25, 25, 0.8)"
+                                                    cursor="pointer"
                                                     whileHover={{
                                                         y: -4,
                                                         boxShadow: "0 8px 16px rgba(245, 101, 101, 0.3)",
                                                         scale: 1.02,
                                                         transition: { duration: 0.2 }
                                                     }}
+                                                    whileTap={{
+                                                        scale: 0.98,
+                                                        transition: { duration: 0.1 }
+                                                    }}
                                                     initial={{ y: 0, boxShadow: "0 5px 20px rgba(0, 0, 0, 0.5)" }}
+                                                    onClick={() => handlePerformanceClick(perfomance)}
                                                 >
                                                     <Text fontWeight="bold" color="white" fontSize="sm">{perfomance}</Text>
                                                     {actor.role_in_perfomances?.[idx] && (
