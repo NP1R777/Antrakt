@@ -103,7 +103,7 @@ const DirectorDetail: React.FC = () => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                
+
                 // Загружаем данные режиссёра и список всех спектаклей параллельно
                 const [directorResponse, performancesResponse] = await Promise.all([
                     axios.get(`http://localhost:8000/director${id}`),
@@ -309,11 +309,11 @@ const DirectorDetail: React.FC = () => {
             {/* Модальное окно для ошибки */}
             <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
                 <ModalOverlay bg="rgba(0, 0, 0, 0.8)" />
-                <ModalContent 
-                    bg="#1a1a1a" 
-                    color="white" 
-                    borderRadius="xl" 
-                    border="1px solid" 
+                <ModalContent
+                    bg="#1a1a1a"
+                    color="white"
+                    borderRadius="xl"
+                    border="1px solid"
                     borderColor="rgba(64, 0, 16, 0.7)"
                 >
                     <ModalHeader>
@@ -332,16 +332,16 @@ const DirectorDetail: React.FC = () => {
                         </Text>
                     </ModalBody>
                     <ModalFooter>
-                        <Button 
-                            colorScheme="red" 
-                            mr={3} 
+                        <Button
+                            colorScheme="red"
+                            mr={3}
                             onClick={onClose}
                             size="sm"
                         >
                             Понятно
                         </Button>
-                        <Button 
-                            variant="ghost" 
+                        <Button
+                            variant="ghost"
                             onClick={() => navigate('/performances')}
                             size="sm"
                             color="gray.400"

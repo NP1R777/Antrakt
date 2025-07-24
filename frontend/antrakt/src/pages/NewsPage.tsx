@@ -212,11 +212,9 @@ const NewsPage: React.FC = () => {
                                             background: "linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(128, 0, 32, 0.2))",
                                             transition: { duration: 0.3 }
                                         }}
-                                        cursor="pointer"
                                         display="flex"
                                         flexDirection="column"
                                         h="100%"
-                                        onClick={() => handleNewsClick(item.id)}
                                     >
                                         {item.image_url ? (
                                             <Image
@@ -281,6 +279,7 @@ const NewsPage: React.FC = () => {
                                                 _hover={{ bg: "rgba(128, 0, 32, 0.2)" }}
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
+                                                onClick={() => handleNewsClick(item.id)}
                                             >
                                                 Подробнее
                                             </MotionButton>
