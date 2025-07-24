@@ -31,8 +31,7 @@ import Footer from "../../components/Footer";
 import Navigation from "../../components/Navigation";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaQuoteLeft, FaUserTie, FaBook, FaUser, FaPaintBrush, FaVideo, FaMusic } from "react-icons/fa";
-import { findBestMatch, SIMILARITY_THRESHOLDS } from "../../utils/stringMatching";
-import "../../utils/stringMatching.test";
+
 
 // Стилизованные компоненты для иконок
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
@@ -82,28 +81,44 @@ const DirectorDetail: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [notFoundPerformance, setNotFoundPerformance] = useState<string>("");
-    const [suggestedPerformance, setSuggestedPerformance] = useState<Performance | null>(null);
-    const [suggestionSimilarity, setSuggestionSimilarity] = useState<number>(0);
     const { isOpen, onOpen, onClose } = useDisclosure();
 
-    // Функция для поиска наиболее подходящего спектакля
-    const findBestMatchingPerformance = (searchTitle: string): { performance: Performance | null, similarity: number } => {
-        const { item, similarity } = findBestMatch(searchTitle, performances, (performance) => performance.title);
-        return { performance: item, similarity };
+    // Функция для извлечения названия из кавычек
+    const extractTitleFromQuotes = (fullTitle: string): string => {
+        // Ищем текст в кавычках: "название"
+        const quotesMatch = fullTitle.match(/["«»"](.*?)["«»"]/);
+        if (quotesMatch && quotesMatch[1]) {
+            return quotesMatch[1].trim();
+        }
+        // Если кавычек нет, возвращаем исходное название
+        return fullTitle.trim();
+    };
+
+    // Функция для поиска точного совпадения спектакля
+    const findExactPerformance = (searchTitle: string): Performance | null => {
+        const cleanSearchTitle = searchTitle.toLowerCase().trim();
+        return performances.find(performance => 
+            performance.title.toLowerCase().trim() === cleanSearchTitle
+        ) || null;
     };
 
     // Функция для обработки клика по карточке спектакля
     const handlePerformanceClick = (performanceTitle: string) => {
-        const { performance, similarity } = findBestMatchingPerformance(performanceTitle);
+        // Извлекаем название из кавычек
+        const titleFromQuotes = extractTitleFromQuotes(performanceTitle);
         
-        if (performance && similarity >= SIMILARITY_THRESHOLDS.MEDIUM) {
-            console.log(`Найдено совпадение: "${performanceTitle}" -> "${performance.title}" (сходство: ${(similarity * 100).toFixed(1)}%)`);
+        console.log(`Исходное название: "${performanceTitle}"`);
+        console.log(`Название из кавычек: "${titleFromQuotes}"`);
+        
+        // Ищем точное совпадение только по названию из кавычек
+        const performance = findExactPerformance(titleFromQuotes);
+        
+        if (performance) {
+            console.log(`Найдено точное совпадение: "${titleFromQuotes}" -> "${performance.title}"`);
             navigate(`/performance/${performance.id}`);
         } else {
-            console.log(`Спектакль не найден: "${performanceTitle}". Лучшее совпадение: "${performance?.title}" (сходство: ${(similarity * 100).toFixed(1)}%)`);
-            setNotFoundPerformance(performanceTitle);
-            setSuggestedPerformance(performance);
-            setSuggestionSimilarity(similarity);
+            console.log(`Спектакль не найден: "${titleFromQuotes}"`);
+            setNotFoundPerformance(titleFromQuotes);
             onOpen();
         }
     };
@@ -334,38 +349,8 @@ const DirectorDetail: React.FC = () => {
                     <ModalCloseButton />
                     <ModalBody>
                         <Text mb={4}>
-                            К сожалению, точное совпадение для спектакля <Text as="span" fontWeight="bold" color="#F56565">"{notFoundPerformance}"</Text> не найдено в нашей базе данных.
+                            К сожалению, спектакль <Text as="span" fontWeight="bold" color="#F56565">"{notFoundPerformance}"</Text> не найден в нашей базе данных.
                         </Text>
-                        
-                        {suggestedPerformance && suggestionSimilarity > SIMILARITY_THRESHOLDS.MINIMAL && (
-                            <Box 
-                                p={4} 
-                                bg="rgba(64, 0, 16, 0.3)" 
-                                borderRadius="md" 
-                                border="1px solid rgba(64, 0, 16, 0.5)"
-                                mb={4}
-                            >
-                                <Text fontSize="sm" color="gray.300" mb={2}>
-                                    Возможно, вы искали:
-                                </Text>
-                                <Text fontWeight="bold" color="white" mb={1}>
-                                    {suggestedPerformance.title}
-                                </Text>
-                                <Text fontSize="xs" color="gray.400" mb={3}>
-                                    Сходство: {(suggestionSimilarity * 100).toFixed(1)}%
-                                </Text>
-                                <Button 
-                                    size="sm" 
-                                    colorScheme="red" 
-                                    onClick={() => {
-                                        navigate(`/performance/${suggestedPerformance.id}`);
-                                        onClose();
-                                    }}
-                                >
-                                    Перейти к этому спектаклю
-                                </Button>
-                            </Box>
-                        )}
                         
                         <Text fontSize="sm" color="gray.400">
                             Спектакль может быть ещё не добавлен на сайт или был удалён из репертуара.
