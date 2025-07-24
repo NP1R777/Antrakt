@@ -31,6 +31,8 @@ import Footer from "../../components/Footer";
 import Navigation from "../../components/Navigation";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaQuoteLeft, FaUserTie, FaBook, FaUser, FaPaintBrush, FaVideo, FaMusic } from "react-icons/fa";
+import { findBestMatch, SIMILARITY_THRESHOLDS } from "../../utils/stringMatching";
+import "../../utils/stringMatching.test";
 
 // Стилизованные компоненты для иконок
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
@@ -80,21 +82,28 @@ const DirectorDetail: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [notFoundPerformance, setNotFoundPerformance] = useState<string>("");
+    const [suggestedPerformance, setSuggestedPerformance] = useState<Performance | null>(null);
+    const [suggestionSimilarity, setSuggestionSimilarity] = useState<number>(0);
     const { isOpen, onOpen, onClose } = useDisclosure();
 
-    // Функция для получения ID спектакля по названию
-    const findPerformanceIdByTitle = (title: string): number | null => {
-        const performance = performances.find(p => p.title.toLowerCase() === title.toLowerCase());
-        return performance ? performance.id : null;
+    // Функция для поиска наиболее подходящего спектакля
+    const findBestMatchingPerformance = (searchTitle: string): { performance: Performance | null, similarity: number } => {
+        const { item, similarity } = findBestMatch(searchTitle, performances, (performance) => performance.title);
+        return { performance: item, similarity };
     };
 
     // Функция для обработки клика по карточке спектакля
     const handlePerformanceClick = (performanceTitle: string) => {
-        const performanceId = findPerformanceIdByTitle(performanceTitle);
-        if (performanceId) {
-            navigate(`/performance/${performanceId}`);
+        const { performance, similarity } = findBestMatchingPerformance(performanceTitle);
+        
+        if (performance && similarity >= SIMILARITY_THRESHOLDS.MEDIUM) {
+            console.log(`Найдено совпадение: "${performanceTitle}" -> "${performance.title}" (сходство: ${(similarity * 100).toFixed(1)}%)`);
+            navigate(`/performance/${performance.id}`);
         } else {
+            console.log(`Спектакль не найден: "${performanceTitle}". Лучшее совпадение: "${performance?.title}" (сходство: ${(similarity * 100).toFixed(1)}%)`);
             setNotFoundPerformance(performanceTitle);
+            setSuggestedPerformance(performance);
+            setSuggestionSimilarity(similarity);
             onOpen();
         }
     };
@@ -325,10 +334,41 @@ const DirectorDetail: React.FC = () => {
                     <ModalCloseButton />
                     <ModalBody>
                         <Text mb={4}>
-                            К сожалению, спектакль <Text as="span" fontWeight="bold" color="#F56565">"{notFoundPerformance}"</Text> не найден в нашей базе данных.
+                            К сожалению, точное совпадение для спектакля <Text as="span" fontWeight="bold" color="#F56565">"{notFoundPerformance}"</Text> не найдено в нашей базе данных.
                         </Text>
+                        
+                        {suggestedPerformance && suggestionSimilarity > SIMILARITY_THRESHOLDS.MINIMAL && (
+                            <Box 
+                                p={4} 
+                                bg="rgba(64, 0, 16, 0.3)" 
+                                borderRadius="md" 
+                                border="1px solid rgba(64, 0, 16, 0.5)"
+                                mb={4}
+                            >
+                                <Text fontSize="sm" color="gray.300" mb={2}>
+                                    Возможно, вы искали:
+                                </Text>
+                                <Text fontWeight="bold" color="white" mb={1}>
+                                    {suggestedPerformance.title}
+                                </Text>
+                                <Text fontSize="xs" color="gray.400" mb={3}>
+                                    Сходство: {(suggestionSimilarity * 100).toFixed(1)}%
+                                </Text>
+                                <Button 
+                                    size="sm" 
+                                    colorScheme="red" 
+                                    onClick={() => {
+                                        navigate(`/performance/${suggestedPerformance.id}`);
+                                        onClose();
+                                    }}
+                                >
+                                    Перейти к этому спектаклю
+                                </Button>
+                            </Box>
+                        )}
+                        
                         <Text fontSize="sm" color="gray.400">
-                            Возможно, этот спектакль ещё не добавлен на сайт или был удалён из репертуара.
+                            Спектакль может быть ещё не добавлен на сайт или был удалён из репертуара.
                         </Text>
                     </ModalBody>
                     <ModalFooter>
