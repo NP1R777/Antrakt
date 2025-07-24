@@ -36,6 +36,7 @@ import DirectorDetail from "./pages/cards/DirectorDetail";
 import AchievementDetail from "./pages/cards/AchievementDetail";
 import PerformanceDetail from "./pages/cards/PerfomancesDetail";
 import ProfilePage from "./pages/ProfilePage";
+import ScrollToTop from "./components/ScrollToTop";
 
 // Главная страница сайта
 const MainPage = () => (
@@ -81,6 +82,7 @@ function App() {
     <BrowserRouter>
       <ChakraProvider theme={theme}>
         <AuthProvider>
+          <ScrollToTop />
           <Routes>
             {/* Главная страница */}
             <Route path="/" element={<MainPage />} />
