@@ -179,11 +179,18 @@ class AuthService {
   /**
    * Регистрация пользователя
    */
-  async register(email: string, password: string, phone: string): Promise<boolean> {
+  async register(emailOrPhone: string, password: string, phone: string): Promise<boolean> {
     try {
+      // Определяем, является ли первый параметр email или телефоном
+      const isEmail = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(emailOrPhone);
+      
+      const requestData = isEmail 
+        ? { email: emailOrPhone, password, phone_number: phone }
+        : { phone_number: emailOrPhone, password, email: "" }; // Если регистрация по телефону
+
       const response: AxiosResponse<{ user: User; message: string }> = await axios.post(
         `${API_BASE_URL}/register/`,
-        { email, password, phone_number: phone }
+        requestData
       );
       return true;
     } catch (error) {
@@ -195,11 +202,18 @@ class AuthService {
   /**
    * Авторизация пользователя
    */
-  async login(email: string, password: string): Promise<boolean> {
+  async login(emailOrPhone: string, password: string): Promise<boolean> {
     try {
+      // Определяем, является ли первый параметр email или телефоном
+      const isEmail = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(emailOrPhone);
+      
+      const requestData = isEmail 
+        ? { email: emailOrPhone, password }
+        : { phone_number: emailOrPhone, password };
+
       const response: AxiosResponse<AuthResponse> = await axios.post(
         `${API_BASE_URL}/login/`,
-        { email, password }
+        requestData
       );
 
       const { access, refresh } = response.data;

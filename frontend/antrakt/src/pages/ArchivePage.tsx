@@ -234,20 +234,19 @@ const ArchivePage: React.FC = () => {
                                             justifyContent="space-between"
                                         >
                                             <Box>
+                                                <Heading as="h3" size="md" color={lightText} mb={3} noOfLines={1}>
+                                                    {project.title}
+                                                </Heading>
+
                                                 <Text
-                                                    color={primaryColor}
+                                                    color={grayText}
                                                     fontSize="sm"
                                                     mb={2}
-                                                    fontWeight="medium"
                                                 >
                                                     {project.premiere_date ?
                                                         new Date(project.premiere_date).toLocaleDateString() :
                                                         "Дата неизвестна"}
                                                 </Text>
-
-                                                <Heading as="h3" size="md" color={lightText} mb={3} noOfLines={1}>
-                                                    {project.title}
-                                                </Heading>
 
                                                 <Text
                                                     color={grayText}

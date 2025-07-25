@@ -236,7 +236,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
                 <DrawerOverlay />
                 <DrawerContent bg="rgba(0,0,0,0.95)" backdropFilter="blur(10px)">
-                    <DrawerCloseButton color="white" />
+                    <DrawerCloseButton 
+                        color="white" 
+                        onClick={onClose}
+                        _hover={{ bg: "rgba(255,255,255,0.1)" }}
+                        size="lg"
+                    />
                     <DrawerBody p={0}>
                         <SidebarContent />
                     </DrawerBody>

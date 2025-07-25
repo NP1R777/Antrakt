@@ -25,9 +25,9 @@ interface AuthModalProps {
     mode: "login" | "register";
     switchToRegister: () => void;
     switchToLogin: () => void;
-    onRegister: (email: string, password: string, phone: string) => Promise<boolean>;
-    onLogin: (email: string, password: string) => Promise<boolean>;
-    registeredEmail?: string;
+    onRegister: (emailOrPhone: string, password: string, phone?: string) => Promise<boolean>;
+    onLogin: (emailOrPhone: string, password: string) => Promise<boolean>;
+    registeredEmailOrPhone?: string;
 }
 
 export default function AuthModal({
@@ -38,30 +38,39 @@ export default function AuthModal({
     switchToLogin,
     onRegister,
     onLogin,
-    registeredEmail = ""
+    registeredEmailOrPhone = ""
 }: AuthModalProps) {
     const toast = useToast();
-    const [email, setEmail] = useState(registeredEmail);
+    const [emailOrPhone, setEmailOrPhone] = useState(registeredEmailOrPhone);
     const [password, setPassword] = useState("");
     const [phone, setPhone] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState({
-        email: "",
+        emailOrPhone: "",
         password: "",
         phone: ""
     });
 
-    // Обновляем email при изменении registeredEmail
+    // Обновляем emailOrPhone при изменении registeredEmailOrPhone
     useEffect(() => {
-        if (registeredEmail) {
-            setEmail(registeredEmail);
+        if (registeredEmailOrPhone) {
+            setEmailOrPhone(registeredEmailOrPhone);
         }
-    }, [registeredEmail]);
+    }, [registeredEmailOrPhone]);
 
-    const validateEmail = (value: string) => {
-        if (!value) return "Email обязателен";
-        if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value)) {
-            return "Некорректный email";
+    const isEmail = (value: string) => {
+        return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value);
+    };
+
+    const isPhoneNumber = (value: string) => {
+        const cleaned = value.replace(/\D/g, "");
+        return cleaned.length === 11 && cleaned.startsWith('7');
+    };
+
+    const validateEmailOrPhone = (value: string) => {
+        if (!value) return "Email или телефон обязателен";
+        if (!isEmail(value) && !isPhoneNumber(value)) {
+            return "Введите корректный email или номер телефона";
         }
         return "";
     };
@@ -104,13 +113,13 @@ export default function AuthModal({
     };
 
     const handleSubmit = async () => {
-        const emailError = validateEmail(email);
+        const emailOrPhoneError = validateEmailOrPhone(emailOrPhone);
         const passwordError = validatePassword(password);
         const phoneError = mode === "register" ? validatePhone(phone) : "";
 
-        if (emailError || passwordError || phoneError) {
+        if (emailOrPhoneError || passwordError || phoneError) {
             setErrors({
-                email: emailError,
+                emailOrPhone: emailOrPhoneError,
                 password: passwordError,
                 phone: phoneError
             });
@@ -122,23 +131,23 @@ export default function AuthModal({
         try {
             let success = false;
             if (mode === "register") {
-                success = await onRegister(email, password, phone);
+                success = await onRegister(emailOrPhone, password, phone);
             } else {
-                success = await onLogin(email, password);
+                success = await onLogin(emailOrPhone, password);
             }
 
             if (success) {
                 if (mode === 'register') {
                     setPassword("");
                     setPhone("");
-                    setErrors({ email: "", password: "", phone: "" });
+                    setErrors({ emailOrPhone: "", password: "", phone: "" });
                     switchToLogin();
                 } else {
                     onClose();
-                    setEmail("");
+                    setEmailOrPhone("");
                     setPassword("");
                     setPhone("");
-                    setErrors({ email: "", password: "", phone: "" });
+                    setErrors({ emailOrPhone: "", password: "", phone: "" });
                 }
             }
         } catch (error) {
@@ -208,17 +217,19 @@ export default function AuthModal({
                             </Heading>
 
                             <Flex direction="column" gap={5}>
-                                {/* Поле Email */}
-                                <FormControl isInvalid={!!errors.email}>
-                                    <FormLabel color="white">Email</FormLabel>
+                                {/* Поле Email или телефон */}
+                                <FormControl isInvalid={!!errors.emailOrPhone}>
+                                    <FormLabel color="white">
+                                        {mode === "register" ? "Email" : "Email или телефон"}
+                                    </FormLabel>
                                     <Input
-                                        type="email"
-                                        value={email}
+                                        type="text"
+                                        value={emailOrPhone}
                                         onChange={(e) => {
-                                            setEmail(e.target.value);
-                                            setErrors({ ...errors, email: validateEmail(e.target.value) });
+                                            setEmailOrPhone(e.target.value);
+                                            setErrors({ ...errors, emailOrPhone: validateEmailOrPhone(e.target.value) });
                                         }}
-                                        placeholder="your@email.com"
+                                        placeholder={mode === "register" ? "your@email.com" : "email@domain.com или +7 (999) 999-99-99"}
                                         bg="#1a1a1a"
                                         borderColor="#333"
                                         color="white"
@@ -228,9 +239,9 @@ export default function AuthModal({
                                             boxShadow: "0 0 0 1px #800020"
                                         }}
                                         _hover={{ borderColor: "#444" }}
-                                        autoFocus={mode === "login" && !!email}
+                                        autoFocus={mode === "login" && !!emailOrPhone}
                                     />
-                                    <FormErrorMessage>{errors.email}</FormErrorMessage>
+                                    <FormErrorMessage>{errors.emailOrPhone}</FormErrorMessage>
                                 </FormControl>
 
                                 {/* Поле Пароль */}

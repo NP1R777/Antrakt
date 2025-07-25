@@ -5,11 +5,11 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, phone: string) => Promise<boolean>;
+  login: (emailOrPhone: string, password: string) => Promise<boolean>;
+  register: (emailOrPhone: string, password: string, phone: string) => Promise<boolean>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
-  updateUser: (updatedUser: User | null) => void; // Добавлено
+  updateUser: (updatedUser: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,16 +46,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    const success = await AuthService.login(email, password);
+  const login = async (emailOrPhone: string, password: string): Promise<boolean> => {
+    const success = await AuthService.login(emailOrPhone, password);
     if (success) {
       await refreshUser();
     }
     return success;
   };
 
-  const register = async (email: string, password: string, phone: string): Promise<boolean> => {
-    return await AuthService.register(email, password, phone);
+  const register = async (emailOrPhone: string, password: string, phone: string): Promise<boolean> => {
+    return await AuthService.register(emailOrPhone, password, phone);
   };
 
   const logout = async (): Promise<void> => {

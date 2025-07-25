@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -67,7 +67,9 @@ const PerformanceDetail: React.FC = () => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [galleryIndex, setGalleryIndex] = useState(0);
-    const [direction, setDirection] = useState(1); // Для определения направления анимации
+    const [direction, setDirection] = useState(1);
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const [isManualNavigation, setIsManualNavigation] = useState(false);
 
     useEffect(() => {
         const fetchPerformance = async () => {
@@ -93,35 +95,84 @@ const PerformanceDetail: React.FC = () => {
         }
     }, [id]);
 
+    // Автоматическое перелистывание только когда нет ручной навигации и модальное окно закрыто
     useEffect(() => {
-        if (!performance?.images_list?.length) return;
+        if (!performance?.images_list?.length || isManualNavigation || isOpen) {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+            return;
+        }
 
-        const interval = setInterval(() => {
-            setDirection(1); // Устанавливаем направление вперед
+        intervalRef.current = setInterval(() => {
+            setDirection(1);
             setGalleryIndex(prev => (prev + 1) % performance.images_list!.length);
         }, 4000);
 
-        return () => clearInterval(interval);
-    }, [performance?.images_list]);
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+        };
+    }, [performance?.images_list, isManualNavigation, isOpen]);
+
+    // Сброс флага ручной навигации через некоторое время
+    useEffect(() => {
+        if (isManualNavigation) {
+            const timeout = setTimeout(() => {
+                setIsManualNavigation(false);
+            }, 8000); // 8 секунд без активности
+
+            return () => clearTimeout(timeout);
+        }
+    }, [isManualNavigation]);
 
     const handleImageClick = (index: number) => {
         setCurrentImageIndex(index);
         onOpen();
     };
 
+    const handleModalClose = () => {
+        onClose();
+        // Возобновляем автоперелистывание после закрытия модального окна
+        setIsManualNavigation(false);
+    };
+
     const nextImage = () => {
         if (!performance?.images_list) return;
-        setDirection(1); // Устанавливаем направление вперед
+        setDirection(1);
         setCurrentImageIndex(prev => (prev + 1) % performance.images_list.length);
     };
 
     const prevImage = () => {
         if (!performance?.images_list) return;
-        setDirection(-1); // Устанавливаем направление назад
+        setDirection(-1);
         setCurrentImageIndex(prev => (prev - 1 + performance.images_list.length) % performance.images_list.length);
     };
 
-    // Анимация для фотогалереи
+    const handleGalleryNext = () => {
+        if (!performance?.images_list) return;
+        setIsManualNavigation(true);
+        setDirection(1);
+        setGalleryIndex(prev => (prev + 1) % performance.images_list.length);
+    };
+
+    const handleGalleryPrev = () => {
+        if (!performance?.images_list) return;
+        setIsManualNavigation(true);
+        setDirection(-1);
+        setGalleryIndex(prev => (prev - 1 + performance.images_list.length) % performance.images_list.length);
+    };
+
+    const handleDotClick = (index: number) => {
+        setIsManualNavigation(true);
+        setDirection(index > galleryIndex ? 1 : -1);
+        setGalleryIndex(index);
+    };
+
+    // Анимация для фотогалереи без задержек при ручном управлении
     const variants = {
         enter: (direction: number) => ({
             x: direction > 0 ? 1000 : -1000,
@@ -364,12 +415,7 @@ const PerformanceDetail: React.FC = () => {
                                     bg="rgba(0, 0, 0, 0.5)"
                                     color="white"
                                     _hover={{ bg: "#F56565" }}
-                                    onClick={() => {
-                                        setDirection(-1);
-                                        setGalleryIndex(prev =>
-                                            (prev - 1 + performance.images_list!.length) % performance.images_list!.length
-                                        );
-                                    }}
+                                    onClick={handleGalleryPrev}
                                 />
 
                                 <IconButton
@@ -381,12 +427,7 @@ const PerformanceDetail: React.FC = () => {
                                     bg="rgba(0, 0, 0, 0.5)"
                                     color="white"
                                     _hover={{ bg: "#F56565" }}
-                                    onClick={() => {
-                                        setDirection(1);
-                                        setGalleryIndex(prev =>
-                                            (prev + 1) % performance.images_list!.length
-                                        );
-                                    }}
+                                    onClick={handleGalleryNext}
                                 />
 
                                 {/* Анимированное изображение */}
@@ -399,8 +440,8 @@ const PerformanceDetail: React.FC = () => {
                                         animate="center"
                                         exit="exit"
                                         transition={{
-                                            x: { type: "spring", stiffness: 300, damping: 30 },
-                                            opacity: { duration: 0.2 }
+                                            x: { type: "spring", stiffness: 400, damping: 40 },
+                                            opacity: { duration: 0.15 }
                                         }}
                                         src={performance.images_list[galleryIndex]}
                                         alt={`Фото спектакля ${galleryIndex + 1}`}
@@ -444,7 +485,7 @@ const PerformanceDetail: React.FC = () => {
                                             borderRadius="full"
                                             bg={index === galleryIndex ? "#F56565" : "gray.600"}
                                             cursor="pointer"
-                                            onClick={() => setGalleryIndex(index)}
+                                            onClick={() => handleDotClick(index)}
                                             _hover={{ bg: "#F56565" }}
                                         />
                                     ))}
@@ -457,7 +498,7 @@ const PerformanceDetail: React.FC = () => {
             <Footer />
 
             {/* Модальное окно для просмотра фото */}
-            <Modal isOpen={isOpen} onClose={onClose} size="6xl" isCentered>
+            <Modal isOpen={isOpen} onClose={handleModalClose} size="6xl" isCentered>
                 <ModalOverlay bg="rgba(0, 0, 0, 0.8)" />
                 <ModalContent bg="transparent" boxShadow="none">
                     <ModalCloseButton
@@ -465,8 +506,8 @@ const PerformanceDetail: React.FC = () => {
                         bg="rgba(0, 0, 0, 0.5)"
                         _hover={{ bg: "#F56565" }}
                         size="lg"
-                        zIndex="overlay" // Исправление: увеличен z-index
-                        onClick={onClose} // Явное указание обработчика
+                        zIndex="overlay"
+                        onClick={handleModalClose}
                     />
 
                     <Flex position="relative" h="85vh" align="center" justify="center">
@@ -498,7 +539,7 @@ const PerformanceDetail: React.FC = () => {
                             onClick={nextImage}
                         />
 
-                        {/* Анимированное изображение в модальном окне */}
+                        {/* Анимированное изображение в модальном окне без задержек */}
                         <AnimatePresence initial={false} custom={direction}>
                             <MotionImage
                                 key={currentImageIndex}
@@ -508,8 +549,8 @@ const PerformanceDetail: React.FC = () => {
                                 animate="center"
                                 exit="exit"
                                 transition={{
-                                    x: { type: "spring", stiffness: 300, damping: 30 },
-                                    opacity: { duration: 0.2 }
+                                    x: { type: "spring", stiffness: 500, damping: 50 },
+                                    opacity: { duration: 0.1 }
                                 }}
                                 src={performance?.images_list?.[currentImageIndex] || ""}
                                 alt={`Фото спектакля ${currentImageIndex + 1}`}
