@@ -35,6 +35,7 @@ interface Achievement {
     deleted_at: string | null;
     achievement: string;
     image_url: string;
+    assigned?: string; // Добавляем поле assigned
 }
 
 const AchievementDetail: React.FC = () => {
@@ -187,9 +188,9 @@ const AchievementDetail: React.FC = () => {
                                             <CFaCalendarAlt mr={2} color="#F56565" />
                                             История
                                         </Heading>
-                                        {achievement.created_at && (
+                                        {achievement.assigned && (
                                             <Text fontSize="md" color="gray.400">
-                                                <b>Дата создания:</b> {new Date(achievement.created_at).toLocaleDateString()}
+                                                <b>Присвоено:</b> {new Date(achievement.assigned).toLocaleDateString()}
                                             </Text>
                                         )}
                                         {achievement.updated_at && (

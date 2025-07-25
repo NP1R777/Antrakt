@@ -40,7 +40,7 @@ export default function Navigation() {
     const { isOpen, onToggle } = useDisclosure();
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [authMode, setAuthMode] = useState<"login" | "register">("login");
-    const [registeredEmail, setRegisteredEmail] = useState("");
+    const [registeredEmailOrPhone, setRegisteredEmailOrPhone] = useState("");
     const toast = useToast();
     const navigate = useNavigate(); // Добавлен хук useNavigate
     const { user, isAuthenticated, login, register, logout } = useAuth();
@@ -55,10 +55,10 @@ export default function Navigation() {
         setIsAuthModalOpen(true);
     };
 
-    const handleRegister = async (email: string, password: string, phone: string) => {
-        const success = await register(email, password, phone);
+    const handleRegister = async (emailOrPhone: string, password: string, phone?: string) => {
+        const success = await register(emailOrPhone, password, phone || "");
         if (success) {
-            setRegisteredEmail(email);
+            setRegisteredEmailOrPhone(emailOrPhone);
             toast({
                 title: "Успешная регистрация!",
                 description: "Теперь войдите в свой аккаунт.",
@@ -81,8 +81,8 @@ export default function Navigation() {
         return success;
     };
 
-    const handleLogin = async (email: string, password: string) => {
-        const success = await login(email, password);
+    const handleLogin = async (emailOrPhone: string, password: string) => {
+        const success = await login(emailOrPhone, password);
         if (success) {
             toast({
                 title: "Вход выполнен!",
@@ -96,7 +96,7 @@ export default function Navigation() {
         } else {
             toast({
                 title: "Ошибка входа",
-                description: "Неверный email или пароль",
+                description: "Неверные данные для входа",
                 status: "error",
                 duration: 3000,
                 isClosable: true,
@@ -265,14 +265,14 @@ export default function Navigation() {
                 isOpen={isAuthModalOpen}
                 onClose={() => {
                     setIsAuthModalOpen(false);
-                    setRegisteredEmail("");
+                    setRegisteredEmailOrPhone("");
                 }}
                 mode={authMode}
                 switchToRegister={handleRegisterClick}
                 switchToLogin={handleLoginClick}
                 onRegister={handleRegister}
                 onLogin={handleLogin}
-                registeredEmail={registeredEmail}
+                registeredEmailOrPhone={registeredEmailOrPhone}
             />
         </Box>
     );
