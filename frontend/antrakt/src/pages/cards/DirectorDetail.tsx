@@ -97,7 +97,7 @@ const DirectorDetail: React.FC = () => {
     // Функция для поиска точного совпадения спектакля
     const findExactPerformance = (searchTitle: string): Performance | null => {
         const cleanSearchTitle = searchTitle.toLowerCase().trim();
-        return performances.find(performance => 
+        return performances.find(performance =>
             performance.title.toLowerCase().trim() === cleanSearchTitle
         ) || null;
     };
@@ -106,13 +106,13 @@ const DirectorDetail: React.FC = () => {
     const handlePerformanceClick = (performanceTitle: string) => {
         // Извлекаем название из кавычек
         const titleFromQuotes = extractTitleFromQuotes(performanceTitle);
-        
+
         console.log(`Исходное название: "${performanceTitle}"`);
         console.log(`Название из кавычек: "${titleFromQuotes}"`);
-        
+
         // Ищем точное совпадение только по названию из кавычек
         const performance = findExactPerformance(titleFromQuotes);
-        
+
         if (performance) {
             console.log(`Найдено точное совпадение: "${titleFromQuotes}" -> "${performance.title}"`);
             navigate(`/performance/${performance.id}`);
@@ -351,7 +351,7 @@ const DirectorDetail: React.FC = () => {
                         <Text mb={4}>
                             К сожалению, спектакль <Text as="span" fontWeight="bold" color="#F56565">"{notFoundPerformance}"</Text> не найден в нашей базе данных.
                         </Text>
-                        
+
                         <Text fontSize="sm" color="gray.400">
                             Спектакль может быть ещё не добавлен на сайт или был удалён из репертуара.
                         </Text>
