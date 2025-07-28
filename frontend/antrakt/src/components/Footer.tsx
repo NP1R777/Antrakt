@@ -1,5 +1,6 @@
 import { Box, Flex, Text, Link, Grid, GridItem, Heading, Icon, chakra } from "@chakra-ui/react";
 import { motion } from "framer-motion";
+import { Link as RouterLink } from "react-router-dom";
 import {
     FaVk,
     FaTelegram,
@@ -11,7 +12,6 @@ import {
     FaClock
 } from "react-icons/fa";
 import type { ComponentWithAs, IconProps } from "@chakra-ui/react";
-import { url } from "inspector";
 
 const MotionBox = motion(Box);
 const MotionLink = motion(Link);
@@ -187,7 +187,8 @@ export default function Footer() {
                             {navLinks.map((link, index) => (
                                 <MotionLink
                                     key={index}
-                                    href={link.url}
+                                    as={RouterLink}
+                                    to={`/${link.url}`}
                                     color={grayText}
                                     fontSize="md"
                                     mb={2}
