@@ -8,10 +8,6 @@ import {
     Text,
     Button,
     Avatar,
-    Menu,
-    MenuButton,
-    MenuList,
-    MenuItem,
     useDisclosure,
     Drawer,
     DrawerBody,
@@ -19,7 +15,6 @@ import {
     DrawerContent,
     DrawerOverlay,
     IconButton,
-    Divider,
     chakra,
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
@@ -61,7 +56,6 @@ interface AdminLayoutProps {
 }
 
 const primaryColor = "#800020";
-const darkBg = "#0a0a0a";
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const { user, logout } = useAuth();
@@ -179,7 +173,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                                 transform: "translateX(5px)"
                             }}
                             transition="all 0.3s"
-                            onClick={() => navigate(item.path)}
+                            onClick={() => {
+                                navigate(item.path);
+                                onClose(); // Закрываем мобильное меню при клике на пункт меню
+                            }}
                         >
                             {item.label}
                         </Button>
@@ -196,7 +193,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     w="full"
                     color="white"
                     _hover={{ bg: "rgba(255,255,255,0.1)", color: primaryColor }}
-                    onClick={navigateToMain}
+                    onClick={() => {
+                        navigateToMain();
+                        onClose(); // Закрываем мобильное меню при переходе на главную
+                    }}
                 >
                     На главную
                 </Button>
@@ -207,7 +207,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     w="full"
                     color="white"
                     _hover={{ bg: "rgba(255,0,0,0.2)", color: "red.300" }}
-                    onClick={handleLogout}
+                    onClick={() => {
+                        handleLogout();
+                        onClose(); // Закрываем мобильное меню при выходе
+                    }}
                 >
                     Выйти
                 </Button>
@@ -233,14 +236,18 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             </MotionBox>
 
             {/* Mobile Drawer */}
-            <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
-                <DrawerOverlay />
+            <Drawer isOpen={isOpen} placement="left" onClose={onClose} closeOnOverlayClick={true}>
+                <DrawerOverlay onClick={onClose} />
                 <DrawerContent bg="rgba(0,0,0,0.95)" backdropFilter="blur(10px)">
                     <DrawerCloseButton 
                         color="white" 
                         onClick={onClose}
                         _hover={{ bg: "rgba(255,255,255,0.1)" }}
                         size="lg"
+                        zIndex={1400}
+                        position="absolute"
+                        top={4}
+                        right={4}
                     />
                     <DrawerBody p={0}>
                         <SidebarContent />
