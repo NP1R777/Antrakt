@@ -132,12 +132,17 @@ $RECYCLE.BIN/
 
 # Docker
 .dockerignore
+docker-compose.override.yml
 
-# MinIO data
+# Docker volumes and data
 minio_data/
-
-# PostgreSQL data
 postgres_data/
+backend_media/
+backend_static/
+
+# Database dumps (except example)
+database/init.sql
+!database/init.sql.example
 
 # Static files
 static/

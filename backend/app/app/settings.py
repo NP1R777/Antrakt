@@ -181,19 +181,15 @@ MINIO_ACCESS_KEY = config('MINIO_ACCESS_KEY', default='minioadmin')
 MINIO_SECRET_KEY = config('MINIO_SECRET_KEY', default='minioadmin123')
 MINIO_BUCKET_NAME = config('MINIO_BUCKET_NAME', default='antrakt-images')
 
-# Windows-specific settings
-if os.name == 'nt':  # Windows
-    # Для Windows используем localhost вместо Docker service names
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DATABASE_NAME', default='antrakt'),
-            'USER': config('DATABASE_USER', default='postgres'),
-            'PASSWORD': config('DATABASE_PASSWORD', default='123'),
-            'HOST': config('DATABASE_HOST', default='localhost'),
-            'PORT': config('DATABASE_PORT', default='5432'),
-        }
-    }
+# Docker/Production-specific settings
+if config('DOCKER_ENV', default=False, cast=bool):
+    # В Docker используем service names
+    DATABASES['default']['HOST'] = config('DATABASE_HOST', default='postgres')
+    MINIO_ENDPOINT = config('MINIO_ENDPOINT', default='minio:9000')
+elif os.name == 'nt':  # Windows development
+    # Для Windows разработки используем localhost
+    DATABASES['default']['HOST'] = config('DATABASE_HOST', default='localhost')
+    MINIO_ENDPOINT = config('MINIO_ENDPOINT', default='localhost:9000')
 
 # Media files configuration
 MEDIA_URL = '/media/'
