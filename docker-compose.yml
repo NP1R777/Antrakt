@@ -12,6 +12,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     networks:
       - antrakt_network
     healthcheck:
@@ -40,9 +41,54 @@ services:
       timeout: 20s
       retries: 3
 
+  # Backend Django Application
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DOCKER_ENV=true
+      - DATABASE_HOST=postgres
+      - DATABASE_NAME=antrakt
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=123
+      - DATABASE_PORT=5432
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin123
+      - MINIO_BUCKET_NAME=antrakt-images
+    volumes:
+      - backend_media:/app/media
+      - backend_static:/app/static
+    networks:
+      - antrakt_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Frontend React Application
+  frontend:
+    build:
+      context: ./frontend/antrakt
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    networks:
+      - antrakt_network
+    depends_on:
+      - backend
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   minio_data:
+  backend_media:
+  backend_static:
 
 networks:
   antrakt_network:
