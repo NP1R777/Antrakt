@@ -10,12 +10,12 @@ import Navigation from "./components/Navigation";
 import ActorsPage from "./pages/admin/ActorsPage";
 import Performances from "./sections/Perfomances";
 import Testimonials from "./sections/Testimonials";
-import ArchivePageAadmin from "./pages/admin/ArchivePageAdmin";
 import { ChakraProvider, Box } from "@chakra-ui/react";
 import NewsPageAdmin from "./pages/admin/NewsPageAdmin";
 import DirectorsPage from "./pages/admin/DirectorsPage";
 import AdminLayout from "./components/admin/AdminLayout";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import ArchivePageAadmin from "./pages/admin/ArchivePageAdmin";
 import AchievementsPageAdmin from './pages/admin/AchievementsPageAdmin'
 import PerformancesPageAdmin from './pages/admin/PerformancesPageAdmin'
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -25,8 +25,10 @@ import TeamPage from "./pages/TeamPage";
 import NewsPage from "./pages/NewsPage";
 import AfishaPage from "./pages/AfishaPage";
 import ArchivePage from "./pages/ArchivePage";
+import ProfilePage from "./pages/ProfilePage";
 import AboutTheatre from "./pages/AboutTheatre";
 import NewsDetail from "./pages/cards/NewsDetail";
+import ScrollToTop from "./components/ScrollToTop";
 import ActorDetail from "./pages/cards/ActorDetail";
 import AfishaDetail from "./pages/cards/AfishaDetail";
 import AchievementsPage from "./pages/AchievementsPage";
@@ -35,8 +37,6 @@ import PerformancesPage from "./pages/PerformancesPage";
 import DirectorDetail from "./pages/cards/DirectorDetail";
 import AchievementDetail from "./pages/cards/AchievementDetail";
 import PerformanceDetail from "./pages/cards/PerfomancesDetail";
-import ProfilePage from "./pages/ProfilePage";
-import ScrollToTop from "./components/ScrollToTop";
 
 // Главная страница сайта
 const MainPage = () => (

@@ -237,3 +237,4 @@ class Achievements(ImageUploadMixin, models.Model): # Достижения
     deleted_at = models.DateTimeField(null=True)
     achievement = models.CharField(max_length=500, null=False)
     image_url = models.URLField(null=False, blank=True)
+    assigned = models.DateField(null=True, blank=True) # Дата присвоения достижения.
