@@ -18,7 +18,7 @@ import {
 } from "@chakra-ui/react";
 import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Добавлен импорт useNavigate
+import { useNavigate, Link as RouterLink } from "react-router-dom"; // Добавлен импорт Link as RouterLink
 import AuthModal from "./AuthModal";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -137,7 +137,7 @@ export default function Navigation() {
                 py={4}
             >
                 <Box>
-                    <Link href="/" _hover={{ textDecoration: "none" }}>
+                    <Link as={RouterLink} to="/" _hover={{ textDecoration: "none" }}>
                         <Text fontSize="xl" fontWeight="bold" color={lightText} letterSpacing="wide">
                             ТЕАТР СТУДИЯ <Text as="span" color={primaryColor}>АНТРАКТ</Text>
                         </Text>
@@ -148,7 +148,8 @@ export default function Navigation() {
                     {NAV_ITEMS.map((item) => (
                         <Link
                             key={item.label}
-                            href={item.href}
+                            as={RouterLink}
+                            to={`/${item.href}`}
                             color={lightText}
                             fontWeight={500}
                             _hover={{ textDecoration: "none", color: primaryColor, transform: "translateY(-2px)" }}
@@ -230,7 +231,8 @@ export default function Navigation() {
                         {NAV_ITEMS.map((item) => (
                             <Link
                                 key={item.label}
-                                href={item.href}
+                                as={RouterLink}
+                                to={`/${item.href}`}
                                 color={lightText}
                                 py={2}
                                 px={4}
