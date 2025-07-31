@@ -40,27 +40,39 @@ if not exist "docker-compose.yml" (
     pause
     exit /b 1
 )
-if not exist "database\init.sql" (
+
+REM Улучшенная проверка init.sql
+if exist "database\init.sql" (
+    echo ✅ Файл init.sql найден
+    echo Проверка содержимого init.sql...
+    findstr /C:"CREATE" database\init.sql >nul
+    if !errorlevel! neq 0 (
+        echo ⚠️  ВНИМАНИЕ: Файл init.sql не содержит SQL-команд!
+        echo Возможно, файл пустой или поврежден
+        echo Создаю новый init.sql с базовым содержимым...
+        echo -- Базовая инициализация PostgreSQL > database\init.sql
+        echo CREATE EXTENSION IF NOT EXISTS "uuid-ossp"; >> database\init.sql
+    )
+) else (
     echo ⚠️  ПРЕДУПРЕЖДЕНИЕ: Файл database\init.sql не найден
     echo Создаю базовый init.sql файл...
     if not exist "database" mkdir database
     echo -- Базовая инициализация PostgreSQL > database\init.sql
     echo CREATE EXTENSION IF NOT EXISTS "uuid-ossp"; >> database\init.sql
+    echo ✅ Файл init.sql создан
 )
-echo ✅ Конфигурационные файлы проверены
 
 REM Остановка существующих контейнеров
 echo [4/15] Остановка существующих контейнеров...
-!COMPOSE_CMD! down --remove-orphans >nul 2>&1
+!COMPOSE_CMD! down --remove-orphans
 if !errorlevel! neq 0 (
-    echo ⚠️  Предупреждение: Ошибка при остановке контейнеров (возможно, они не были запущены)
-) else (
-    echo ✅ Существующие контейнеры остановлены
+    echo ⚠️  Предупреждение: Ошибка при остановке контейнеров
+    echo Продолжаем выполнение...
 )
 
 REM Очистка неиспользуемых ресурсов
 echo [5/15] Очистка неиспользуемых ресурсов...
-docker system prune -f >nul 2>&1
+docker system prune -f
 echo ✅ Очистка завершена
 
 REM Сборка образов
@@ -78,42 +90,61 @@ echo ✅ Образы собраны
 
 REM Создание сети (если не существует)
 echo [7/15] Создание сети...
-docker network create antrakt_network >nul 2>&1
+docker network create antrakt_network >nul 2>&1 || echo ⚠️  Сеть уже существует или не может быть создана
 echo ✅ Сеть готова
 
-REM Запуск PostgreSQL
+REM Запуск PostgreSQL с диагностикой
 echo [8/15] Запуск PostgreSQL...
 !COMPOSE_CMD! up -d postgres
 if !errorlevel! neq 0 (
     echo ❌ ОШИБКА: Не удалось запустить PostgreSQL
+    echo Логи PostgreSQL:
+    !COMPOSE_CMD! logs postgres
     pause
     exit /b 1
 )
 echo ✅ PostgreSQL запущен
 
-REM Ожидание готовности PostgreSQL
+REM Улучшенное ожидание готовности PostgreSQL
 echo [9/15] Ожидание готовности PostgreSQL...
 set /a counter=0
 :wait_postgres
 timeout /t 5 /nobreak >nul
-!COMPOSE_CMD! exec -T postgres pg_isready -U postgres >nul 2>&1
+docker exec -i antrakt-postgres-1 pg_isready -U postgres >nul 2>&1
 if !errorlevel! neq 0 (
     set /a counter+=1
-    if !counter! lss 12 (
-        echo ⏳ PostgreSQL еще не готов, ждем... (!counter!/12)
-        goto wait_postgres
-    ) else (
-        echo ⚠️  PostgreSQL долго не готов, продолжаем...
+    echo ⏳ Ожидание PostgreSQL... (попытка !counter!/30)
+    if !counter! geq 30 (
+        echo ❌ ОШИБКА: PostgreSQL не запустился за 150 секунд
+        echo Логи PostgreSQL:
+        !COMPOSE_CMD! logs postgres
+        echo Проверка состояния контейнера:
+        docker ps -a | findstr postgres
+        echo Попробуйте запустить вручную: docker start antrakt-postgres-1
+        pause
+        exit /b 1
     )
-) else (
-    echo ✅ PostgreSQL готов
+    goto wait_postgres
+)
+echo ✅ PostgreSQL готов
+
+REM Проверка применения init.sql
+echo Проверка инициализации базы данных...
+docker exec -i antrakt-postgres-1 psql -U postgres -d antrakt -c "SELECT '✅ База данных успешно проинициализирована' AS status;" || (
+    echo ❌ ОШИБКА: Не удалось подключиться к базе данных
+    echo Проверьте файл init.sql и логи PostgreSQL
+    !COMPOSE_CMD! logs postgres
+    pause
+    exit /b 1
 )
 
-REM Запуск MinIO
+REM Запуск MinIO с диагностикой
 echo [10/15] Запуск MinIO...
 !COMPOSE_CMD! up -d minio
 if !errorlevel! neq 0 (
     echo ❌ ОШИБКА: Не удалось запустить MinIO
+    echo Логи MinIO:
+    !COMPOSE_CMD! logs minio
     pause
     exit /b 1
 )
@@ -121,24 +152,40 @@ echo ✅ MinIO запущен
 
 REM Ожидание готовности MinIO
 echo [11/15] Ожидание готовности MinIO...
-timeout /t 15 /nobreak >nul
+timeout /t 30 /nobreak >nul
 echo ✅ MinIO готов
 
-REM Запуск Backend
+REM Запуск Backend с диагностикой
 echo [12/15] Запуск Backend...
 echo Это может занять время для применения миграций...
 !COMPOSE_CMD! up -d backend
 if !errorlevel! neq 0 (
     echo ❌ ОШИБКА: Не удалось запустить Backend
-    echo Проверьте логи: !COMPOSE_CMD! logs backend
+    echo Логи Backend:
+    !COMPOSE_CMD! logs backend
     pause
     exit /b 1
 )
 echo ✅ Backend запущен
 
-REM Ожидание готовности Backend
+REM Улучшенное ожидание готовности Backend
 echo [13/15] Ожидание готовности Backend...
-timeout /t 30 /nobreak >nul
+set /a counter=0
+:wait_backend
+curl -s http://localhost:8000/healthcheck >nul 2>&1
+if !errorlevel! neq 0 (
+    set /a counter+=1
+    echo ⏳ Ожидание Backend... (попытка !counter!/30)
+    if !counter! geq 30 (
+        echo ❌ ОШИБКА: Backend не запустился за 150 секунд
+        echo Логи Backend:
+        !COMPOSE_CMD! logs backend
+        pause
+        exit /b 1
+    )
+    timeout /t 5 /nobreak >nul
+    goto wait_backend
+)
 echo ✅ Backend готов
 
 REM Запуск Frontend
@@ -146,7 +193,8 @@ echo [14/15] Запуск Frontend...
 !COMPOSE_CMD! up -d frontend
 if !errorlevel! neq 0 (
     echo ❌ ОШИБКА: Не удалось запустить Frontend
-    echo Проверьте логи: !COMPOSE_CMD! logs frontend
+    echo Логи Frontend:
+    !COMPOSE_CMD! logs frontend
     pause
     exit /b 1
 )
@@ -172,6 +220,13 @@ echo - Просмотр логов: !COMPOSE_CMD! logs -f [service_name]
 echo - Остановка: !COMPOSE_CMD! down
 echo - Перезапуск: !COMPOSE_CMD! restart [service_name]
 echo - Статус: !COMPOSE_CMD! ps
+echo.
+
+REM Дополнительная диагностика
+echo ⚠️  Если сервисы не работают, проверьте:
+echo 1. Логи PostgreSQL: !COMPOSE_CMD! logs postgres
+echo 2. Состояние базы данных: docker exec -it antrakt-postgres-1 psql -U postgres -d antrakt
+echo 3. Проверьте init.sql: type database\init.sql
 echo.
 
 pause
