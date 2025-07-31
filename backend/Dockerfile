@@ -1,18 +1,27 @@
 FROM python:3.11-slim
 
-# Установка системных зависимостей
-RUN apt-get update && apt-get install -y \
+# Установка переменных окружения для неинтерактивной установки
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Установка системных зависимостей с улучшенной обработкой ошибок
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     gcc \
     postgresql-client \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get autoremove -y
 
 # Установка рабочей директории
 WORKDIR /app
 
 # Копирование requirements и установка зависимостей
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Копирование скриптов инициализации
 COPY init_minio.py .
