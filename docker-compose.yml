@@ -1,19 +1,18 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
+  # PostgreSQL Database Service
   postgres:
     image: postgres:15
     environment:
       POSTGRES_DB: antrakt
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123
-      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
-    ports:
-      - "5432:5432"
+      POSTGRES_PASSWORD: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
     networks:
       - antrakt_network
     healthcheck:
@@ -24,7 +23,7 @@ services:
       start_period: 30s
     restart: unless-stopped
 
-  # MinIO Object Storage
+  # MinIO Object Storage Service
   minio:
     image: minio/minio:latest
     ports:
@@ -47,7 +46,7 @@ services:
       start_period: 20s
     restart: unless-stopped
 
-  # Backend Django Application
+  # Backend Service (Django)
   backend:
     build:
       context: ./backend
@@ -55,16 +54,15 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DOCKER_ENV=true
-      - DATABASE_HOST=postgres
-      - DATABASE_NAME=antrakt
-      - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=123
-      - DATABASE_PORT=5432
-      - MINIO_ENDPOINT=minio:9000
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin123
-      - MINIO_BUCKET_NAME=antrakt-images
+      DATABASE_HOST: postgres
+      DATABASE_NAME: antrakt
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+      DATABASE_PORT: 5432
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_BUCKET_NAME: antrakt-images
     volumes:
       - backend_media:/app/media
       - backend_static:/app/static
@@ -75,19 +73,28 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     restart: unless-stopped
 
-  # Frontend React Application
+  # Frontend Service (React)
   frontend:
     build:
       context: ./frontend/antrakt
       dockerfile: Dockerfile
     ports:
       - "3000:80"
+    environment:
+      REACT_APP_API_URL: http://localhost:8000
     networks:
       - antrakt_network
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

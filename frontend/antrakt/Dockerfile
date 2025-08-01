@@ -1,30 +1,13 @@
-# Build stage
-FROM node:18-alpine as build
+FROM node:18 as build
 
 WORKDIR /app
 
-# Копируем package.json и package-lock.json
-COPY package*.json ./
+COPY package.json yarn.lock ./
+RUN yarn install
 
-# Устанавливаем зависимости
-RUN npm ci
-
-# Копируем исходный код
 COPY . .
+RUN yarn build
 
-# Собираем приложение
-RUN npm run build
-
-# Production stage
 FROM nginx:alpine
-
-# Копируем собранное приложение
 COPY --from=build /app/build /usr/share/nginx/html
-
-# Копируем конфигурацию nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Открываем порт
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]

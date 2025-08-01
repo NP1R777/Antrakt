@@ -17,9 +17,14 @@ Including another URLconf
 from my_app1 import views
 from drf_yasg import openapi
 from django.contrib import admin
+from django.http import JsonResponse
 from django.urls import path, include
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
+
+
+def health_check(request):
+    return JsonResponse({"status": "ok"}, status=200)
 
 
 schema_view = get_schema_view(
@@ -38,6 +43,7 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
+    path('health/', health_check, name='health-check'),
     path('users/', views.UserList.as_view(), name='user-list'),
     path('user<int:id>/', views.UserDetail.as_view(), name='user'),
     path('users-admin/', views.UserListAdmin.as_view(), name='user-list-admin'),
