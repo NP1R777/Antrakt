@@ -2,11 +2,17 @@ FROM node:18 as build
 
 WORKDIR /app
 
-COPY package.json yarn.lock ./
-RUN yarn install
+# Копируем файлы зависимостей npm
+COPY package.json package-lock.json ./
 
+# Устанавливаем зависимости с помощью npm
+RUN npm install
+
+# Копируем остальные файлы проекта
 COPY . .
-RUN yarn build
+
+# Собираем проект
+RUN npm run build
 
 FROM nginx:alpine
 COPY --from=build /app/build /usr/share/nginx/html

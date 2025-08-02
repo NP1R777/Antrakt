@@ -7,20 +7,14 @@ services:
     environment:
       POSTGRES_DB: antrakt
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: 123
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./backend/database/init.sql:/docker-entrypoint-initdb.d/1-init.sql:ro
     ports:
       - "5432:5432"
     networks:
       - antrakt_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d antrakt"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
     restart: unless-stopped
 
   # MinIO Object Storage Service
@@ -54,11 +48,12 @@ services:
     ports:
       - "8000:8000"
     environment:
+      DEBUG: "False"
       DATABASE_HOST: postgres
       DATABASE_NAME: antrakt
       DATABASE_USER: postgres
-      DATABASE_PASSWORD: postgres
-      DATABASE_PORT: 5432
+      DATABASE_PASSWORD: 123
+      DATABASE_PORT: "5432"
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin123
@@ -69,16 +64,17 @@ services:
     networks:
       - antrakt_network
     depends_on:
-      postgres:
-        condition: service_healthy
       minio:
         condition: service_healthy
+    command: >
+      sh -c "python app/manage.py migrate &&
+        gunicorn app.wsgi:application --bind 0.0.0.0:8000 --pythonpath /app/app"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
+      interval: 15s
+      timeout: 15s
+      retries: 15
+      start_period: 60s
     restart: unless-stopped
 
   # Frontend Service (React)
