@@ -1,29 +1,6 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15
-    container_name: postgres
-    environment:
-      POSTGRES_DB: antrakt
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      # Монтируем дамп базы данных для автоматической инициализации
-      - .database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
-    ports:
-      - "5432:5432"
-    networks:
-      - antrakt_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d antrakt"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    restart: unless-stopped
-
   minio:
     image: minio/minio:latest
     container_name: minio
@@ -46,71 +23,7 @@ services:
       start_period: 20s
     restart: unless-stopped
 
-  backend:
-    build:
-      context: backend
-      dockerfile: Dockerfile
-    container_name: ${COMPOSE_PROJECT_NAME:-antrakt}_backend
-    ports:
-      - "${BACKEND_PORT:-8000}:8000"
-    environment:
-      DEBUG: ${DEBUG:-False}
-      SECRET_KEY: ${SECRET_KEY}
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
-      DATABASE_HOST: ${POSTGRES_HOST}
-      DATABASE_NAME: ${POSTGRES_DB}
-      DATABASE_USER: ${POSTGRES_USER}
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
-      DATABASE_PORT: ${POSTGRES_PORT}
-      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
-      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
-    volumes:
-      - backend_media:/app/media
-      - backend_static:/app/static
-    # Для разработки - можно закомментировать в продакшене
-    # - ./backend:/app
-    networks:
-      - antrakt_network
-    depends_on:
-      postgres:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
-      interval: 15s
-      timeout: 15s
-      retries: 15
-      start_period: 60s
-    restart: unless-stopped
-
-  frontend:
-    build:
-      context: frontend/antrakt
-      dockerfile: Dockerfile
-    container_name: ${COMPOSE_PROJECT_NAME:-antrakt}_frontend
-    ports:
-      - "${FRONTEND_PORT:-3000}:80"
-    environment:
-      REACT_APP_API_URL: ${REACT_APP_API_URL}
-    networks:
-      - antrakt_network
-    depends_on:
-      backend:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    restart: unless-stopped
-
 volumes:
-  postgres_data:
-    name: postgres_data
   minio_data:
     name: minio_data
 
