@@ -114,16 +114,15 @@ def get_minio_client():
     """Получает экземпляр MinIO клиента с ленивой инициализацией"""
     global _minio_client
     if _minio_client is None:
-        from django.conf import settings
-        # Проверяем, доступен ли MinIO
-        if getattr(settings, 'USE_MINIO', False):
-            try:
-                _minio_client = MinioClient()
-            except Exception as e:
-                print(f"Не удалось инициализировать MinIO клиент: {e}")
-                _minio_client = False  # Помечаем как недоступный
-        else:
-            _minio_client = False  # MinIO отключен
+        try:
+            _minio_client = MinioClient()
+            # Тестируем соединение, попробовав проверить существование bucket
+            _minio_client.client.bucket_exists(_minio_client.bucket_name)
+            print(f"✓ MinIO клиент успешно инициализирован: {_minio_client.client._base_url}")
+        except Exception as e:
+            print(f"⚠ Не удалось подключиться к MinIO: {e}")
+            print("  Будет использоваться локальное хранение файлов")
+            _minio_client = False  # Помечаем как недоступный
     return _minio_client if _minio_client is not False else None
 
 
