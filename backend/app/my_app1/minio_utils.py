@@ -107,8 +107,24 @@ class MinioClient:
             return None
 
 
-# Глобальный экземпляр клиента MinIO
-minio_client = MinioClient()
+# Глобальный экземпляр клиента MinIO (ленивая инициализация)
+_minio_client = None
+
+def get_minio_client():
+    """Получает экземпляр MinIO клиента с ленивой инициализацией"""
+    global _minio_client
+    if _minio_client is None:
+        from django.conf import settings
+        # Проверяем, доступен ли MinIO
+        if getattr(settings, 'USE_MINIO', False):
+            try:
+                _minio_client = MinioClient()
+            except Exception as e:
+                print(f"Не удалось инициализировать MinIO клиент: {e}")
+                _minio_client = False  # Помечаем как недоступный
+        else:
+            _minio_client = False  # MinIO отключен
+    return _minio_client if _minio_client is not False else None
 
 
 def upload_image_to_minio(image_file, folder="images"):
@@ -120,9 +136,14 @@ def upload_image_to_minio(image_file, folder="images"):
         folder: Папка для сохранения
         
     Returns:
-        str: URL загруженного изображения
+        str: URL загруженного изображения или None если MinIO недоступен
     """
-    return minio_client.upload_file(image_file, folder)
+    client = get_minio_client()
+    if client:
+        return client.upload_file(image_file, folder)
+    else:
+        print("MinIO недоступен, используется локальное хранение")
+        return None
 
 
 def delete_image_from_minio(image_url):
@@ -132,4 +153,8 @@ def delete_image_from_minio(image_url):
     Args:
         image_url: URL изображения для удаления
     """
-    minio_client.delete_file(image_url)
+    client = get_minio_client()
+    if client:
+        client.delete_file(image_url)
+    else:
+        print("MinIO недоступен, удаление из локального хранения не требуется")

@@ -76,11 +76,12 @@ services:
     # - ./backend:/app
     networks:
       - antrakt_network
-    depends_on:
-      postgres:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
+    # Убираем жесткие зависимости - бэкенд может работать без PostgreSQL и MinIO
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
+    #   minio:
+    #     condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
       interval: 15s
