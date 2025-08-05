@@ -122,54 +122,25 @@ AUTH_USER_MODEL = 'my_app1.User'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Проверяем доступность PostgreSQL
-import socket
-import sys
-
-def is_service_available(host, port):
-    """Проверяет доступность сервиса"""
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
-        result = sock.connect_ex((host, int(port)))
-        sock.close()
-        return result == 0
-    except:
-        return False
-
-# Получаем настройки БД
+# Настройки БД
 db_host = config('DATABASE_HOST', default='localhost')
 db_port = config('DATABASE_PORT', default='5432')
 db_name = config('DATABASE_NAME', default='antrakt')
 db_user = config('DATABASE_USER', default='postgres')
 db_password = config('DATABASE_PASSWORD', default='123')
 
-# Проверяем доступность PostgreSQL
-postgres_available = is_service_available(db_host, db_port)
-
-if postgres_available:
-    # Используем PostgreSQL если доступен
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': db_name,
-            'USER': db_user,
-            'PASSWORD': db_password,
-            'HOST': db_host,
-            'PORT': db_port,
-        }
+# Используем PostgreSQL
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': db_name,
+        'USER': db_user,
+        'PASSWORD': db_password,
+        'HOST': db_host,
+        'PORT': db_port,
     }
-    print(f"✓ Используется PostgreSQL: {db_host}:{db_port}")
-else:
-    # Fallback на SQLite если PostgreSQL недоступен
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-    print("⚠ PostgreSQL недоступен, используется SQLite")
-    print(f"  Проверьте подключение к {db_host}:{db_port}")
+}
+print(f"✓ Используется PostgreSQL: {db_host}:{db_port}")
 
 
 # Password validation
@@ -219,17 +190,9 @@ MINIO_ACCESS_KEY = config('MINIO_ACCESS_KEY', default='minioadmin')
 MINIO_SECRET_KEY = config('MINIO_SECRET_KEY', default='minioadmin123')
 MINIO_BUCKET_NAME = config('MINIO_BUCKET_NAME', default='antrakt-images')
 
-# Проверяем доступность MinIO
-minio_host, minio_port = MINIO_ENDPOINT.split(':')
-minio_available = is_service_available(minio_host, minio_port)
-
-if minio_available:
-    print(f"✓ MinIO доступен: {MINIO_ENDPOINT}")
-    USE_MINIO = True
-else:
-    print(f"⚠ MinIO недоступен: {MINIO_ENDPOINT}")
-    print("  Будет использоваться локальное хранение файлов")
-    USE_MINIO = False
+# Используем MinIO
+USE_MINIO = True
+print(f"✓ MinIO настроен: {MINIO_ENDPOINT}")
 
 # Development settings
 if os.name == 'nt':  # Windows development

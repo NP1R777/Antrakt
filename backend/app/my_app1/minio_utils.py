@@ -115,12 +115,12 @@ def get_minio_client():
     global _minio_client
     if _minio_client is None:
         from django.conf import settings
-        # Проверяем, доступен ли MinIO
+        # Используем MinIO если включен в настройках
         if getattr(settings, 'USE_MINIO', False):
             try:
                 _minio_client = MinioClient()
             except Exception as e:
-                print(f"Не удалось инициализировать MinIO клиент: {e}")
+                print(f"Ошибка инициализации MinIO клиента: {e}")
                 _minio_client = False  # Помечаем как недоступный
         else:
             _minio_client = False  # MinIO отключен
@@ -136,7 +136,7 @@ def upload_image_to_minio(image_file, folder="images"):
         folder: Папка для сохранения
         
     Returns:
-        str: URL загруженного изображения или None если MinIO недоступен
+        str: URL загруженного изображения или None если MinIO не настроен
     """
     client = get_minio_client()
     if client:
@@ -147,7 +147,7 @@ def upload_image_to_minio(image_file, folder="images"):
             print("Переключение на локальное хранение")
             return None
     else:
-        print("MinIO недоступен, используется локальное хранение")
+        print("MinIO не настроен, используется локальное хранение")
         return None
 
 
@@ -162,4 +162,4 @@ def delete_image_from_minio(image_url):
     if client:
         client.delete_file(image_url)
     else:
-        print("MinIO недоступен, удаление из локального хранения не требуется")
+        print("MinIO не настроен, удаление из локального хранения не требуется")

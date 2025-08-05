@@ -644,7 +644,7 @@ class ImageUploadView(APIView):
                 return Response({
                     'success': True,
                     'image_url': local_url,
-                    'message': 'Изображение сохранено локально (MinIO недоступен)',
+                    'message': 'Изображение сохранено локально',
                     'storage_type': 'local'
                 }, status=status.HTTP_201_CREATED)
             
