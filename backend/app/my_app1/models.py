@@ -1,7 +1,23 @@
 from django.db import models
-from django.contrib.postgres import fields
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from .mixins import ImageUploadMixin
+from django.conf import settings
+
+# Условный импорт PostgreSQL полей
+try:
+    from django.contrib.postgres import fields as postgres_fields
+    # Проверяем, используется ли PostgreSQL
+    if 'postgresql' in settings.DATABASES['default']['ENGINE']:
+        ArrayField = postgres_fields.ArrayField
+        USE_POSTGRES_FIELDS = True
+    else:
+        # Для SQLite используем JSONField как fallback
+        ArrayField = models.JSONField
+        USE_POSTGRES_FIELDS = False
+except ImportError:
+    # Fallback на JSONField если PostgreSQL недоступен
+    ArrayField = models.JSONField
+    USE_POSTGRES_FIELDS = False
 
 
 class CustomUserManager(BaseUserManager):
@@ -62,12 +78,12 @@ class Perfomances(ImageUploadMixin, models.Model): # Спектакли
     age_limit = models.CharField(max_length=5, null=False)
     duration = models.TimeField(null=True) # Длительность
     premiere_date = models.DateField(null=True) # Дата премьеры
-    production_team = fields.ArrayField(
+    production_team = ArrayField(
         models.CharField(max_length=70),
         blank=True,
         default=list) # Постановочная команда
     
-    the_cast = fields.ArrayField(
+    the_cast = ArrayField(
         models.CharField(max_length=50),
         blank=True,
         default=list
@@ -78,7 +94,7 @@ class Perfomances(ImageUploadMixin, models.Model): # Спектакли
                                                 # если True -> то отображать в разделе "Спектакли".
     image_url = models.URLField(null=False, blank=True)
     performances_image = models.URLField(null=True, blank=True) # Изображение для раздела "Спектакли"
-    images_list = fields.ArrayField(
+    images_list = ArrayField(
         models.URLField(null=True),
         blank=True,
         default=list
@@ -96,31 +112,31 @@ class Actors(ImageUploadMixin, models.Model):
     name = models.CharField(max_length=50, null=False)
     place_of_work = models.CharField(max_length=200, blank=True) # Место работы
     time_in_theatre = models.CharField(max_length=10, blank=True) # В студии
-    favorite_writer = fields.ArrayField(
+    favorite_writer = ArrayField(
         models.CharField(max_length=250),
         blank=True,
         default=list
     )
 
-    favorite_character = fields.ArrayField(
+    favorite_character = ArrayField(
       models.CharField(max_length=250),
       blank=True,
       default=list  
     ) # Любимый персонаж
 
-    favorite_painter = fields.ArrayField(
+    favorite_painter = ArrayField(
         models.CharField(max_length=350),
         blank=True,
         default=list
     ) # Любимый художник
 
-    favorite_film = fields.ArrayField(
+    favorite_film = ArrayField(
         models.CharField(max_length=250),
         blank=True,
         default=list
     ) # Любимый фильм
 
-    favorite_piece = fields.ArrayField(
+    favorite_piece = ArrayField(
         models.CharField(max_length=50),
         blank=True,
         default=list
@@ -128,25 +144,25 @@ class Actors(ImageUploadMixin, models.Model):
 
     favorite_quote = models.CharField(max_length=1000, null=False) # Любимая цитата о театре
     author_quote = models.CharField(max_length=50, null=False) # Автор цитаты
-    favorite_song = fields.ArrayField(
+    favorite_song = ArrayField(
         models.CharField(max_length=250),
         blank=True,
         default=list
     ) # Любимая песня
 
-    author_song = fields.ArrayField(
+    author_song = ArrayField(
         models.CharField(max_length=250),
         blank=True,
         default=list
     ) # Автор песни
 
-    perfomances = fields.ArrayField(
+    perfomances = ArrayField(
         models.CharField(max_length=100),
         blank=True,
         default=list
     ) # Спектакли
 
-    role_in_perfomances = fields.ArrayField(
+    role_in_perfomances = ArrayField(
         models.CharField(max_length=50),
         blank=True,
         default=list
@@ -164,19 +180,19 @@ class DirectorsTheatre(ImageUploadMixin, models.Model): # Режиссёры т�
     deleted_at = models.DateTimeField(null=True)
     name = models.CharField(max_length=50, null=False)
     description = models.CharField(max_length=2000, null=False)
-    perfomances = fields.ArrayField(
+    perfomances = ArrayField(
         models.CharField(max_length=200),
         blank=True,
         default=list
     ) # Поставленные спектакли
 
-    years = fields.ArrayField(
+    years = ArrayField(
         models.IntegerField(),
         blank=True,
         default=list
     ) # Года, в которые ставились спектакли (на фронте надо приписывать слово "год")
 
-    team_name = fields.ArrayField(
+    team_name = ArrayField(
         models.CharField(max_length=300),
         blank=True,
         default=list
@@ -199,7 +215,7 @@ class News(ImageUploadMixin, models.Model):
     is_published = models.BooleanField(default=False, blank=True) # Опубликована или нет новость
     image_url = models.URLField(null=False, blank=True)
     date_publish = models.DateField(null=True, blank=True) # Дата публикации новости
-    images_list = fields.ArrayField(
+    images_list = ArrayField(
         models.URLField(null=True),
         blank=True,
         default=list
@@ -221,7 +237,7 @@ class Archive(ImageUploadMixin, models.Model): # Архив
                                                 # если True -> то отображать в разделе "Афиша".
     image_url = models.URLField(null=False, blank=True)
     archive_image = models.URLField(null=True, blank=True) # Изображение со спектакля для раздела "Архив".
-    images_list = fields.ArrayField(
+    images_list = ArrayField(
         models.URLField(null=True),
         blank=True,
         default=list
