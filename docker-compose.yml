@@ -3,23 +3,21 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15
-    container_name: ${COMPOSE_PROJECT_NAME:-antrakt}_postgres
+    container_name: postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: antrakt
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
     volumes:
       - postgres_data:/var/lib/postgresql/data
       # Монтируем дамп базы данных для автоматической инициализации
-      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
-      # Дополнительные скрипты инициализации (если есть)
-      - ./database/:/docker-entrypoint-initdb.d/:ro
+      - .database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
     ports:
-      - "${POSTGRES_EXTERNAL_PORT:-5432}:5432"
+      - "5432:5432"
     networks:
       - antrakt_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d antrakt"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -28,14 +26,13 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: ${COMPOSE_PROJECT_NAME:-antrakt}_minio
+    container_name: minio
     ports:
-      - "${MINIO_API_PORT:-9000}:9000"
-      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+      - "9000:9000"
+      - "9001:9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-      MINIO_BROWSER_REDIRECT_URL: ${MINIO_BROWSER_REDIRECT_URL}
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
@@ -49,79 +46,13 @@ services:
       start_period: 20s
     restart: unless-stopped
 
-  backend:
-    build:
-      context: backend
-      dockerfile: Dockerfile
-    container_name: ${COMPOSE_PROJECT_NAME:-antrakt}_backend
-    ports:
-      - "${BACKEND_PORT:-8000}:8000"
-    environment:
-      DEBUG: ${DEBUG:-False}
-      SECRET_KEY: ${SECRET_KEY}
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
-      DATABASE_HOST: ${POSTGRES_HOST}
-      DATABASE_NAME: ${POSTGRES_DB}
-      DATABASE_USER: ${POSTGRES_USER}
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
-      DATABASE_PORT: ${POSTGRES_PORT}
-      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
-      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME}
-    volumes:
-      - backend_media:/app/media
-      - backend_static:/app/static
-    # Для разработки - можно закомментировать в продакшене
-    # - ./backend:/app
-    networks:
-      - antrakt_network
-    depends_on:
-      postgres:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
-      interval: 15s
-      timeout: 15s
-      retries: 15
-      start_period: 60s
-    restart: unless-stopped
-
-  frontend:
-    build:
-      context: frontend/antrakt
-      dockerfile: Dockerfile
-    container_name: ${COMPOSE_PROJECT_NAME:-antrakt}_frontend
-    ports:
-      - "${FRONTEND_PORT:-3000}:80"
-    environment:
-      REACT_APP_API_URL: ${REACT_APP_API_URL}
-    networks:
-      - antrakt_network
-    depends_on:
-      backend:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    restart: unless-stopped
-
 volumes:
   postgres_data:
-    name: ${COMPOSE_PROJECT_NAME:-antrakt}_postgres_data
+    name: postgres_data
   minio_data:
-    name: ${COMPOSE_PROJECT_NAME:-antrakt}_minio_data
-  backend_media:
-    name: ${COMPOSE_PROJECT_NAME:-antrakt}_backend_media
-  backend_static:
-    name: ${COMPOSE_PROJECT_NAME:-antrakt}_backend_static
+    name: minio_data
 
 networks:
   antrakt_network:
-    name: ${COMPOSE_PROJECT_NAME:-antrakt}_network
+    name: antrakt_network
     driver: bridge
