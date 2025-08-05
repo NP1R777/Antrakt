@@ -616,11 +616,37 @@ class ImageUploadView(APIView):
             # Загружаем изображение в MinIO
             image_url = upload_image_to_minio(image_file, folder)
             
-            return Response({
-                'success': True,
-                'image_url': image_url,
-                'message': 'Изображение успешно загружено'
-            }, status=status.HTTP_201_CREATED)
+            if image_url:
+                return Response({
+                    'success': True,
+                    'image_url': image_url,
+                    'message': 'Изображение успешно загружено в MinIO'
+                }, status=status.HTTP_201_CREATED)
+            else:
+                # Fallback на локальное хранение
+                from django.conf import settings
+                from django.core.files.storage import default_storage
+                import os
+                import uuid
+                from datetime import datetime
+                
+                # Генерируем уникальное имя файла
+                file_extension = os.path.splitext(image_file.name)[1]
+                unique_filename = f"{uuid.uuid4()}{file_extension}"
+                
+                # Формируем путь к файлу
+                file_path = f"{folder}/{datetime.now().strftime('%Y/%m/%d')}/{unique_filename}"
+                
+                # Сохраняем файл локально
+                saved_path = default_storage.save(file_path, image_file)
+                local_url = f"{settings.MEDIA_URL}{saved_path}"
+                
+                return Response({
+                    'success': True,
+                    'image_url': local_url,
+                    'message': 'Изображение сохранено локально (MinIO недоступен)',
+                    'storage_type': 'local'
+                }, status=status.HTTP_201_CREATED)
             
         except Exception as e:
             return Response(

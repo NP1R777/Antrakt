@@ -140,7 +140,12 @@ def upload_image_to_minio(image_file, folder="images"):
     """
     client = get_minio_client()
     if client:
-        return client.upload_file(image_file, folder)
+        try:
+            return client.upload_file(image_file, folder)
+        except Exception as e:
+            print(f"Ошибка при загрузке в MinIO: {e}")
+            print("Переключение на локальное хранение")
+            return None
     else:
         print("MinIO недоступен, используется локальное хранение")
         return None
