@@ -51,7 +51,7 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: backend
       dockerfile: Dockerfile
     container_name: ${COMPOSE_PROJECT_NAME:-antrakt}_backend
     ports:
@@ -72,8 +72,8 @@ services:
     volumes:
       - backend_media:/app/media
       - backend_static:/app/static
-      # Для разработки - можно закомментировать в продакшене
-      # - ./backend:/app
+    # Для разработки - можно закомментировать в продакшене
+    # - ./backend:/app
     networks:
       - antrakt_network
     depends_on:
@@ -91,7 +91,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend/antrakt
+      context: frontend/antrakt
       dockerfile: Dockerfile
     container_name: ${COMPOSE_PROJECT_NAME:-antrakt}_frontend
     ports:
