@@ -3,14 +3,10 @@ Write-Host "========================================" -ForegroundColor Green
 Write-Host "Театральная студия 'Антракт' - Запуск" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
 
-# Проверка наличия Docker
-try {
-    docker --version | Out-Null
-    Write-Host "✓ Docker найден" -ForegroundColor Green
-} catch {
-    Write-Host "✗ Docker не найден. Установите Docker Desktop для Windows" -ForegroundColor Red
-    exit 1
-}
+# Проверка наличия PostgreSQL и MinIO
+Write-Host "Убедитесь, что PostgreSQL и MinIO запущены локально:" -ForegroundColor Yellow
+Write-Host "• PostgreSQL на порту 5432" -ForegroundColor White
+Write-Host "• MinIO на портах 9000 и 9001" -ForegroundColor White
 
 # Проверка наличия Python
 try {
@@ -21,30 +17,10 @@ try {
     exit 1
 }
 
-Write-Host "`n1. Запуск PostgreSQL и MinIO через Docker..." -ForegroundColor Yellow
-docker-compose up -d postgres minio
+Write-Host "`n1. Проверка подключения к сервисам..." -ForegroundColor Yellow
+Write-Host "Примечание: PostgreSQL и MinIO должны быть запущены отдельно" -ForegroundColor Gray
 
-Write-Host "`n2. Ожидание запуска сервисов..." -ForegroundColor Yellow
-Start-Sleep -Seconds 15
-
-# Проверка статуса сервисов
-Write-Host "`n3. Проверка статуса сервисов..." -ForegroundColor Yellow
-$postgresStatus = docker-compose ps postgres
-$minioStatus = docker-compose ps minio
-
-if ($postgresStatus -match "Up") {
-    Write-Host "✓ PostgreSQL запущен" -ForegroundColor Green
-} else {
-    Write-Host "✗ PostgreSQL не запущен" -ForegroundColor Red
-}
-
-if ($minioStatus -match "Up") {
-    Write-Host "✓ MinIO запущен" -ForegroundColor Green
-} else {
-    Write-Host "✗ MinIO не запущен" -ForegroundColor Red
-}
-
-Write-Host "`n4. Настройка виртуального окружения..." -ForegroundColor Yellow
+Write-Host "`n2. Настройка виртуального окружения..." -ForegroundColor Yellow
 # Set-Location backend
 
 # if (-not (Test-Path "venv\Scripts\Activate.ps1")) {
@@ -58,14 +34,14 @@ Write-Host "Активация виртуального окружения..." -
 # Write-Host "`n5. Установка зависимостей..." -ForegroundColor Yellow
 # pip install -r requirements.txt
 
-Write-Host "`n6. Применение миграций..." -ForegroundColor Yellow
+Write-Host "`n3. Применение миграций..." -ForegroundColor Yellow
 Set-Location backend
 python app\manage.py migrate
 
-Write-Host "`n7. Инициализация MinIO..." -ForegroundColor Yellow
+Write-Host "`n4. Инициализация MinIO..." -ForegroundColor Yellow
 python init_minio.py
 
-Write-Host "`n8. Запуск Django сервера..." -ForegroundColor Yellow
+Write-Host "`n5. Запуск Django сервера..." -ForegroundColor Yellow
 Write-Host "`nДоступные сервисы:" -ForegroundColor Cyan
 Write-Host "• Django API: http://127.0.0.1:8000" -ForegroundColor White
 Write-Host "• MinIO Console: http://127.0.0.1:9001" -ForegroundColor White

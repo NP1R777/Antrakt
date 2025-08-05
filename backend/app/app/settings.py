@@ -181,13 +181,12 @@ MINIO_ACCESS_KEY = config('MINIO_ACCESS_KEY', default='minioadmin')
 MINIO_SECRET_KEY = config('MINIO_SECRET_KEY', default='minioadmin123')
 MINIO_BUCKET_NAME = config('MINIO_BUCKET_NAME', default='antrakt-images')
 
-# Docker/Production-specific settings
-if config('DOCKER_ENV', default=False, cast=bool):
-    # В Docker используем service names
-    DATABASES['default']['HOST'] = config('DATABASE_HOST', default='postgres')
-    MINIO_ENDPOINT = config('MINIO_ENDPOINT', default='minio:9000')
-elif os.name == 'nt':  # Windows development
+# Development settings
+if os.name == 'nt':  # Windows development
     # Для Windows разработки используем localhost
+    DATABASES['default']['HOST'] = config('DATABASE_HOST', default='localhost')
+    MINIO_ENDPOINT = config('MINIO_ENDPOINT', default='localhost:9000')
+else:  # Linux/Mac development
     DATABASES['default']['HOST'] = config('DATABASE_HOST', default='localhost')
     MINIO_ENDPOINT = config('MINIO_ENDPOINT', default='localhost:9000')
 
