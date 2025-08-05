@@ -133,16 +133,6 @@ $RECYCLE.BIN/
 *.swo
 *~
 
-# Docker
-.dockerignore
-docker-compose.override.yml
-
-# Docker volumes and data
-minio_data/
-postgres_data/
-backend_media/
-backend_static/
-
 # Database dumps (except example)
 database/init.sql
 !database/init.sql.example

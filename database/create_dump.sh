@@ -20,7 +20,7 @@ pg_dump -h $HOST -p $PORT -U $USERNAME -d $DATABASE --no-owner --no-privileges -
 
 if [ $? -eq 0 ]; then
     echo "Дамп успешно создан: init.sql"
-    echo "Файл готов для использования в Docker контейнере"
+    echo "Файл готов для использования в проекте"
 else
     echo "Ошибка при создании дампа"
     exit 1

@@ -4,12 +4,12 @@ echo Театральная студия "Антракт" - Запуск
 echo ========================================
 
 echo.
-echo 1. Запуск PostgreSQL и MinIO через Docker...
-docker-compose up -d postgres minio
+echo 1. Убедитесь, что PostgreSQL и MinIO запущены локально...
+echo PostgreSQL должен быть доступен на порту 5432
+echo MinIO должен быть доступен на портах 9000 и 9001
 
 echo.
-echo 2. Ожидание запуска сервисов...
-timeout /t 10 /nobreak > nul
+echo 2. Проверка подключения к сервисам...
 
 echo.
 echo 3. Активация виртуального окружения...
