@@ -12,7 +12,7 @@ import mimetypes
 class MinioClient:
     def __init__(self):
         self.client = Minio(
-            settings.MINIO_ENDPOINT,
+            getattr(settings, 'MINIO_INTERNAL_ENDPOINT', settings.MINIO_ENDPOINT),
             access_key=settings.MINIO_ACCESS_KEY,
             secret_key=settings.MINIO_SECRET_KEY,
             secure=False  # Для локальной разработки
@@ -26,8 +26,30 @@ class MinioClient:
             if not self.client.bucket_exists(self.bucket_name):
                 self.client.make_bucket(self.bucket_name)
                 print(f"Bucket '{self.bucket_name}' создан успешно")
+            # Гарантируем политику публичного чтения даже если бакет уже существует
+            self._ensure_public_read_policy()
         except S3Error as e:
             print(f"Ошибка при создании bucket: {e}")
+
+    def _ensure_public_read_policy(self):
+        try:
+            policy = {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Principal": {"AWS": ["*"]},
+                        "Action": ["s3:GetObject"],
+                        "Resource": [f"arn:aws:s3:::{self.bucket_name}/*"],
+                    }
+                ],
+            }
+            import json
+            self.client.set_bucket_policy(self.bucket_name, json.dumps(policy))
+            print(f"Политика публичного чтения установлена для '{self.bucket_name}'")
+        except Exception as e:
+            # Несущественно для загрузки
+            print(f"Не удалось установить политику публичного чтения: {e}")
 
     def upload_file(self, file, folder="images"):
         """
@@ -50,18 +72,48 @@ class MinioClient:
             
             # Определяем content type
             content_type = mimetypes.guess_type(file.name)[0] if hasattr(file, 'name') else 'image/jpeg'
+
+            data = file
+            length = None
+            # Попробуем получить длину
+            if hasattr(file, 'size'):
+                length = file.size
+            elif hasattr(file, 'seek') and hasattr(file, 'tell'):
+                try:
+                    current = file.tell()
+                    file.seek(0, os.SEEK_END)
+                    length = file.tell()
+                    file.seek(current, os.SEEK_SET)
+                except Exception:
+                    length = None
+            # Обнулим позицию потока, если возможно
+            if hasattr(file, 'seek'):
+                try:
+                    file.seek(0)
+                except Exception:
+                    pass
+
+            if length is not None and length >= 0:
+                self.client.put_object(
+                    self.bucket_name,
+                    object_name,
+                    data,
+                    length,
+                    content_type=content_type,
+                )
+            else:
+                # неизвестная длина: используем multipart с разумным размером части
+                self.client.put_object(
+                    self.bucket_name,
+                    object_name,
+                    data,
+                    -1,
+                    part_size=10 * 1024 * 1024,
+                    content_type=content_type,
+                )
             
-            # Загружаем файл
-            self.client.put_object(
-                self.bucket_name,
-                object_name,
-                file,
-                file.size if hasattr(file, 'size') else -1,
-                content_type=content_type
-            )
-            
-            # Возвращаем URL для доступа к файлу
-            return f"http://{settings.MINIO_ENDPOINT}/{self.bucket_name}/{object_name}"
+            public_endpoint = getattr(settings, 'MINIO_PUBLIC_ENDPOINT', settings.MINIO_ENDPOINT)
+            return f"http://{public_endpoint}/{self.bucket_name}/{object_name}"
             
         except S3Error as e:
             print(f"Ошибка при загрузке файла в MinIO: {e}")
@@ -75,9 +127,9 @@ class MinioClient:
             file_url: URL файла для удаления
         """
         try:
-            # Извлекаем object_name из URL
-            if file_url.startswith(f"http://{settings.MINIO_ENDPOINT}/{self.bucket_name}/"):
-                object_name = file_url.replace(f"http://{settings.MINIO_ENDPOINT}/{self.bucket_name}/", "")
+            public_endpoint = getattr(settings, 'MINIO_PUBLIC_ENDPOINT', settings.MINIO_ENDPOINT)
+            if file_url.startswith(f"http://{public_endpoint}/{self.bucket_name}/"):
+                object_name = file_url.replace(f"http://{public_endpoint}/{self.bucket_name}/", "")
                 self.client.remove_object(self.bucket_name, object_name)
                 print(f"Файл {object_name} удален успешно")
             else:
