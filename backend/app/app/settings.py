@@ -34,7 +34,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'my_app1',
+    'my_app1.apps.MyApp1Config',
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -197,6 +197,34 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # File upload settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+
+# S3/MinIO storage configuration
+# These defaults match docker-compose (user/pass) and local MinIO at http://localhost:9000
+USE_MINIO_STORAGE = config('USE_MINIO_STORAGE', default=True, cast=bool)
+if USE_MINIO_STORAGE:
+    AWS_ACCESS_KEY_ID = config('MINIO_ACCESS_KEY', default='minioadmin')
+    AWS_SECRET_ACCESS_KEY = config('MINIO_SECRET_KEY', default='minioadmin123')
+    AWS_STORAGE_BUCKET_NAME = config('MINIO_BUCKET_NAME', default='antrakt-media')
+    AWS_S3_REGION_NAME = config('MINIO_REGION', default='us-east-1')
+    AWS_S3_ENDPOINT_URL = config('MINIO_ENDPOINT', default='http://localhost:9000')
+    AWS_S3_SIGNATURE_VERSION = 's3v4'
+    AWS_S3_ADDRESSING_STYLE = 'path'
+    AWS_QUERYSTRING_AUTH = False  # make public, signed URLs not required
+    AWS_DEFAULT_ACL = 'public-read'
+    AWS_S3_URL_PROTOCOL = config('MINIO_URL_PROTOCOL', default='http:')
+
+    # Build custom domain like "localhost:9000/<bucket>"
+    _endpoint_no_scheme = AWS_S3_ENDPOINT_URL.replace('https://', '').replace('http://', '')
+    AWS_S3_CUSTOM_DOMAIN = config(
+        'MINIO_CUSTOM_DOMAIN',
+        default=f"{_endpoint_no_scheme}/{AWS_STORAGE_BUCKET_NAME}"
+    )
+
+    # Use S3-backed storage for Django file storage
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+    # MEDIA_URL should point to MinIO public HTTP endpoint
+    MEDIA_URL = f"{AWS_S3_URL_PROTOCOL}//{AWS_S3_CUSTOM_DOMAIN}/"
 
 # Настройки для работы с разными типами БД
 print("✓ Используется PostgreSQL с полной функциональностью")
