@@ -601,7 +601,7 @@ class ImageUploadView(APIView):
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
             region_name=settings.AWS_S3_REGION_NAME,
-            config=BotoConfig(signature_version='s3v4')
+            config=BotoConfig(signature_version='s3v4', proxies={})
         )
         bucket = settings.AWS_STORAGE_BUCKET_NAME
         extension = image.name.split('.')[-1].lower()
@@ -646,7 +646,7 @@ class ImageDeleteView(APIView):
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
             region_name=settings.AWS_S3_REGION_NAME,
-            config=BotoConfig(signature_version='s3v4')
+            config=BotoConfig(signature_version='s3v4', proxies={})
         )
 
         try:
