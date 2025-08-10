@@ -11,14 +11,46 @@ import mimetypes
 
 class MinioClient:
     def __init__(self):
-        self.client = Minio(
-            getattr(settings, 'MINIO_INTERNAL_ENDPOINT', settings.MINIO_ENDPOINT),
-            access_key=settings.MINIO_ACCESS_KEY,
-            secret_key=settings.MINIO_SECRET_KEY,
-            secure=False  # Для локальной разработки
-        )
+        # Собираем кандидаты эндпоинтов: из настроек и наиболее частые локальные варианты
+        access_key = settings.MINIO_ACCESS_KEY
+        secret_key = settings.MINIO_SECRET_KEY
         self.bucket_name = settings.MINIO_BUCKET_NAME
-        self._ensure_bucket_exists()
+
+        candidate_endpoints = []
+        internal_ep = getattr(settings, 'MINIO_INTERNAL_ENDPOINT', None)
+        if internal_ep:
+            candidate_endpoints.append(internal_ep)
+        # Базовый из настроек
+        candidate_endpoints.append(getattr(settings, 'MINIO_ENDPOINT', 'localhost:9000'))
+        # Частые варианты
+        for ep in ['minio:9000', 'localhost:9000', '127.0.0.1:9000']:
+            if ep not in candidate_endpoints:
+                candidate_endpoints.append(ep)
+
+        last_error = None
+        for endpoint in candidate_endpoints:
+            try:
+                candidate_client = Minio(
+                    endpoint,
+                    access_key=access_key,
+                    secret_key=secret_key,
+                    secure=False  # Для локальной разработки
+                )
+                # Проверяем, что соединение рабочее
+                candidate_client.list_buckets()
+                self.client = candidate_client
+                print(f"✓ MinIO подключение установлено через '{endpoint}'")
+                # Убеждаемся, что бакет существует и настроен
+                self._ensure_bucket_exists()
+                return
+            except Exception as e:
+                last_error = e
+                print(f"⚠ Не удалось подключиться к MinIO по '{endpoint}': {e}")
+                continue
+
+        # Если ни один эндпоинт не сработал — пробрасываем последнюю ошибку
+        if last_error:
+            raise last_error
 
     def _ensure_bucket_exists(self):
         """Проверяет существование bucket и создает его при необходимости"""
