@@ -13,8 +13,6 @@ services:
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
-    networks:
-      - antrakt_network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
@@ -26,8 +24,3 @@ services:
 volumes:
   minio_data:
     name: minio_data
-
-networks:
-  antrakt_network:
-    name: antrakt_network
-    driver: bridge
