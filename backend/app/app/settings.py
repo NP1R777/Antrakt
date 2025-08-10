@@ -212,3 +212,7 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
 
 # Настройки для работы с разными типами БД
 print("✓ Используется PostgreSQL с полной функциональностью")
+
+# MinIO endpoints for internal SDK access and public URL generation
+MINIO_INTERNAL_ENDPOINT = config('MINIO_INTERNAL_ENDPOINT', default=MINIO_ENDPOINT)
+MINIO_PUBLIC_ENDPOINT = config('MINIO_PUBLIC_ENDPOINT', default='localhost:9000')
