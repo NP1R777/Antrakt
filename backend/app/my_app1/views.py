@@ -13,8 +13,16 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .serializers import (UserSerializer, PerfomanceSerializer, ActorsSerializer,
                           DirectorsSerializer, NewsSerializer, ArchiveSerializer,
                           AchievementsSerializer, CustomTokenObtainPairSerializer)
- 
- 
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from rest_framework.parsers import MultiPartParser, FormParser
+import boto3
+from botocore.client import Config as BotoConfig
+from urllib.parse import urlparse
+import uuid
+
+
 class UserList(APIView):
     model_class = User
     serializer_class = UserSerializer
@@ -574,3 +582,75 @@ class AfishaList(APIView):
         all_perf_afisha = performances_list + archives_list
 
         return Response(all_perf_afisha)
+
+
+class ImageUploadView(APIView):
+    parser_classes = (MultiPartParser, FormParser)
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        if 'image' not in request.FILES:
+            return Response({"success": False, "message": "Не найден файл 'image'"}, status=400)
+        image = request.FILES['image']
+        folder = request.data.get('folder', 'images')
+
+        # Build S3 client
+        s3_client = boto3.client(
+            's3',
+            endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_S3_REGION_NAME,
+            config=BotoConfig(signature_version='s3v4')
+        )
+        bucket = settings.AWS_STORAGE_BUCKET_NAME
+        extension = image.name.split('.')[-1].lower()
+        object_key = f"{folder}/{uuid.uuid4().hex}.{extension}"
+
+        s3_client.upload_fileobj(
+            image,
+            bucket,
+            object_key,
+            ExtraArgs={
+                'ContentType': image.content_type or 'application/octet-stream',
+                'ACL': 'public-read'
+            }
+        )
+
+        # Build public URL
+        public_url = f"{settings.AWS_S3_URL_PROTOCOL}//{settings.AWS_S3_CUSTOM_DOMAIN}/{object_key}"
+        return Response({"success": True, "image_url": public_url, "message": "Изображение загружено"})
+
+
+class ImageDeleteView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def delete(self, request, *args, **kwargs):
+        image_url = request.query_params.get('image_url')
+        if not image_url:
+            return Response({"success": False, "message": "Параметр image_url обязателен"}, status=400)
+        parsed = urlparse(image_url)
+        # Expected format: http(s)://<endpoint>/<bucket>/<key>
+        path = parsed.path.lstrip('/')
+        # If custom domain used as <endpoint>/<bucket>, first segment is bucket
+        bucket = settings.AWS_STORAGE_BUCKET_NAME
+        if path.startswith(bucket + '/'):
+            object_key = path[len(bucket) + 1:]
+        else:
+            # fallback: whole path is key
+            object_key = path
+
+        s3_client = boto3.client(
+            's3',
+            endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_S3_REGION_NAME,
+            config=BotoConfig(signature_version='s3v4')
+        )
+
+        try:
+            s3_client.delete_object(Bucket=bucket, Key=object_key)
+            return Response({"success": True, "message": "Изображение удалено"})
+        except Exception:
+            return Response({"success": False, "message": "Не удалось удалить изображение"}, status=400)
