@@ -224,6 +224,19 @@ if USE_MINIO_STORAGE:
         default=f"{_endpoint_no_scheme}/{AWS_STORAGE_BUCKET_NAME}"
     )
 
+    # Ensure local MinIO host is excluded from proxies to avoid ProxyConnectionError
+    try:
+        from urllib.parse import urlparse as _urlparse
+        _parsed = _urlparse(AWS_S3_ENDPOINT_URL)
+        _hostport = _parsed.netloc
+        _existing_no_proxy = os.environ.get('NO_PROXY', os.environ.get('no_proxy', ''))
+        if _hostport and _hostport not in _existing_no_proxy:
+            _combined = (_existing_no_proxy + ',' if _existing_no_proxy else '') + _hostport
+            os.environ['NO_PROXY'] = _combined
+            os.environ['no_proxy'] = _combined
+    except Exception:
+        pass
+
     # Use S3-backed storage for Django file storage
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
