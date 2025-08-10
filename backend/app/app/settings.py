@@ -206,7 +206,11 @@ if USE_MINIO_STORAGE:
     AWS_SECRET_ACCESS_KEY = config('MINIO_SECRET_KEY', default='minioadmin123')
     AWS_STORAGE_BUCKET_NAME = config('MINIO_BUCKET_NAME', default='antrakt-media')
     AWS_S3_REGION_NAME = config('MINIO_REGION', default='us-east-1')
-    AWS_S3_ENDPOINT_URL = config('MINIO_ENDPOINT', default='http://localhost:9000')
+    # Ensure endpoint has scheme; boto3 requires a full URL like http://minio:9000
+    RAW_MINIO_ENDPOINT = config('MINIO_ENDPOINT', default='http://localhost:9000')
+    if not (str(RAW_MINIO_ENDPOINT).startswith('http://') or str(RAW_MINIO_ENDPOINT).startswith('https://')):
+        RAW_MINIO_ENDPOINT = f"http://{RAW_MINIO_ENDPOINT}"
+    AWS_S3_ENDPOINT_URL = RAW_MINIO_ENDPOINT
     AWS_S3_SIGNATURE_VERSION = 's3v4'
     AWS_S3_ADDRESSING_STYLE = 'path'
     AWS_QUERYSTRING_AUTH = False  # make public, signed URLs not required
