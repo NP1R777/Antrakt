@@ -183,24 +183,12 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# MinIO Configuration
-MINIO_ENDPOINT = config('MINIO_ENDPOINT', default='localhost:9000')
-MINIO_ACCESS_KEY = config('MINIO_ACCESS_KEY', default='minioadmin')
-MINIO_SECRET_KEY = config('MINIO_SECRET_KEY', default='minioadmin123')
-MINIO_BUCKET_NAME = config('MINIO_BUCKET_NAME', default='antrakt-images')
-
-# Включаем MinIO без предварительной проверки доступности
-USE_MINIO = True
-print(f"✓ Настроена конфигурация MinIO: {MINIO_ENDPOINT}")
-
 # Development settings
 if os.name == 'nt':  # Windows development
     # Для Windows разработки используем localhost
     DATABASES['default']['HOST'] = config('DATABASE_HOST', default='localhost')
-    MINIO_ENDPOINT = config('MINIO_ENDPOINT', default='localhost:9000')
 else:  # Linux/Mac development
     DATABASES['default']['HOST'] = config('DATABASE_HOST', default='localhost')
-    MINIO_ENDPOINT = config('MINIO_ENDPOINT', default='localhost:9000')
 
 # Media files configuration
 MEDIA_URL = '/media/'
@@ -212,7 +200,3 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
 
 # Настройки для работы с разными типами БД
 print("✓ Используется PostgreSQL с полной функциональностью")
-
-# MinIO endpoints for internal SDK access and public URL generation
-MINIO_INTERNAL_ENDPOINT = config('MINIO_INTERNAL_ENDPOINT', default=MINIO_ENDPOINT)
-MINIO_PUBLIC_ENDPOINT = config('MINIO_PUBLIC_ENDPOINT', default='localhost:9000')

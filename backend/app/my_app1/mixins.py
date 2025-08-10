@@ -1,48 +1,20 @@
 from django.db import models
 from django.core.files.uploadedfile import UploadedFile
-from .minio_utils import upload_image_to_minio, delete_image_from_minio
 
 
 class ImageUploadMixin:
     """
-    Миксин для автоматической загрузки изображений в MinIO
+    Заглушка-миксин: логика загрузки/удаления изображений отключена
     """
     
     def save(self, *args, **kwargs):
-        # Проверяем, есть ли новое изображение для загрузки
-        if hasattr(self, '_temp_image_file') and self._temp_image_file:
-            try:
-                # Загружаем изображение в MinIO
-                image_url = upload_image_to_minio(self._temp_image_file, self._get_image_folder())
-                
-                # Удаляем старое изображение, если оно существует
-                if hasattr(self, 'image_url') and self.image_url:
-                    try:
-                        delete_image_from_minio(self.image_url)
-                    except Exception as e:
-                        print(f"Ошибка при удалении старого изображения: {e}")
-                
-                # Сохраняем новый URL
-                self.image_url = image_url
-                
-                # Очищаем временный файл
-                self._temp_image_file = None
-                
-            except Exception as e:
-                print(f"Ошибка при загрузке изображения: {e}")
-                # Если загрузка не удалась, не сохраняем URL
-                pass
-        
+        # Игнорируем временные файлы изображений
+        if hasattr(self, '_temp_image_file'):
+            self._temp_image_file = None
         super().save(*args, **kwargs)
     
     def delete(self, *args, **kwargs):
-        # Удаляем изображение из MinIO при удалении объекта
-        if hasattr(self, 'image_url') and self.image_url:
-            try:
-                delete_image_from_minio(self.image_url)
-            except Exception as e:
-                print(f"Ошибка при удалении изображения: {e}")
-        
+        # Ничего не удаляем из внешнего хранилища
         super().delete(*args, **kwargs)
     
     def set_image(self, image_file):
@@ -53,7 +25,8 @@ class ImageUploadMixin:
             image_file: Django UploadedFile
         """
         if isinstance(image_file, UploadedFile):
-            self._temp_image_file = image_file
+            # Отключено: ничего не делаем
+            self._temp_image_file = None
         else:
             raise ValueError("image_file должен быть Django UploadedFile")
     
