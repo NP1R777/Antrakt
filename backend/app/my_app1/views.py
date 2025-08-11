@@ -597,13 +597,12 @@ class ImageUploadView(APIView):
         # Build S3 client
         s3_client = boto3.client(
             's3',
-            endpoint_url=settings.AWS_S3_ENDPOINT_URL,
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            region_name=settings.AWS_S3_REGION_NAME,
+            endpoint_url="http://localhost:9000",
+            aws_access_key_id="minioadmin",
+            aws_secret_access_key="minioadmin123",
             config=BotoConfig(signature_version='s3v4')
         )
-        bucket = settings.AWS_STORAGE_BUCKET_NAME
+        bucket = "antrakt-images"
         extension = image.name.split('.')[-1].lower()
         object_key = f"{folder}/{uuid.uuid4().hex}.{extension}"
 
@@ -618,7 +617,7 @@ class ImageUploadView(APIView):
         )
 
         # Build public URL
-        public_url = f"{settings.AWS_S3_URL_PROTOCOL}//{settings.AWS_S3_CUSTOM_DOMAIN}/{object_key}"
+        public_url = f"http://localhost:9000/{bucket}/{object_key}"
         return Response({"success": True, "image_url": public_url, "message": "Изображение загружено"})
 
 
@@ -633,7 +632,7 @@ class ImageDeleteView(APIView):
         # Expected format: http(s)://<endpoint>/<bucket>/<key>
         path = parsed.path.lstrip('/')
         # If custom domain used as <endpoint>/<bucket>, first segment is bucket
-        bucket = settings.AWS_STORAGE_BUCKET_NAME
+        bucket = "antrakt-images"
         if path.startswith(bucket + '/'):
             object_key = path[len(bucket) + 1:]
         else:
@@ -642,10 +641,9 @@ class ImageDeleteView(APIView):
 
         s3_client = boto3.client(
             's3',
-            endpoint_url=settings.AWS_S3_ENDPOINT_URL,
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            region_name=settings.AWS_S3_REGION_NAME,
+            endpoint_url="http://localhost:9000",
+            aws_access_key_id="minioadmin",
+            aws_secret_access_key="minioadmin123",
             config=BotoConfig(signature_version='s3v4')
         )
 

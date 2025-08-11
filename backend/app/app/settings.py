@@ -204,7 +204,7 @@ USE_MINIO_STORAGE = config('USE_MINIO_STORAGE', default=True, cast=bool)
 if USE_MINIO_STORAGE:
     AWS_ACCESS_KEY_ID = config('MINIO_ACCESS_KEY', default='minioadmin')
     AWS_SECRET_ACCESS_KEY = config('MINIO_SECRET_KEY', default='minioadmin123')
-    AWS_STORAGE_BUCKET_NAME = config('MINIO_BUCKET_NAME', default='antrakt-media')
+    AWS_STORAGE_BUCKET_NAME = config('MINIO_BUCKET_NAME', default='antrakt-images')
     AWS_S3_REGION_NAME = config('MINIO_REGION', default='us-east-1')
     # Ensure endpoint has scheme; boto3 requires a full URL like http://minio:9000
     RAW_MINIO_ENDPOINT = config('MINIO_ENDPOINT', default='http://localhost:9000')

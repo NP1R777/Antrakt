@@ -1,8 +1,8 @@
 import React from "react";
-import { Box, Flex, Heading, Text, VStack, Grid, GridItem, Image, Center } from "@chakra-ui/react";
 import { motion } from "framer-motion";
-import Navigation from "../components/Navigation";
 import Footer from "../components/Footer";
+import Navigation from "../components/Navigation";
+import { Box, Flex, Heading, Text, VStack, Grid, GridItem, Image, Center } from "@chakra-ui/react";
 
 const MotionBox = motion(Box);
 
