@@ -68,8 +68,9 @@ class UserDetail(APIView):
 
     def delete(self, request, id, format=None):
         user = get_object_or_404(self.model_class, id=id)
-        user.deleted_at = datetime.now()
-        user.save()
+        user.delete()
+        # user.deleted_at = datetime.now()
+        # user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -96,12 +97,19 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         
         if response.status_code == 200:
             # Сохраняем токены в базе для пользователя
-            email = request.data.get('email')
+            identifier_email = request.data.get('email')
+            identifier_phone = request.data.get('phone_number')
             try:
-                user = User.objects.get(email=email)
-                user.access_token = response.data['access']
-                user.refresh_token = response.data['refresh']
-                user.save()
+                if identifier_email:
+                    user = User.objects.get(email__iexact=identifier_email)
+                elif identifier_phone:
+                    user = User.objects.get(phone_number=identifier_phone)
+                else:
+                    user = None
+                if user:
+                    user.access_token = response.data['access']
+                    user.refresh_token = response.data['refresh']
+                    user.save()
             except User.DoesNotExist:
                 pass
                 

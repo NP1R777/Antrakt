@@ -32,7 +32,7 @@ import {
     FaUndo
 } from 'react-icons/fa';
 import axios from 'axios';
-import { UserForm } from './forms/UsersForm';
+import UsersForm from './forms/UsersForm';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -48,8 +48,8 @@ const CFaUndo = chakra(FaUndo as any);
 
 interface User {
     id: number;
-    email: string;
-    phone_number: string;
+    email: string | null;
+    phone_number: string | null;
     is_superuser: boolean;
     created_at: string;
     is_staff: boolean;
@@ -94,7 +94,7 @@ const UsersPage: React.FC = () => {
 
         try {
             await axios.put(`http://localhost:8000/user${id}/`, {
-                deleted_at: new Date().toISOString()
+                // deleted_at: new Date().toISOString()
             });
             toast({
                 title: 'Успех!',
@@ -362,15 +362,16 @@ const UsersPage: React.FC = () => {
                 {renderUserCards()}
             </Container>
 
-            <UserForm
-                isOpen={isFormOpen}
-                onClose={onFormClose}
-                initialData={currentUser}
-                onSuccess={() => {
-                    fetchUsers();
-                    onFormClose();
-                }}
-            />
+            {isFormOpen && (
+                <Box mt={6}>
+                    <UsersForm
+                        onSuccess={() => {
+                            fetchUsers();
+                            onFormClose();
+                        }}
+                    />
+                </Box>
+            )}
 
             <AlertDialog
                 isOpen={isDeleteOpen}
