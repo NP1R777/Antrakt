@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import (User, Perfomances, Actors, DirectorsTheatre,
                      News, Archive, Achievements)
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -12,20 +13,31 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'deleted_at', 'email', 'created_at',
                   'password', 'phone_number', 'is_superuser',
                   'access_token', 'refresh_token']
+        extra_kwargs = {
+            'email': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'phone_number': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'password': {'write_only': True},
+        }
 
+    def validate(self, attrs):
+        email = attrs.get('email')
+        phone_number = attrs.get('phone_number')
+        if not email and not phone_number:
+            raise serializers.ValidationError('Необходимо указать email или номер телефона')
+        return attrs
 
     def create(self, validated_data):
         if validated_data.get('is_superuser'):
             user = User.objects.create_superuser(
-                email=validated_data['email'],
-                phone_number=validated_data['phone_number'],
-                password=validated_data['password']
+                email=validated_data.get('email'),
+                password=validated_data['password'],
+                phone_number=validated_data.get('phone_number')
         )
         else:
             user = User.objects.create_user(
-                email=validated_data['email'],
-                phone_number=validated_data['phone_number'],
-                password=validated_data['password']
+                email=validated_data.get('email'),
+                password=validated_data['password'],
+                phone_number=validated_data.get('phone_number')
             )
         
         return user
@@ -38,6 +50,39 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['email'] = user.email
         token['phone_number'] = user.phone_number
         return token
+
+    def validate(self, attrs):
+        password = attrs.get('password')
+        email = self.initial_data.get('email')
+        phone_number = self.initial_data.get('phone_number')
+
+        if not password:
+            raise serializers.ValidationError('Пароль обязателен')
+
+        user = None
+        if email:
+            try:
+                user = User.objects.get(email__iexact=email)
+            except User.DoesNotExist:
+                pass
+        elif phone_number:
+            try:
+                user = User.objects.get(phone_number=phone_number)
+            except User.DoesNotExist:
+                pass
+
+        if user is None:
+            raise serializers.ValidationError('Неверные учетные данные')
+
+        if not user.check_password(password):
+            raise serializers.ValidationError('Неверные учетные данные')
+
+        refresh = RefreshToken.for_user(user)
+        data = {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token)
+        }
+        return data
 
 
 class PerfomanceSerializer(serializers.ModelSerializer):
