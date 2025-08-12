@@ -177,16 +177,14 @@ class AuthService {
   }
 
   /**
-   * Регистрация пользователя
+   * Регистрация пользователя (email или телефон)
    */
-  async register(emailOrPhone: string, password: string, phone: string): Promise<boolean> {
+  async register(emailOrPhone: string, password: string): Promise<boolean> {
     try {
-      // Определяем, является ли первый параметр email или телефоном
       const isEmail = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(emailOrPhone);
-      
-      const requestData = isEmail 
-        ? { email: emailOrPhone, password, phone_number: phone }
-        : { phone_number: emailOrPhone, password, email: "" }; // Если регистрация по телефону
+      const requestData = isEmail
+        ? { email: emailOrPhone, password }
+        : { phone_number: emailOrPhone, password };
 
       const response: AxiosResponse<{ user: User; message: string }> = await axios.post(
         `${API_BASE_URL}/register/`,
@@ -200,13 +198,11 @@ class AuthService {
   }
 
   /**
-   * Авторизация пользователя
+   * Авторизация пользователя (email или телефон)
    */
   async login(emailOrPhone: string, password: string): Promise<boolean> {
     try {
-      // Определяем, является ли первый параметр email или телефоном
       const isEmail = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(emailOrPhone);
-      
       const requestData = isEmail 
         ? { email: emailOrPhone, password }
         : { phone_number: emailOrPhone, password };
