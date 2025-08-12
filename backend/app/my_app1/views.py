@@ -96,13 +96,26 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         
         if response.status_code == 200:
             # Сохраняем токены в базе для пользователя
-            email = request.data.get('email')
+            identifier_email = request.data.get('email')
+            identifier_phone = request.data.get('phone_number')
+            user = None
             try:
-                user = User.objects.get(email=email)
-                user.access_token = response.data['access']
-                user.refresh_token = response.data['refresh']
-                user.save()
-            except User.DoesNotExist:
+                if identifier_email:
+                    user = User.objects.filter(email=identifier_email).first()
+                if not user and identifier_phone:
+                    user = User.objects.filter(phone_number=identifier_phone).first()
+                if not user:
+                    # Последняя попытка: получить пользователя из access токена
+                    access = response.data.get('access')
+                    if access:
+                        token = AccessToken(access)
+                        user_id = token.payload.get('user_id')
+                        user = User.objects.filter(id=user_id).first()
+                if user:
+                    user.access_token = response.data['access']
+                    user.refresh_token = response.data['refresh']
+                    user.save()
+            except Exception:
                 pass
                 
         return response

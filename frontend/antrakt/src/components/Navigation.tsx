@@ -55,8 +55,8 @@ export default function Navigation() {
         setIsAuthModalOpen(true);
     };
 
-    const handleRegister = async (emailOrPhone: string, password: string, phone?: string) => {
-        const success = await register(emailOrPhone, password, phone || "");
+    const handleRegister = async (emailOrPhone: string, password: string) => {
+        const success = await register(emailOrPhone, password);
         if (success) {
             setRegisteredEmailOrPhone(emailOrPhone);
             toast({

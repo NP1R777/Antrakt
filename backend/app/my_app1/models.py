@@ -21,13 +21,14 @@ except ImportError:
 
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, password, **extra_fields):
-        if not email:
-            raise ValueError('Пользователь должен иметь email')
-        
-        email = self.normalize_email(email)
+    def create_user(self, password, email=None, phone_number=None, **extra_fields):
+        if not email and not phone_number:
+            raise ValueError('Пользователь должен иметь email или номер телефона')
+
+        email_normalized = self.normalize_email(email) if email else None
         user = self.model(
-            email=email,
+            email=email_normalized,
+            phone_number=phone_number,
             **extra_fields
         )
         user.set_password(password)
@@ -35,13 +36,15 @@ class CustomUserManager(BaseUserManager):
         return user
     
 
-    def create_superuser(self, email, password, **extra_fields):
+    def create_superuser(self, password, email=None, phone_number=None, **extra_fields):
         extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_staff', True)
 
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Суперпользователь должен иметь is_superuser=True')
         
-        return self.create_user(email, password, **extra_fields)
+        # Для суперпользователя обычно требуется email, но позволим и телефон
+        return self.create_user(password=password, email=email, phone_number=phone_number, **extra_fields)
 
 
 class User(AbstractBaseUser):
@@ -51,15 +54,16 @@ class User(AbstractBaseUser):
     created_at = models.DateTimeField(auto_now_add=True, null=False)
     updated_at = models.DateTimeField(null=True)
     deleted_at = models.DateTimeField(null=True, default=None, blank=True)
-    email = models.EmailField(unique=True, null=False)
+    email = models.EmailField(unique=True, null=True, blank=True)
     password = models.CharField(max_length=500, null=False)
-    phone_number = models.CharField(max_length=20)
+    phone_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     profile_photo = models.URLField(null=False, blank=True)
     access_token = models.CharField(max_length=500, blank=True, null=True)
     refresh_token = models.CharField(max_length=500, blank=True, null=True)
 
+    # Оставляем email в качестве USERNAME_FIELD для совместимости с админкой
     USERNAME_FIELD = "email"
 
     objects = CustomUserManager()
