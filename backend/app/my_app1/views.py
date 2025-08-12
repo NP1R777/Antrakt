@@ -68,8 +68,9 @@ class UserDetail(APIView):
 
     def delete(self, request, id, format=None):
         user = get_object_or_404(self.model_class, id=id)
-        user.deleted_at = datetime.now()
-        user.save()
+        user.delete()
+        # user.deleted_at = datetime.now()
+        # user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
