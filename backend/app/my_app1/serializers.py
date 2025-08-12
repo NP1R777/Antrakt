@@ -26,8 +26,8 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         is_superuser = validated_data.pop('is_superuser', False)
         password = validated_data.pop('password')
-        email = validated_data.get('email')
-        phone_number = validated_data.get('phone_number')
+        email = validated_data.pop('email', None)
+        phone_number = validated_data.pop('phone_number', None)
 
         if is_superuser:
             user = User.objects.create_superuser(
