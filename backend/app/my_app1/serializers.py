@@ -3,6 +3,14 @@ from .models import (User, Perfomances, Actors, DirectorsTheatre,
                      News, Archive, Achievements)
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+import re
+
+
+def normalize_phone(phone: str) -> str:
+    digits = re.sub(r"\D", "", phone or "")
+    if len(digits) == 11 and digits.startswith("8"):
+        digits = "7" + digits[1:]
+    return digits
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -24,6 +32,8 @@ class UserSerializer(serializers.ModelSerializer):
         phone_number = attrs.get('phone_number')
         if not email and not phone_number:
             raise serializers.ValidationError('Необходимо указать email или номер телефона')
+        if phone_number:
+            attrs['phone_number'] = normalize_phone(phone_number)
         return attrs
 
     def create(self, validated_data):
@@ -54,7 +64,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         password = attrs.get('password')
         email = self.initial_data.get('email')
-        phone_number = self.initial_data.get('phone_number')
+        phone_number_input = self.initial_data.get('phone_number')
 
         if not password:
             raise serializers.ValidationError('Пароль обязателен')
@@ -65,9 +75,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                 user = User.objects.get(email__iexact=email)
             except User.DoesNotExist:
                 pass
-        elif phone_number:
+        elif phone_number_input:
+            normalized_phone = normalize_phone(phone_number_input)
             try:
-                user = User.objects.get(phone_number=phone_number)
+                user = User.objects.get(phone_number=normalized_phone)
             except User.DoesNotExist:
                 pass
 
