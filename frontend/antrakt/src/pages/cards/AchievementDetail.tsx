@@ -112,7 +112,7 @@ const AchievementDetail: React.FC = () => {
     return (
         <Box bg="black" display="flex" flexDirection="column" minH="100vh">
             <Navigation />
-            <Box flex="1" py={20} px={{ base: 4, md: 8 }} bg="black" position="relative">
+            <Box flex="1" py={20} px={{ base: 4, md: 8 }} bg="black" position="relative" overflow='hidden'>
                 <MotionBox
                     position="absolute"
                     top="-15%"

@@ -180,7 +180,7 @@ const NewsDetail: React.FC = () => {
     return (
         <Box bg="black" display="flex" flexDirection="column" minH="100vh">
             <Navigation />
-            <Box flex="1" py={20} px={{ base: 4, md: 8 }} bg="black" position="relative">
+            <Box flex="1" py={20} px={{ base: 4, md: 8 }} bg="black" position="relative" overflow='hidden'>
                 <MotionBox
                     position="absolute"
                     top="-15%"
@@ -218,6 +218,7 @@ const NewsDetail: React.FC = () => {
                         borderColor="rgba(64, 64, 64, 0.7)"
                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                         p={8}
+                        w='100%'
                     >
                         <GridItem>
                             <Image
@@ -497,7 +498,7 @@ const NewsDetail: React.FC = () => {
                     </Flex>
                 </ModalContent>
             </Modal>
-        </Box>
+        </Box >
     );
 };
 
