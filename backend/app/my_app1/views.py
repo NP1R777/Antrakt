@@ -21,6 +21,14 @@ import boto3
 from botocore.client import Config as BotoConfig
 from urllib.parse import urlparse
 import uuid
+import re
+
+
+def normalize_phone(phone: str) -> str:
+    digits = re.sub(r"\D", "", phone or "")
+    if len(digits) == 11 and digits.startswith("8"):
+        digits = "7" + digits[1:]
+    return digits
 
 
 class UserList(APIView):
@@ -103,7 +111,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 if identifier_email:
                     user = User.objects.get(email__iexact=identifier_email)
                 elif identifier_phone:
-                    user = User.objects.get(phone_number=identifier_phone)
+                    user = User.objects.get(phone_number=normalize_phone(identifier_phone))
                 else:
                     user = None
                 if user:
