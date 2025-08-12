@@ -21,15 +21,20 @@ except ImportError:
 
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, password, **extra_fields):
-        if not email:
-            raise ValueError('Пользователь должен иметь email')
+    def create_user(self, email=None, password=None, phone_number=None, **extra_fields):
+        if not email and not phone_number:
+            raise ValueError('Пользователь должен иметь email или номер телефона')
         
-        email = self.normalize_email(email)
+        if email:
+            email = self.normalize_email(email)
+        
         user = self.model(
-            email=email,
+            email=email if email else None,
+            phone_number=phone_number if phone_number else None,
             **extra_fields
         )
+        if not password:
+            raise ValueError('Пароль обязателен')
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -37,11 +42,12 @@ class CustomUserManager(BaseUserManager):
 
     def create_superuser(self, email, password, **extra_fields):
         extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_staff', True)
 
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Суперпользователь должен иметь is_superuser=True')
         
-        return self.create_user(email, password, **extra_fields)
+        return self.create_user(email=email, password=password, **extra_fields)
 
 
 class User(AbstractBaseUser):
@@ -51,9 +57,9 @@ class User(AbstractBaseUser):
     created_at = models.DateTimeField(auto_now_add=True, null=False)
     updated_at = models.DateTimeField(null=True)
     deleted_at = models.DateTimeField(null=True, default=None, blank=True)
-    email = models.EmailField(unique=True, null=False)
+    email = models.EmailField(unique=True, null=True, blank=True)
     password = models.CharField(max_length=500, null=False)
-    phone_number = models.CharField(max_length=20)
+    phone_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     profile_photo = models.URLField(null=False, blank=True)
