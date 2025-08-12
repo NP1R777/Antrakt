@@ -54,16 +54,16 @@ const accentColor = '#4ECDC4';
 
 interface UserProfile {
     id: number;
-    email: string;
-    phone_number: string;
+    email: string | null;
+    phone_number: string | null;
     profile_photo: string | null;
     is_superuser: boolean;
 }
 
 interface User {
     id: number;
-    email: string;
-    phone_number: string;
+    email: string | null;
+    phone_number: string | null;
     profile_photo: string | null;
     is_superuser: boolean;
 }

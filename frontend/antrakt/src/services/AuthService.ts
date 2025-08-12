@@ -4,8 +4,8 @@ const API_BASE_URL = 'http://localhost:8000'; // Адрес Django backend
 
 export interface User {
   id: number;
-  email: string;
-  phone_number: string;
+  email: string | null;
+  phone_number: string | null;
   is_superuser: boolean;
   profile_photo: string;
 }
@@ -179,16 +179,15 @@ class AuthService {
   /**
    * Регистрация пользователя
    */
-  async register(emailOrPhone: string, password: string, phone: string): Promise<boolean> {
+  async register(emailOrPhone: string, password: string, phone?: string): Promise<boolean> {
     try {
-      // Определяем, является ли первый параметр email или телефоном
       const isEmail = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(emailOrPhone);
-      
-      const requestData = isEmail 
-        ? { email: emailOrPhone, password, phone_number: phone }
-        : { phone_number: emailOrPhone, password, email: "" }; // Если регистрация по телефону
 
-      const response: AxiosResponse<{ user: User; message: string }> = await axios.post(
+      const requestData = isEmail
+        ? (phone ? { email: emailOrPhone, password, phone_number: phone } : { email: emailOrPhone, password })
+        : { phone_number: emailOrPhone, password };
+
+      await axios.post(
         `${API_BASE_URL}/register/`,
         requestData
       );

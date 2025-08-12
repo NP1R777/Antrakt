@@ -56,7 +56,7 @@ export default function Navigation() {
     };
 
     const handleRegister = async (emailOrPhone: string, password: string, phone?: string) => {
-        const success = await register(emailOrPhone, password, phone || "");
+        const success = await register(emailOrPhone, password, phone || undefined);
         if (success) {
             setRegisteredEmailOrPhone(emailOrPhone);
             toast({

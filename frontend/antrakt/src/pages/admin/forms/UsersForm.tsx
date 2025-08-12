@@ -1,270 +1,130 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from "react";
 import {
-    VStack,
+    Box,
+    Button,
     FormControl,
     FormLabel,
     Input,
+    Select,
     Switch,
     Text,
-    Button,
-    HStack,
-    Modal,
-    ModalOverlay,
-    ModalContent,
-    ModalHeader,
-    ModalCloseButton,
-    ModalBody,
-    ModalFooter
-} from '@chakra-ui/react';
-import { chakra } from '@chakra-ui/react';
-import { FaTimes, FaSave } from 'react-icons/fa';
-import axios from 'axios';
-
-const CFaTimes = chakra(FaTimes as any);
-const CFaSave = chakra(FaSave as any);
-
-const primaryColor = '#800020';
-const accentColor = '#4ECDC4';
+    useToast,
+    Flex,
+} from "@chakra-ui/react";
+import axios from "axios";
 
 interface User {
     id?: number;
-    email: string;
-    phone_number: string;
+    email?: string;
+    phone_number?: string;
     is_superuser: boolean;
     password?: string;
     confirmPassword?: string;
 }
 
-interface UserFormProps {
-    isOpen: boolean;
-    onClose: () => void;
-    initialData?: User;
+interface UsersFormProps {
     onSuccess: () => void;
 }
 
-export const UserForm: React.FC<UserFormProps> = ({
-    isOpen,
-    onClose,
-    initialData,
-    onSuccess
-}) => {
-    const [user, setUser] = useState<User>(initialData || {
-        email: '',
-        phone_number: '',
+const UsersForm: React.FC<UsersFormProps> = ({ onSuccess }) => {
+    const toast = useToast();
+    const [userData, setUserData] = useState<User>({
+        email: "",
+        phone_number: "",
         is_superuser: false,
-        password: '',
-        confirmPassword: ''
+        password: "",
+        confirmPassword: "",
     });
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [errors, setErrors] = useState<Record<string, string>>({});
 
-    // Обновляем состояние user при изменении initialData
-    useEffect(() => {
-        if (initialData) {
-            setUser({
-                ...initialData,
-                password: '', // Пароль не загружаем из базы
-                confirmPassword: ''
-            });
-        } else {
-            setUser({
-                email: '',
-                phone_number: '',
-                is_superuser: false,
-                password: '',
-                confirmPassword: ''
-            });
-        }
-    }, [initialData]);
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value, checked, type } = e.target;
-        setUser(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setUserData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const validateForm = () => {
-        const newErrors: Record<string, string> = {};
+    const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setUserData((prev) => ({ ...prev, is_superuser: e.target.checked }));
+    };
 
-        if (!user.email) {
-            newErrors.email = 'Email обязателен';
-        } else if (!/\S+@\S+\.\S+/.test(user.email)) {
-            newErrors.email = 'Некорректный формат email';
+    const validate = (): boolean => {
+        if (!userData.email && !userData.phone_number) {
+            toast({
+                title: "Укажите email или телефон",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+            return false;
         }
-
-        // Проверяем пароль только если он был введён
-        if (user.password) {
-            if (user.password.length < 6) {
-                newErrors.password = 'Пароль должен быть не менее 6 символов';
-            }
-            if (user.password !== user.confirmPassword) {
-                newErrors.confirmPassword = 'Пароли не совпадают';
-            }
-        } else if (!initialData) {
-            newErrors.password = 'Пароль обязателен';
+        if (!userData.password || userData.password.length < 6) {
+            toast({
+                title: "Пароль должен быть не менее 6 символов",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+            return false;
         }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        if (userData.password !== userData.confirmPassword) {
+            toast({
+                title: "Пароли не совпадают",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+            return false;
+        }
+        return true;
     };
 
     const handleSubmit = async () => {
-        if (!validateForm()) return;
-
-        setIsSubmitting(true);
+        if (!validate()) return;
         try {
-            const userData: Partial<User> = {
-                email: user.email,
-                phone_number: user.phone_number,
-                is_superuser: user.is_superuser
+            const payload: any = {
+                password: userData.password,
+                is_superuser: userData.is_superuser,
             };
+            if (userData.email) payload.email = userData.email;
+            if (userData.phone_number) payload.phone_number = userData.phone_number;
 
-            // Добавляем пароль только если он был введён
-            if (user.password) {
-                userData.password = user.password;
-            }
-
-            if (initialData) {
-                await axios.put(`http://localhost:8000/user${initialData.id}/`, userData);
-            } else {
-                await axios.post('http://localhost:8000/users/', userData);
-            }
-
+            await axios.post("http://localhost:8000/register/", payload);
+            toast({ title: "Пользователь создан", status: "success", duration: 3000, isClosable: true });
+            setUserData({ email: "", phone_number: "", is_superuser: false, password: "", confirmPassword: "" });
             onSuccess();
-            onClose();
-        } catch (error) {
-            console.error('Ошибка при сохранении пользователя:', error);
-            setErrors({ form: 'Ошибка при сохранении пользователя' });
-        } finally {
-            setIsSubmitting(false);
+        } catch (e: any) {
+            toast({ title: "Ошибка", description: e?.response?.data || "Не удалось создать пользователя", status: "error", duration: 3000, isClosable: true });
         }
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} size="xl" scrollBehavior="inside" isCentered>
-            <ModalOverlay bg="blackAlpha.700" />
-            <ModalContent bg="#222222" color="white">
-                <ModalHeader borderBottom="1px solid #333333" fontWeight="semibold">
-                    {initialData ? 'Редактировать пользователя' : 'Добавить нового пользователя'}
-                </ModalHeader>
-                <ModalCloseButton />
-                <ModalBody py={6}>
-                    <VStack spacing={4} align="stretch">
-                        <FormControl isInvalid={!!errors.email} isRequired>
-                            <FormLabel display="flex" alignItems="center" gap={2}>
-                                <Text as="span" fontWeight="semibold">Email</Text>
-                            </FormLabel>
-                            <Input
-                                name="email"
-                                type="email"
-                                value={user.email}
-                                onChange={handleInputChange}
-                                placeholder="Введите email"
-                                focusBorderColor={primaryColor}
-                                bg="#333333"
-                                borderColor="#444444"
-                                _hover={{ borderColor: '#555555' }}
-                                isDisabled={false}
-                            />
-                            {errors.email && <Text color="red.500" fontSize="sm">{errors.email}</Text>}
-                        </FormControl>
+        <Box>
+            <Flex gap={4} direction={{ base: 'column', md: 'row' }}>
+                <FormControl>
+                    <FormLabel>Email</FormLabel>
+                    <Input name="email" value={userData.email || ''} onChange={handleChange} placeholder="email@domain.com" />
+                </FormControl>
+                <FormControl>
+                    <FormLabel>Телефон</FormLabel>
+                    <Input name="phone_number" value={userData.phone_number || ''} onChange={handleChange} placeholder="+7 999 999 99 99" />
+                </FormControl>
+            </Flex>
 
-                        <FormControl>
-                            <FormLabel display="flex" alignItems="center" gap={2}>
-                                <Text as="span" fontWeight="semibold">Телефон</Text>
-                            </FormLabel>
-                            <Input
-                                name="phone_number"
-                                value={user.phone_number}
-                                onChange={handleInputChange}
-                                placeholder="Введите телефон"
-                                focusBorderColor={primaryColor}
-                                bg="#333333"
-                                borderColor="#444444"
-                                _hover={{ borderColor: '#555555' }}
-                            />
-                        </FormControl>
+            <FormControl mt={4}>
+                <FormLabel>Пароль</FormLabel>
+                <Input name="password" type="password" value={userData.password || ''} onChange={handleChange} />
+            </FormControl>
+            <FormControl mt={4}>
+                <FormLabel>Подтверждение пароля</FormLabel>
+                <Input name="confirmPassword" type="password" value={userData.confirmPassword || ''} onChange={handleChange} />
+            </FormControl>
 
-                        <FormControl isInvalid={!!errors.password}>
-                            <FormLabel display="flex" alignItems="center" gap={2}>
-                                <Text as="span" fontWeight="semibold">{initialData ? 'Новый пароль' : 'Пароль'}</Text>
-                            </FormLabel>
-                            <Input
-                                name="password"
-                                type="password"
-                                value={user.password || ''}
-                                onChange={handleInputChange}
-                                placeholder={initialData ? 'Введите новый пароль (если нужно)' : 'Введите пароль'}
-                                focusBorderColor={primaryColor}
-                                bg="#333333"
-                                borderColor="#444444"
-                                _hover={{ borderColor: '#555555' }}
-                            />
-                            {errors.password && <Text color="red.500" fontSize="sm">{errors.password}</Text>}
-                        </FormControl>
+            <FormControl display="flex" alignItems="center" mt={4}>
+                <FormLabel mb="0">Суперпользователь</FormLabel>
+                <Switch isChecked={userData.is_superuser} onChange={handleSwitchChange} />
+            </FormControl>
 
-                        <FormControl isInvalid={!!errors.confirmPassword}>
-                            <FormLabel display="flex" alignItems="center" gap={2}>
-                                <Text as="span" fontWeight="semibold">{initialData ? 'Подтверждение нового пароля' : 'Подтверждение пароля'}</Text>
-                            </FormLabel>
-                            <Input
-                                name="confirmPassword"
-                                type="password"
-                                value={user.confirmPassword || ''}
-                                onChange={handleInputChange}
-                                placeholder="Подтвердите пароль"
-                                focusBorderColor={primaryColor}
-                                bg="#333333"
-                                borderColor="#444444"
-                                _hover={{ borderColor: '#555555' }}
-                            />
-                            {errors.confirmPassword && <Text color="red.500" fontSize="sm">{errors.confirmPassword}</Text>}
-                        </FormControl>
-
-                        <FormControl display="flex" alignItems="center">
-                            <FormLabel htmlFor="is_superuser" mb="0">
-                                <Text as="span" fontWeight="semibold">Администратор</Text>
-                            </FormLabel>
-                            <Switch
-                                id="is_superuser"
-                                name="is_superuser"
-                                isChecked={user.is_superuser}
-                                onChange={handleInputChange}
-                                colorScheme="green"
-                                ml={2}
-                            />
-                        </FormControl>
-
-                        {errors.form && <Text color="red.500" textAlign="center">{errors.form}</Text>}
-                    </VStack>
-                </ModalBody>
-                <ModalFooter borderTop="1px solid #333333">
-                    <HStack spacing={3}>
-                        <Button
-                            variant="outline"
-                            mr={3}
-                            onClick={onClose}
-                            leftIcon={<CFaTimes />}
-                            bg="#B00040"
-                            borderColor="#B00040"
-                            _hover={{ bg: 'red' }}
-                        >
-                            Отмена
-                        </Button>
-                        <Button
-                            bg="#3182CE"
-                            _hover={{ bg: '#4299E1' }}
-                            isLoading={isSubmitting}
-                            onClick={handleSubmit}
-                            leftIcon={<CFaSave />}
-                        >
-                            {initialData ? 'Обновить' : 'Добавить'}
-                        </Button>
-                    </HStack>
-                </ModalFooter>
-            </ModalContent>
-        </Modal>
+            <Button mt={6} colorScheme="red" onClick={handleSubmit}>Создать</Button>
+        </Box>
     );
 };
+
+export default UsersForm;
