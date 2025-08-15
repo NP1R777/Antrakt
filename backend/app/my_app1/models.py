@@ -24,7 +24,7 @@ class CustomUserManager(BaseUserManager):
     def create_user(self, password, email=None, phone_number=None, **extra_fields):
         if not email and not phone_number:
             raise ValueError('Пользователь должен иметь email или номер телефона')
-
+        
         email_normalized = self.normalize_email(email) if email else None
         user = self.model(
             email=email_normalized,
