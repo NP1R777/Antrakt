@@ -19,8 +19,7 @@ import {
 import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { useState } from "react";
 import { useNavigate, Link as RouterLink } from "react-router-dom"; // Добавлен импорт Link as RouterLink
-import AuthModal from "./AuthModal";
-import { useAuth } from "../contexts/AuthContext";
+import { hasAdminKey } from "../utils/adminKey";
 
 const primaryColor = "#800020";
 const darkBg = "#0a0a0a";
@@ -38,84 +37,8 @@ const NAV_ITEMS = [
 
 export default function Navigation() {
     const { isOpen, onToggle } = useDisclosure();
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-    const [authMode, setAuthMode] = useState<"login" | "register">("login");
-    const [registeredEmailOrPhone, setRegisteredEmailOrPhone] = useState("");
     const toast = useToast();
     const navigate = useNavigate(); // Добавлен хук useNavigate
-    const { user, isAuthenticated, login, register, logout } = useAuth();
-
-    const handleLoginClick = () => {
-        setAuthMode("login");
-        setIsAuthModalOpen(true);
-    };
-
-    const handleRegisterClick = () => {
-        setAuthMode("register");
-        setIsAuthModalOpen(true);
-    };
-
-    const handleRegister = async (emailOrPhone: string, password: string) => {
-        const success = await register(emailOrPhone, password);
-        if (success) {
-            setRegisteredEmailOrPhone(emailOrPhone);
-            toast({
-                title: "Успешная регистрация!",
-                description: "Теперь войдите в свой аккаунт.",
-                status: "success",
-                duration: 3000,
-                isClosable: true,
-                position: "top"
-            });
-            setAuthMode("login");
-        } else {
-            toast({
-                title: "Ошибка регистрации",
-                description: "Произошла ошибка при регистрации",
-                status: "error",
-                duration: 3000,
-                isClosable: true,
-                position: "top"
-            });
-        }
-        return success;
-    };
-
-    const handleLogin = async (emailOrPhone: string, password: string) => {
-        const success = await login(emailOrPhone, password);
-        if (success) {
-            toast({
-                title: "Вход выполнен!",
-                description: "Добро пожаловать!",
-                status: "success",
-                duration: 3000,
-                isClosable: true,
-                position: "top"
-            });
-            setIsAuthModalOpen(false);
-        } else {
-            toast({
-                title: "Ошибка входа",
-                description: "Неверные данные для входа",
-                status: "error",
-                duration: 3000,
-                isClosable: true,
-                position: "top"
-            });
-        }
-        return success;
-    };
-
-    const handleLogout = async () => {
-        await logout();
-        toast({
-            title: "Вы вышли из системы",
-            status: "info",
-            duration: 2000,
-            isClosable: true,
-            position: "top"
-        });
-    };
 
     return (
         <Box
@@ -159,58 +82,16 @@ export default function Navigation() {
                         </Link>
                     ))}
 
-                    {!isAuthenticated ? (
+                    {hasAdminKey() && (
                         <Button
                             variant="outline"
                             color={lightText}
                             borderColor={primaryColor}
                             _hover={{ bg: primaryColor, transform: "translateY(-2px)" }}
-                            onClick={handleLoginClick}
+                            onClick={() => navigate('/admin')}
                         >
-                            Войти
+                            Админ‑панель
                         </Button>
-                    ) : (
-                        <Menu>
-                            <MenuButton>
-                                <Avatar
-                                    size="sm"
-                                    name={user?.email || "User"}
-                                    bg={primaryColor}
-                                    color={lightText}
-                                    cursor="pointer"
-                                />
-                            </MenuButton>
-                            <MenuList bg={darkBg} borderColor="#1a1a1a">
-                                <MenuItem
-                                    bg={darkBg}
-                                    _hover={{ bg: "#1a1a1a" }}
-                                    color={lightText}
-                                    onClick={() => navigate(`/profile/${user.id}`)} // Добавлена навигация на страницу профиля
-                                >
-                                    Профиль
-                                </MenuItem>
-
-                                {user?.is_superuser && (
-                                    <MenuItem
-                                        bg={darkBg}
-                                        _hover={{ bg: "#1a1a1a" }}
-                                        color={lightText}
-                                        onClick={() => navigate('/admin')} // Заменено window.location.href на navigate для согласованности
-                                    >
-                                        Админ-панель
-                                    </MenuItem>
-                                )}
-
-                                <MenuItem
-                                    bg={darkBg}
-                                    _hover={{ bg: "#1a1a1a" }}
-                                    color={primaryColor}
-                                    onClick={handleLogout}
-                                >
-                                    Выйти
-                                </MenuItem>
-                            </MenuList>
-                        </Menu>
                     )}
                 </Flex>
 
@@ -247,35 +128,10 @@ export default function Navigation() {
                             </Link>
                         ))}
 
-                        {!isAuthenticated && (
-                            <Button
-                                variant="outline"
-                                color={lightText}
-                                borderColor={primaryColor}
-                                _hover={{ bg: primaryColor }}
-                                onClick={handleLoginClick}
-                                mt={2}
-                            >
-                                Войти
-                            </Button>
-                        )}
                     </Stack>
                 </Box>
             </Collapse>
 
-            <AuthModal
-                isOpen={isAuthModalOpen}
-                onClose={() => {
-                    setIsAuthModalOpen(false);
-                    setRegisteredEmailOrPhone("");
-                }}
-                mode={authMode}
-                switchToRegister={handleRegisterClick}
-                switchToLogin={handleLoginClick}
-                onRegister={handleRegister}
-                onLogin={handleLogin}
-                registeredEmailOrPhone={registeredEmailOrPhone}
-            />
         </Box>
     );
 }

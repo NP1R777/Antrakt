@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import (User, Perfomances, Actors, DirectorsTheatre,
                      News, Archive, Achievements)
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -10,8 +9,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'deleted_at', 'email', 'created_at',
-                  'password', 'phone_number', 'is_superuser',
-                  'access_token', 'refresh_token']
+                  'password', 'phone_number', 'is_superuser']
         extra_kwargs = {
             'password': {'write_only': True}
         }
@@ -46,37 +44,6 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        token['email'] = user.email
-        token['phone_number'] = user.phone_number
-        return token
-
-    def validate(self, attrs):
-        # Поддерживаем вход по email или номеру телефона
-        email = attrs.get('email')
-        password = attrs.get('password')
-        phone_number = self.initial_data.get('phone_number')
-
-        if phone_number and not email:
-            try:
-                user = User.objects.get(phone_number=phone_number)
-            except User.DoesNotExist:
-                raise serializers.ValidationError("Неверные учетные данные")
-
-            if not user.check_password(password):
-                raise serializers.ValidationError("Неверные учетные данные")
-
-            data = {}
-            refresh = self.get_token(user)
-            data['refresh'] = str(refresh)
-            data['access'] = str(refresh.access_token)
-            return data
-
-        # По умолчанию поведение как у стандартного сериализатора (вход по email)
-        return super().validate(attrs)
 
 
 class PerfomanceSerializer(serializers.ModelSerializer):

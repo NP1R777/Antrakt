@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-from datetime import timedelta
 from decouple import config
 import os
 
@@ -36,9 +35,7 @@ ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'my_app1.apps.MyApp1Config',
     'rest_framework',
-    'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',
-    'corsheaders',
+        'corsheaders',
     'drf_yasg',
     'storages',
     'django.contrib.postgres',
@@ -81,39 +78,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'app.wsgi.application'
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
     )
-}
-
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
-    'UPDATE_LAST_LOGIN': True,
-
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
-    'VERIFYING_KEY': None,
-
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
-    'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'user_id',
-
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    'TOKEN_TYPE_CLAIM': 'token_type',
-    
-    'JTI_CLAIM': 'jti',
-    
-    # Отключение слайдинг токенов
-    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': None,
-    'SLIDING_TOKEN_LIFETIME': None,
-    'SLIDING_TOKEN_REFRESH_LIFETIME': None,
 }
 
 CORS_ALLOW_ALL_ORIGINS = True  # Для разработки, в продакшене укажите конкретные домены
@@ -141,6 +108,9 @@ DATABASES = {
     }
 }
 print(f"✓ Настроена конфигурация PostgreSQL: {db_host}:{db_port}")
+
+# Admin panel access key (set via env ADMIN_PANEL_KEY)
+ADMIN_PANEL_KEY = config('ADMIN_PANEL_KEY', default='dev-admin-key')
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

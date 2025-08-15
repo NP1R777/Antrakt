@@ -60,6 +60,7 @@ class User(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     profile_photo = models.URLField(null=False, blank=True)
+    # access_token / refresh_token removed with JWT auth
     access_token = models.CharField(max_length=500, blank=True, null=True)
     refresh_token = models.CharField(max_length=500, blank=True, null=True)
 

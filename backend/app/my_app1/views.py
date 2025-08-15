@@ -7,16 +7,15 @@ from drf_yasg.utils import swagger_auto_schema
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import permission_classes
 from rest_framework import status, generics, permissions
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
-from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework.permissions import AllowAny
 from .serializers import (UserSerializer, PerfomanceSerializer, ActorsSerializer,
                           DirectorsSerializer, NewsSerializer, ArchiveSerializer,
-                          AchievementsSerializer, CustomTokenObtainPairSerializer)
+                          AchievementsSerializer)
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.parsers import MultiPartParser, FormParser
+from .permissions import IsAdminKey, IsAdminKeyOrReadOnly
 import boto3
 from botocore.client import Config as BotoConfig
 from urllib.parse import urlparse
@@ -37,7 +36,7 @@ class UserList(APIView):
 class UserListAdmin(APIView):
     model_class = User
     serializer_class = UserSerializer
-
+    permission_classes = [IsAdminKey]
 
     def get(self, request, format=None):
         users = self.model_class.objects.order_by('id')
@@ -48,13 +47,12 @@ class UserListAdmin(APIView):
 class UserDetail(APIView):
     model_class = User
     serializer_class = UserSerializer
+    permission_classes = [IsAdminKey]
 
-    
     def get(self, request, id, format=None):
         user = get_object_or_404(self.model_class, id=id)
         serializer = self.serializer_class(user)
         return Response(serializer.data)
-    
     
     @swagger_auto_schema(request_body=UserSerializer)
     def put(self, request, id, format=None):
@@ -64,7 +62,6 @@ class UserDetail(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 
     def delete(self, request, id, format=None):
         user = get_object_or_404(self.model_class, id=id)
@@ -73,139 +70,26 @@ class UserDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class RegisterView(generics.CreateAPIView):
-    serializer_class = UserSerializer
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return Response({
-            "user": UserSerializer(user).data,
-            "message": "Пользователь создан!"
-        }, status=status.HTTP_201_CREATED)
 
 
-class CustomTokenObtainPairView(TokenObtainPairView):
-    serializer_class = CustomTokenObtainPairSerializer
-    
-    
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        
-        if response.status_code == 200:
-            # Сохраняем токены в базе для пользователя
-            identifier_email = request.data.get('email')
-            identifier_phone = request.data.get('phone_number')
-            user = None
-            try:
-                if identifier_email:
-                    user = User.objects.filter(email=identifier_email).first()
-                if not user and identifier_phone:
-                    user = User.objects.filter(phone_number=identifier_phone).first()
-                if not user:
-                    # Последняя попытка: получить пользователя из access токена
-                    access = response.data.get('access')
-                    if access:
-                        token = AccessToken(access)
-                        user_id = token.payload.get('user_id')
-                        user = User.objects.filter(id=user_id).first()
-                if user:
-                    user.access_token = response.data['access']
-                    user.refresh_token = response.data['refresh']
-                    user.save()
-            except Exception:
-                pass
-                
-        return response
 
 
-class CustomTokenRefreshView(TokenRefreshView):
-    """
-    Кастомный view для обновления токенов
-    """
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        
-        if response.status_code == 200:
-            # Обновляем access_token в базе
-            refresh_token = request.data.get('refresh')
-            try:
-                # Декодируем refresh токен чтобы получить user_id
-                token = RefreshToken(refresh_token)
-                user_id = token.payload.get('user_id')
-                user = User.objects.get(id=user_id)
-                user.access_token = response.data['access']
-                # Если есть новый refresh токен (при ROTATE_REFRESH_TOKENS=True)
-                if 'refresh' in response.data:
-                    user.refresh_token = response.data['refresh']
-                user.save()
-            except Exception:
-                pass
-                
-        return response
 
 
-class LogoutView(APIView):
-    """
-    Выход из системы с добавлением токена в blacklist
-    """
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def post(self, request):
-        try:
-            refresh_token = request.data.get("refresh_token")
-            if refresh_token:
-                token = RefreshToken(refresh_token)
-                token.blacklist()
-            
-            # Очищаем токены из базы пользователя
-            user = request.user
-            user.access_token = None
-            user.refresh_token = None
-            user.save()
-            
-            return Response(
-                {"message": "Успешный выход из системы"}, 
-                status=status.HTTP_205_RESET_CONTENT
-            )
-        except Exception as e:
-            return Response(
-                {"error": "Ошибка при выходе из системы"}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
 
-class VerifyTokenView(APIView):
-    """
-    Проверка действительности токена
-    """
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def get(self, request):
-        return Response({
-            "valid": True,
-            "user": {
-                "id": request.user.id,
-                "email": request.user.email,
-                "phone_number": request.user.phone_number,
-                "is_superuser": request.user.is_superuser
-            }
-        })
 
 
 class PefomancesList(APIView):
     model_class = Perfomances
     serializer_class = PerfomanceSerializer
-    
+    permission_classes = [IsAdminKeyOrReadOnly]
 
     def get(self, request, format=None):
         perfomances = self.model_class.objects.filter(deleted_at=None,
                                                       afisha=False).order_by('premiere_date')
         serializer = self.serializer_class(perfomances, many=True)
         return Response(serializer.data)
-    
 
     @swagger_auto_schema(request_body=PerfomanceSerializer)
     def post(self, request, format=None):
@@ -219,7 +103,7 @@ class PefomancesList(APIView):
 class PerfomancesListAdmin(APIView):
     model_class = Perfomances
     serializer_class = PerfomanceSerializer
-
+    permission_classes = [IsAdminKey]
 
     def get(self, request, format=None):
         perfomances = self.model_class.objects.order_by('id')
@@ -230,13 +114,12 @@ class PerfomancesListAdmin(APIView):
 class PerfomanceDetail(APIView):
     model_class = Perfomances
     serializer_class = PerfomanceSerializer
-
+    permission_classes = [IsAdminKeyOrReadOnly]
 
     def get(self, request, id, format=None):
         perfomance = get_object_or_404(self.model_class, id=id)
         serializer = self.serializer_class(perfomance)
         return Response(serializer.data)
-    
 
     @swagger_auto_schema(request_body=PerfomanceSerializer)
     def put(self, request, id, format=None):
@@ -246,9 +129,8 @@ class PerfomanceDetail(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 
-    def delete(self, id, request, format=None):
+    def delete(self, request, id, format=None):
         perfomance = get_object_or_404(self.model_class, id=id)
         perfomance.deleted_at = datetime.now()
         perfomance.save()
@@ -258,13 +140,12 @@ class PerfomanceDetail(APIView):
 class ActorsList(APIView):
     model_class = Actors
     serializer_class = ActorsSerializer
-
+    permission_classes = [IsAdminKeyOrReadOnly]
 
     def get(self, request, format=None):
         actors = self.model_class.objects.filter(deleted_at=None).order_by('id')
         serializer = self.serializer_class(actors, many=True)
         return Response(serializer.data)
-    
 
     @swagger_auto_schema(request_body=ActorsSerializer)
     def post(self, request, format=None):
@@ -278,7 +159,7 @@ class ActorsList(APIView):
 class ActorsListAdmin(APIView):
     model_class = Actors
     serializer_class = ActorsSerializer
-
+    permission_classes = [IsAdminKey]
 
     def get(self, request, format=None):
         actors = self.model_class.objects.order_by('id')
@@ -289,13 +170,12 @@ class ActorsListAdmin(APIView):
 class ActorDetail(APIView):
     model_class = Actors
     serializer_class = ActorsSerializer
-
+    permission_classes = [IsAdminKeyOrReadOnly]
 
     def get(self, request, id, format=None):
         actor = get_object_or_404(self.model_class, id=id)
         serializer = self.serializer_class(actor)
         return Response(serializer.data)
-    
 
     @swagger_auto_schema(request_body=ActorsSerializer)
     def put(self, request, id, format=None):
@@ -305,7 +185,6 @@ class ActorDetail(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
     def delete(self, request, id, format=None):
         actor = get_object_or_404(self.model_class, id=id)
@@ -317,13 +196,12 @@ class ActorDetail(APIView):
 class DirectorsList(APIView):
     model_class = DirectorsTheatre
     serializer_class = DirectorsSerializer
-
+    permission_classes = [IsAdminKeyOrReadOnly]
 
     def get(self, request, format=None):
         directors = self.model_class.objects.filter(deleted_at=None)
         serializer = self.serializer_class(directors, many=True)
         return Response(serializer.data)
-    
 
     @swagger_auto_schema(request_body=DirectorsSerializer)
     def post(self, request, format=None):
@@ -337,7 +215,7 @@ class DirectorsList(APIView):
 class DirectorsListAdmin(APIView):
     model_class = DirectorsTheatre
     serializer_class = DirectorsSerializer
-
+    permission_classes = [IsAdminKey]
 
     def get(self, request, format=None):
         directors = self.model_class.objects.order_by('id')
@@ -348,13 +226,12 @@ class DirectorsListAdmin(APIView):
 class DirectorDetail(APIView):
     model_class = DirectorsTheatre
     serializer_class = DirectorsSerializer
-
+    permission_classes = [IsAdminKeyOrReadOnly]
 
     def get(self, request, id, format=None):
         directors = get_object_or_404(self.model_class, id=id)
         serializer = self.serializer_class(directors)
         return Response(serializer.data)
-    
 
     @swagger_auto_schema(request_body=DirectorsSerializer)
     def put(self, request, id, format=None):
@@ -364,7 +241,6 @@ class DirectorDetail(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 
     def delete(self, request, id, format=None):
         director = get_object_or_404(self.model_class, id=id)
@@ -376,14 +252,13 @@ class DirectorDetail(APIView):
 class NewsList(APIView):
     model_class = News
     serializer_class = NewsSerializer
-
+    permission_classes = [IsAdminKeyOrReadOnly]
 
     def get(self, request, format=None):
         news = self.model_class.objects.filter(deleted_at=None,
                                                is_published=True)
         serializer = self.serializer_class(news, many=True)
         return Response(serializer.data)
-    
 
     @swagger_auto_schema(request_body=NewsSerializer)
     def post(self, request, format=None):
@@ -397,7 +272,7 @@ class NewsList(APIView):
 class NewsListAdmin(APIView):
     model_class = News
     serializer_class = NewsSerializer
-
+    permission_classes = [IsAdminKey]
 
     def get(self, request, format=None):
         news = self.model_class.objects.order_by('id')
@@ -408,13 +283,12 @@ class NewsListAdmin(APIView):
 class NewsDetail(APIView):
     model_class = News
     serializer_class = NewsSerializer
-
+    permission_classes = [IsAdminKeyOrReadOnly]
 
     def get(self, request, id, format=None):
         news = get_object_or_404(self.model_class, id=id)
         serializer = self.serializer_class(news)
         return Response(serializer.data)
-    
 
     @swagger_auto_schema(request_body=NewsSerializer)
     def put(self, request, id, format=None):
@@ -424,7 +298,6 @@ class NewsDetail(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 
     def delete(self, request, id, format=None):
         news = get_object_or_404(self.model_class, id=id)
@@ -436,13 +309,12 @@ class NewsDetail(APIView):
 class ArchiveList(APIView):
     model_class = Archive
     serializer_class = ArchiveSerializer
-
+    permission_classes = [IsAdminKeyOrReadOnly]
 
     def get(self, request, format=None):
         perfomance = self.model_class.objects.filter(deleted_at=None)
         serializer = self.serializer_class(perfomance, many=True)
         return Response(serializer.data)
-    
 
     @swagger_auto_schema(request_body=ArchiveSerializer)
     def post(self, request, format=None):
@@ -456,7 +328,7 @@ class ArchiveList(APIView):
 class ArchiveListAdmin(APIView):
     model_class = Archive
     serializer_class = ArchiveSerializer
-
+    permission_classes = [IsAdminKey]
 
     def get(self, request, format=None):
         archive_data = self.model_class.objects.order_by('id')
@@ -467,13 +339,12 @@ class ArchiveListAdmin(APIView):
 class ArchiveDetail(APIView):
     model_class = Archive
     serializer_class = ArchiveSerializer
-
+    permission_classes = [IsAdminKeyOrReadOnly]
 
     def get(self, request, id, format=None):
         perfomance = get_object_or_404(self.model_class, id=id)
         serializer = self.serializer_class(perfomance)
         return Response(serializer.data)
-    
 
     @swagger_auto_schema(request_body=ArchiveSerializer)
     def put(self, request, id, format=None):
@@ -483,7 +354,6 @@ class ArchiveDetail(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
 
     def delete(self, request, id, format=None):
         perfomance = get_object_or_404(self.model_class, id=id)
@@ -495,13 +365,12 @@ class ArchiveDetail(APIView):
 class AchievementsList(APIView):
     model_class = Achievements
     serializer_class = AchievementsSerializer
-
+    permission_classes = [IsAdminKeyOrReadOnly]
 
     def get(self, request, format=None):
         achievements = self.model_class.objects.filter(deleted_at=None)
         serializer = self.serializer_class(achievements, many=True)
         return Response(serializer.data)
-    
 
     @swagger_auto_schema(request_body=AchievementsSerializer)
     def post(self, request, format=None):
@@ -515,7 +384,7 @@ class AchievementsList(APIView):
 class AchievementListAdmin(APIView):
     model_class = Achievements
     serializer_class = AchievementsSerializer
-
+    permission_classes = [IsAdminKey]
 
     def get(self, request, format=None):
         achievements = self.model_class.objects.order_by('id')
@@ -599,7 +468,7 @@ class AfishaList(APIView):
 
 class ImageUploadView(APIView):
     parser_classes = (MultiPartParser, FormParser)
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAdminKey]
 
     def post(self, request, *args, **kwargs):
         if 'image' not in request.FILES:
@@ -635,7 +504,7 @@ class ImageUploadView(APIView):
 
 
 class ImageDeleteView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAdminKey]
 
     def delete(self, request, *args, **kwargs):
         image_url = request.query_params.get('image_url')

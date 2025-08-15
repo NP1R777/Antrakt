@@ -32,8 +32,8 @@ import {
     FaUser
 } from 'react-icons/fa';
 
-import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { clearAdminKey } from '../../utils/adminKey';
 
 const MotionBox = motion(Box);
 const MotionFlex = motion(Flex);
@@ -58,13 +58,12 @@ interface AdminLayoutProps {
 const primaryColor = "#800020";
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
-    const { user, logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const handleLogout = async () => {
-        await logout();
+        clearAdminKey();
         navigate('/');
     };
 
@@ -291,14 +290,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     </HStack>
 
                     <HStack spacing={3}>
-                        <Avatar size="sm" name={user?.email} bg={primaryColor} color="white" />
+                        <Avatar size="sm" name={'Admin'} bg={primaryColor} color="white" />
                         <VStack
                             spacing={0}
                             align="start"
                             display={{ base: "none", md: "flex" }}
                         >
                             <Text fontSize="sm" color="white" fontWeight="medium">
-                                {user?.email}
+                                Администратор
                             </Text>
                             <Text fontSize="xs" color="gray.400">
                                 Администратор

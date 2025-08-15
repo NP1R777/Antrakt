@@ -21,10 +21,18 @@ from django.http import JsonResponse
 from django.urls import path, include
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
+from django.conf import settings
 
 
 def health_check(request):
     return JsonResponse({"status": "ok"}, status=200)
+
+
+def admin_key_check(request):
+    provided_key = request.headers.get('X-Admin-Key') or request.META.get('HTTP_X_ADMIN_KEY')
+    if provided_key and provided_key == getattr(settings, 'ADMIN_PANEL_KEY', None):
+        return JsonResponse({"ok": True})
+    return JsonResponse({"ok": False}, status=403)
 
 
 schema_view = get_schema_view(
@@ -42,16 +50,11 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api-auth/', include('rest_framework.urls')),
     path('health/', health_check, name='health-check'),
+    path('admin-key-check/', admin_key_check, name='admin-key-check'),
     path('users/', views.UserList.as_view(), name='user-list'),
     path('user<int:id>/', views.UserDetail.as_view(), name='user'),
     path('users-admin/', views.UserListAdmin.as_view(), name='user-list-admin'),
-    path('register/', views.RegisterView.as_view(), name='register'),
-    path('login/', views.CustomTokenObtainPairView.as_view(), name='login'),
-    path('token/refresh/', views.CustomTokenRefreshView.as_view(), name='token_refresh'),
-    path('logout/', views.LogoutView.as_view(), name='logout'),
-    path('token/verify/', views.VerifyTokenView.as_view(), name='token_verify'),
     path('perfomances/', views.PefomancesList.as_view(), name='perfomances-list'),
     path('perfomance<int:id>/', views.PerfomanceDetail.as_view(), name='perfomance'),
     path('perfomances-admin/', views.PerfomancesListAdmin.as_view(), name='perfomances-list-admin'),
