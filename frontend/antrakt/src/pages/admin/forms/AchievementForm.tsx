@@ -10,8 +10,9 @@ import {
     Flex,
     Textarea,
     useToast,
+    Input,
 } from '@chakra-ui/react';
-import { FaTimes, FaSave, FaTrophy } from 'react-icons/fa';
+import { FaTimes, FaSave, FaTrophy, FaCalendarAlt } from 'react-icons/fa';
 import axios from 'axios';
 import ImageUpload from '../../../components/ImageUpload';
 import { chakra } from '@chakra-ui/react';
@@ -19,6 +20,7 @@ import { chakra } from '@chakra-ui/react';
 const CFaTimes = chakra(FaTimes as any);
 const CFaSave = chakra(FaSave as any);
 const CFaTrophy = chakra(FaTrophy as any);
+const CFaCalendarAlt = chakra(FaCalendarAlt as any);
 
 const primaryColor = '#800020';
 const accentColor = '#4ECDC4';
@@ -28,6 +30,7 @@ interface Achievement {
     achievement: string;
     image_url: string;
     deleted_at?: string | null;
+    assigned?: string | null;
 }
 
 export const AchievementForm: React.FC<{
@@ -37,7 +40,8 @@ export const AchievementForm: React.FC<{
 }> = ({ initialData, onSuccess, onCancel }) => {
     const [achievement, setAchievement] = useState<Achievement>(initialData || {
         achievement: '',
-        image_url: ''
+        image_url: '',
+        assigned: ''
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const toast = useToast();
@@ -63,13 +67,21 @@ export const AchievementForm: React.FC<{
         }));
     };
 
+    const handleAssignedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setAchievement(prev => ({
+            ...prev,
+            assigned: e.target.value || ''
+        }));
+    };
+
     const handleSubmit = async () => {
         setIsSubmitting(true);
         try {
             if (achievement.id) {
                 await axios.put(`http://localhost:8000/achievement${achievement.id}/`, {
                     achievement: achievement.achievement,
-                    image_url: achievement.image_url
+                    image_url: achievement.image_url,
+                    assigned: achievement.assigned || null
                 });
                 toast({
                     title: 'Успех!',
@@ -81,7 +93,8 @@ export const AchievementForm: React.FC<{
             } else {
                 await axios.post('http://localhost:8000/achievements/', {
                     achievement: achievement.achievement,
-                    image_url: achievement.image_url
+                    image_url: achievement.image_url,
+                    assigned: achievement.assigned || null
                 });
                 toast({
                     title: 'Успех!',
@@ -145,6 +158,22 @@ export const AchievementForm: React.FC<{
                         <Text mt={2} fontSize="sm" color="#AAAAAA">
                             Максимум 500 символов
                         </Text>
+                    </FormControl>
+
+                    <FormControl>
+                        <FormLabel display="flex" alignItems="center" gap={2}>
+                            <CFaCalendarAlt color={accentColor} />
+                            <Text as="span" fontWeight="semibold">Дата присвоения</Text>
+                        </FormLabel>
+                        <Input
+                            type="date"
+                            value={achievement.assigned ?? ''}
+                            onChange={handleAssignedChange}
+                            focusBorderColor={accentColor}
+                            bg="#333333"
+                            borderColor="#444444"
+                            _hover={{ borderColor: '#555555' }}
+                        />
                     </FormControl>
                 </VStack>
             </Grid>
