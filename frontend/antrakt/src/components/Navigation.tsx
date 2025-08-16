@@ -39,46 +39,12 @@ const NAV_ITEMS = [
 export default function Navigation() {
     const { isOpen, onToggle } = useDisclosure();
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-    const [authMode, setAuthMode] = useState<"login" | "register">("login");
-    const [registeredEmailOrPhone, setRegisteredEmailOrPhone] = useState("");
     const toast = useToast();
     const navigate = useNavigate(); // Добавлен хук useNavigate
-    const { user, isAuthenticated, login, register, logout } = useAuth();
+    const { user, isAuthenticated, login, logout } = useAuth();
 
     const handleLoginClick = () => {
-        setAuthMode("login");
         setIsAuthModalOpen(true);
-    };
-
-    const handleRegisterClick = () => {
-        setAuthMode("register");
-        setIsAuthModalOpen(true);
-    };
-
-    const handleRegister = async (emailOrPhone: string, password: string) => {
-        const success = await register(emailOrPhone, password);
-        if (success) {
-            setRegisteredEmailOrPhone(emailOrPhone);
-            toast({
-                title: "Успешная регистрация!",
-                description: "Теперь войдите в свой аккаунт.",
-                status: "success",
-                duration: 3000,
-                isClosable: true,
-                position: "top"
-            });
-            setAuthMode("login");
-        } else {
-            toast({
-                title: "Ошибка регистрации",
-                description: "Произошла ошибка при регистрации",
-                status: "error",
-                duration: 3000,
-                isClosable: true,
-                position: "top"
-            });
-        }
-        return success;
     };
 
     const handleLogin = async (emailOrPhone: string, password: string) => {
@@ -267,14 +233,8 @@ export default function Navigation() {
                 isOpen={isAuthModalOpen}
                 onClose={() => {
                     setIsAuthModalOpen(false);
-                    setRegisteredEmailOrPhone("");
                 }}
-                mode={authMode}
-                switchToRegister={handleRegisterClick}
-                switchToLogin={handleLoginClick}
-                onRegister={handleRegister}
                 onLogin={handleLogin}
-                registeredEmailOrPhone={registeredEmailOrPhone}
             />
         </Box>
     );

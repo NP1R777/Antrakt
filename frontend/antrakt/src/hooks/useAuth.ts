@@ -53,17 +53,6 @@ export default function useAuth() {
         }
     }, []);
 
-    // Функция регистрации
-    const register = useCallback(async (email: string, password: string, phone: string) => {
-        try {
-            await apiClient.post('/register/', { email, password, phone_number: phone });
-            return true;
-        } catch (error) {
-            console.error('Registration failed:', error);
-            return false;
-        }
-    }, []);
-
     // Функция выхода
     const logout = useCallback(async () => {
         try {
@@ -83,7 +72,6 @@ export default function useAuth() {
         isAuthenticated,
         loading,
         login,
-        register,
         logout
     };
 }
