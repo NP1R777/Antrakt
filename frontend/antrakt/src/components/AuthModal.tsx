@@ -15,46 +15,29 @@ import {
     useToast
 } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const MotionBox = motion(Box);
 
 interface AuthModalProps {
     isOpen: boolean;
     onClose: () => void;
-    mode: "login" | "register";
-    switchToRegister: () => void;
-    switchToLogin: () => void;
-    onRegister: (emailOrPhone: string, password: string) => Promise<boolean>;
     onLogin: (emailOrPhone: string, password: string) => Promise<boolean>;
-    registeredEmailOrPhone?: string;
 }
 
 export default function AuthModal({
     isOpen,
     onClose,
-    mode,
-    switchToRegister,
-    switchToLogin,
-    onRegister,
     onLogin,
-    registeredEmailOrPhone = ""
 }: AuthModalProps) {
     const toast = useToast();
-    const [emailOrPhone, setEmailOrPhone] = useState(registeredEmailOrPhone);
+    const [emailOrPhone, setEmailOrPhone] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState({
         emailOrPhone: "",
         password: "",
     });
-
-    // Обновляем emailOrPhone при изменении registeredEmailOrPhone
-    useEffect(() => {
-        if (registeredEmailOrPhone) {
-            setEmailOrPhone(registeredEmailOrPhone);
-        }
-    }, [registeredEmailOrPhone]);
 
     const isEmail = (value: string) => {
         return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value);
@@ -94,24 +77,12 @@ export default function AuthModal({
         setIsSubmitting(true);
 
         try {
-            let success = false;
-            if (mode === "register") {
-                success = await onRegister(emailOrPhone, password);
-            } else {
-                success = await onLogin(emailOrPhone, password);
-            }
-
+            const success = await onLogin(emailOrPhone, password);
             if (success) {
-                if (mode === 'register') {
-                    setPassword("");
-                    setErrors({ emailOrPhone: "", password: "" });
-                    switchToLogin();
-                } else {
-                    onClose();
-                    setEmailOrPhone("");
-                    setPassword("");
-                    setErrors({ emailOrPhone: "", password: "" });
-                }
+                onClose();
+                setEmailOrPhone("");
+                setPassword("");
+                setErrors({ emailOrPhone: "", password: "" });
             }
         } catch (error) {
             toast({
@@ -162,7 +133,7 @@ export default function AuthModal({
                 <Box p={{ base: 6, md: 8 }}>
                     <AnimatePresence mode="wait">
                         <MotionBox
-                            key={mode}
+                            key="login"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
@@ -176,7 +147,7 @@ export default function AuthModal({
                                 textAlign="center"
                                 fontFamily="Playfair Display, serif"
                             >
-                                {mode === "register" ? "Регистрация" : "Вход в аккаунт"}
+                                Вход в аккаунт
                             </Heading>
 
                             <Flex direction="column" gap={5}>
@@ -242,7 +213,7 @@ export default function AuthModal({
                                     }}
                                     _active={{ bg: "#500014" }}
                                     isLoading={isSubmitting}
-                                    loadingText={mode === "register" ? "Регистрация..." : "Вход..."}
+                                    loadingText={"Вход..."}
                                     onClick={handleSubmit}
                                     size="lg"
                                     fontSize="md"
@@ -250,50 +221,25 @@ export default function AuthModal({
                                     transition="all 0.3s"
                                     py={6}
                                 >
-                                    {mode === "register" ? "Зарегистрироваться!" : "Войти"}
+                                    Войти
                                 </Button>
                             </Flex>
                         </MotionBox>
                     </AnimatePresence>
 
-                    <Flex justify="center" mt={4} wrap="wrap">
-                        <Text color="#a0a0a0" textAlign="center">
-                            {mode === "register"
-                                ? "Уже зарегистрированы?"
-                                : "Ещё нет аккаунта?"}
-                        </Text>
-                        <Button
-                            variant="link"
-                            color="#800020"
-                            ml={2}
-                            onClick={mode === "register" ? switchToLogin : switchToRegister}
-                            _hover={{
-                                textDecoration: "underline",
-                                color: "#a00028"
-                            }}
-                            fontSize={{ base: "sm", md: "md" }}
-                            whiteSpace="nowrap"
-                            isDisabled={isSubmitting}
-                        >
-                            {mode === "register"
-                                ? "Нажмите сюда, чтобы войти!"
-                                : "Зарегистрироваться"}
-                        </Button>
-                    </Flex>
+                    {/* Анимационная полоса в стиле театрального занавеса */}
+                    <MotionBox
+                        position="absolute"
+                        bottom={0}
+                        left={0}
+                        w="100%"
+                        h="4px"
+                        bg="linear-gradient(90deg, #800020, #FFD700, #800020)"
+                        initial={{ width: 0 }}
+                        animate={{ width: "100%" }}
+                        transition={{ duration: 0.8, delay: 0.1 }}
+                    />
                 </Box>
-
-                {/* Анимационная полоса в стиле театрального занавеса */}
-                <MotionBox
-                    position="absolute"
-                    bottom={0}
-                    left={0}
-                    w="100%"
-                    h="4px"
-                    bg="linear-gradient(90deg, #800020, #FFD700, #800020)"
-                    initial={{ width: 0 }}
-                    animate={{ width: "100%" }}
-                    transition={{ duration: 0.8, delay: 0.1 }}
-                />
             </ModalContent>
         </Modal>
     );

@@ -156,7 +156,7 @@ class AuthService {
     axios.interceptors.response.use(
       (response) => response,
       async (error) => {
-        const originalRequest = error.config;
+        const originalRequest = error.config as any;
 
         if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true;
@@ -174,27 +174,6 @@ class AuthService {
         return Promise.reject(error);
       }
     );
-  }
-
-  /**
-   * Регистрация пользователя (email или телефон)
-   */
-  async register(emailOrPhone: string, password: string): Promise<boolean> {
-    try {
-      const isEmail = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(emailOrPhone);
-      const requestData = isEmail
-        ? { email: emailOrPhone, password }
-        : { phone_number: emailOrPhone, password };
-
-      const response: AxiosResponse<{ user: User; message: string }> = await axios.post(
-        `${API_BASE_URL}/register/`,
-        requestData
-      );
-      return true;
-    } catch (error) {
-      console.error('Ошибка регистрации:', error);
-      return false;
-    }
   }
 
   /**
