@@ -9,6 +9,12 @@ body {
   --refresh-token: '';
 }
 
+/* Глобально убираем горизонтальную прокрутку, чтобы устранить белые поля справа на мобильных */
+html, body, #root {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
