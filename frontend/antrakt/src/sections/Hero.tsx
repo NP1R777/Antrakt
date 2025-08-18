@@ -24,9 +24,10 @@ export default function Hero() {
                     width: "100%",
                     height: "100%",
                     backgroundImage: "url('/images/stage-bg.jpg')",
-                    backgroundSize: "cover",
+                    backgroundSize: "contain",
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",
+                    backgroundColor: "black",
                     zIndex: 0,
                 }}
             />
