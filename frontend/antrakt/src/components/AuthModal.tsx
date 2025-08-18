@@ -51,7 +51,7 @@ export default function AuthModal({
     const validateEmailOrPhone = (value: string) => {
         if (!value) return "Email или телефон обязателен";
         if (!isEmail(value) && !isPhoneNumber(value.replace(/^\+/, ''))) {
-            return "Введите корректный email или номер телефона";
+            return "Введите корректный email";
         }
         return "";
     };
@@ -147,7 +147,8 @@ export default function AuthModal({
                                 textAlign="center"
                                 fontFamily="Playfair Display, serif"
                             >
-                                Вход в аккаунт
+                                <p>Вход</p>
+                                (только для администратора)
                             </Heading>
 
                             <Flex direction="column" gap={5}>
@@ -163,7 +164,7 @@ export default function AuthModal({
                                             setEmailOrPhone(e.target.value);
                                             setErrors({ ...errors, emailOrPhone: validateEmailOrPhone(e.target.value) });
                                         }}
-                                        placeholder={"email@domain.com или +7XXXXXXXXXX"}
+                                        placeholder={"email@domain.com"}
                                         bg="#1a1a1a"
                                         borderColor="#333"
                                         color="white"

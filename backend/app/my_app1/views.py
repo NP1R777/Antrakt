@@ -1,26 +1,20 @@
+import uuid
+import boto3
 from .models import *
-from itertools import chain
 from datetime import datetime
+from urllib.parse import urlparse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import permission_classes
+from botocore.client import Config as BotoConfig
 from rest_framework import status, generics, permissions
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
-from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .serializers import (UserSerializer, PerfomanceSerializer, ActorsSerializer,
                           DirectorsSerializer, NewsSerializer, ArchiveSerializer,
                           AchievementsSerializer, CustomTokenObtainPairSerializer)
-from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from rest_framework.parsers import MultiPartParser, FormParser
-import boto3
-from botocore.client import Config as BotoConfig
-from urllib.parse import urlparse
-import uuid
 
 
 class UserList(APIView):
@@ -380,7 +374,7 @@ class NewsList(APIView):
 
     def get(self, request, format=None):
         news = self.model_class.objects.filter(deleted_at=None,
-                                               is_published=True)
+                                               is_published=True).order_by('date_publish').reverse()
         serializer = self.serializer_class(news, many=True)
         return Response(serializer.data)
     
