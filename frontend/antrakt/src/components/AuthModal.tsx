@@ -12,10 +12,14 @@ import {
     FormControl,
     FormLabel,
     FormErrorMessage,
-    useToast
+    useToast,
+    InputGroup,
+    InputRightElement,
+    IconButton
 } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
 
 const MotionBox = motion(Box);
 
@@ -34,6 +38,7 @@ export default function AuthModal({
     const [emailOrPhone, setEmailOrPhone] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [errors, setErrors] = useState({
         emailOrPhone: "",
         password: "",
@@ -182,24 +187,38 @@ export default function AuthModal({
                                 {/* Поле Пароль */}
                                 <FormControl isInvalid={!!errors.password}>
                                     <FormLabel color="white">Пароль</FormLabel>
-                                    <Input
-                                        type="password"
-                                        value={password}
-                                        onChange={(e) => {
-                                            setPassword(e.target.value);
-                                            setErrors({ ...errors, password: validatePassword(e.target.value) });
-                                        }}
-                                        placeholder="••••••"
-                                        bg="#1a1a1a"
-                                        borderColor="#333"
-                                        color="white"
-                                        _placeholder={{ color: "#555" }}
-                                        _focus={{
-                                            borderColor: "#800020",
-                                            boxShadow: "0 0 0 1px #800020"
-                                        }}
-                                        _hover={{ borderColor: "#444" }}
-                                    />
+                                    <InputGroup>
+                                        <Input
+                                            type={isPasswordVisible ? "text" : "password"}
+                                            value={password}
+                                            onChange={(e) => {
+                                                setPassword(e.target.value);
+                                                setErrors({ ...errors, password: validatePassword(e.target.value) });
+                                            }}
+                                            placeholder="••••••"
+                                            bg="#1a1a1a"
+                                            borderColor="#333"
+                                            color="white"
+                                            _placeholder={{ color: "#555" }}
+                                            _focus={{
+                                                borderColor: "#800020",
+                                                boxShadow: "0 0 0 1px #800020"
+                                            }}
+                                            _hover={{ borderColor: "#444" }}
+                                        />
+                                        <InputRightElement height="full">
+                                            <IconButton
+                                                aria-label={isPasswordVisible ? "Скрыть пароль" : "Показать пароль"}
+                                                icon={isPasswordVisible ? <ViewOffIcon /> : <ViewIcon />}
+                                                variant="ghost"
+                                                size="sm"
+                                                color="white"
+                                                _hover={{ bg: "rgba(255,255,255,0.08)", color: "#FFD700" }}
+                                                onClick={() => setIsPasswordVisible((v) => !v)}
+                                                tabIndex={0}
+                                            />
+                                        </InputRightElement>
+                                    </InputGroup>
                                     <FormErrorMessage>{errors.password}</FormErrorMessage>
                                 </FormControl>
 
