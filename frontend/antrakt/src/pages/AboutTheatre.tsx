@@ -12,7 +12,7 @@ const AboutTheatre: React.FC = () => {
     return (
         <Box bg="#0a0a0a" minH="100vh" display="flex" flexDirection="column" color="#ffffff">
             <Navigation />
-            <Box flex="1" py={20} px={{ base: 4, md: 8 }} position="relative">
+            <Box flex="1" py={{ base: 12, md: 20 }} px={{ base: 4, md: 8 }} position="relative">
                 <MotionBox
                     position="absolute"
                     top="-10%"

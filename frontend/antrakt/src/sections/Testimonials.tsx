@@ -84,7 +84,7 @@ const testimonials = [
 
 export default function Testimonials() {
     return (
-        <Box py={20} bg="black" position="relative" overflow="hidden" id="testimonials">
+        <Box py={{ base: 12, md: 20 }} bg="black" position="relative" overflow="hidden" id="testimonials">
             {/* Размытый фоновой круг */}
             <MotionBox
                 position="absolute"
@@ -110,7 +110,7 @@ export default function Testimonials() {
                     mb={16}
                     textAlign="center"
                 >
-                    <Heading as="h2" fontSize={{ base: "3xl", md: "4xl" }} color="white" mb={4}>
+                    <Heading as="h2" fontSize={{ base: "2xl", sm: "3xl", md: "4xl" }} color="white" mb={4}>
                         Что говорят о нас
                     </Heading>
                     <Text color="gray.400" maxW="2xl" mx="auto">

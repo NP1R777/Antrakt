@@ -58,7 +58,7 @@ const AchievementsPage: React.FC = () => {
         return (
             <Box>
                 <Navigation />
-                <Box textAlign="center" py={20} bg="#0a0a0a">
+                <Box textAlign="center" py={{ base: 12, md: 20 }} bg="#0a0a0a">
                     <Text color="#ffffff">Ошибка: {error}</Text>
                 </Box>
                 <Footer />
@@ -69,7 +69,7 @@ const AchievementsPage: React.FC = () => {
     return (
         <Box bg="#0a0a0a" minH="100vh" display="flex" flexDirection="column" color="#ffffff">
             <Navigation />
-            <Box flex="1" py={20} px={{ base: 4, md: 8 }} position="relative">
+            <Box flex="1" py={{ base: 12, md: 20 }} px={{ base: 4, md: 8 }} position="relative">
                 <MotionBox
                     position="absolute"
                     top="-15%"
@@ -163,7 +163,7 @@ const AchievementsPage: React.FC = () => {
                                                 src={achievement.image_url}
                                                 alt={achievement.achievement}
                                                 w="100%"
-                                                h="200px"
+                                                h={{ base: "160px", md: "200px" }}
                                                 objectFit="cover"
                                                 borderRadius="lg"
                                                 mb={4}

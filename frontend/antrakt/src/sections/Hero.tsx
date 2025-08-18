@@ -51,7 +51,7 @@ export default function Hero() {
                 direction="column"
                 maxW="container.md"
                 mx="auto"
-                px={8}
+                px={{ base: 4, md: 8 }}
                 h="full"
                 justify="center"
                 align="center"
@@ -66,7 +66,7 @@ export default function Hero() {
                 >
                     <Heading
                         as="h1"
-                        fontSize={{ base: "4xl", md: "6xl" }}
+                        fontSize={{ base: "3xl", sm: "4xl", md: "6xl" }}
                         mb={6}
                         textShadow="0 0 10px rgba(128, 0, 32, 0.8)"
                         color="white"
@@ -74,7 +74,7 @@ export default function Hero() {
                         Театральная студия "Антракт"
                     </Heading>
 
-                    <Text fontSize="xl" mb={10} color="white">
+                    <Text fontSize={{ base: "md", md: "xl" }} mb={{ base: 6, md: 10 }} color="white">
                         Где каждый находит свою сцену и раскрывает творческий потенциал
                     </Text>
                 </MotionDiv>

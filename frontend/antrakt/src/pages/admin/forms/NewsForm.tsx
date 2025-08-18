@@ -379,7 +379,7 @@ export const NewsForm: React.FC<{
             </Flex>
 
             {/* Модальное окно для загрузки фотографий в галерею */}
-            <Modal isOpen={isOpen} onClose={onClose} size="lg">
+            <Modal isOpen={isOpen} onClose={onClose} size={{ base: "sm", md: "lg" }}>
                 <ModalOverlay />
                 <ModalContent bg="gray.800" color="white">
                     <ModalHeader>Добавить фотографию в галерею</ModalHeader>

@@ -165,7 +165,7 @@ const DirectorDetail: React.FC = () => {
 
     if (error) {
         return (
-            <Box textAlign="center" py={20} bg="black">
+            <Box textAlign="center" py={{ base: 12, md: 20 }} bg="black">
                 <Alert status="error" variant="subtle" flexDirection="column" alignItems="center">
                     <AlertIcon boxSize="40px" mr={0} />
                     <AlertTitle mt={4} mb={1} fontSize="md" color="white">
@@ -184,7 +184,7 @@ const DirectorDetail: React.FC = () => {
 
     if (!director) {
         return (
-            <Box textAlign="center" py={20} bg="black">
+            <Box textAlign="center" py={{ base: 12, md: 20 }} bg="black">
                 <Heading size="md" mb={4} color="white">Режиссёр не найден</Heading>
                 <Button
                     variant="outline"
@@ -203,7 +203,7 @@ const DirectorDetail: React.FC = () => {
     return (
         <Box bg="black" display="flex" flexDirection="column" minH="100vh">
             <Navigation />
-            <Box flex="1" py={20} px={{ base: 4, md: 8 }} bg="black" position="relative">
+            <Box flex="1" py={{ base: 12, md: 20 }} px={{ base: 4, md: 8 }} bg="black" position="relative">
                 {/* Декоративный элемент */}
                 <MotionBox
                     position="absolute"
@@ -234,20 +234,20 @@ const DirectorDetail: React.FC = () => {
                     </Button>
 
                     <Grid
-                        templateColumns={{ base: "1fr", md: "300px 1fr" }}
-                        gap={8}
+                        templateColumns={{ base: "1fr", md: "280px 1fr" }}
+                        gap={{ base: 4, md: 8 }}
                         bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(64, 0, 16, 0.3))"
                         borderRadius="xl"
                         border="1px solid"
                         borderColor="rgba(64, 0, 16, 0.7)"
                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
-                        p={8}
+                        p={{ base: 4, md: 8 }}
                     >
                         <GridItem>
                             <Image
                                 src={director.image_url}
                                 alt={director.name}
-                                width="300px"
+                                width={{ base: "100%", md: "280px" }}
                                 height="auto"
                                 objectFit="contain"
                                 border="4px solid"
@@ -283,7 +283,7 @@ const DirectorDetail: React.FC = () => {
                                             <CFaTheaterMasks mr={2} color="#F56565" />
                                             Поставленные спектакли
                                         </Heading>
-                                        <Grid templateColumns="repeat(auto-fill, minmax(300px, 1fr))" gap={4}>
+                                        <Grid templateColumns="repeat(auto-fill, minmax(220px, 1fr))" gap={4}>
                                             {director.perfomances.map((perfomance, idx) => (
                                                 <MotionBox
                                                     key={idx}

@@ -30,7 +30,7 @@ export default function Header() {
                 mx="auto"
                 align="center"
                 justify="space-between"
-                px={8}
+                px={{ base: 4, md: 8 }}
             >
                 {/* Навигация будет добавлена позже */}
             </Flex>

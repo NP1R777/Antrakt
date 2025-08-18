@@ -192,7 +192,7 @@ export default function Navigation() {
             </Flex>
 
             <Collapse in={isOpen} animateOpacity>
-                <Box display={{ md: "none" }} bg="rgba(0, 0, 0, 0.95)" px={4} py={2}>
+                <Box display={{ md: "none" }} bg="rgba(0, 0, 0, 0.95)" px={{ base: 2, sm: 4 }} py={2}>
                     <Stack as="nav" spacing={4}>
                         {NAV_ITEMS.map((item) => (
                             <Link
@@ -201,7 +201,7 @@ export default function Navigation() {
                                 to={`/${item.href}`}
                                 color={lightText}
                                 py={2}
-                                px={4}
+                                px={{ base: 3, sm: 4 }}
                                 bg="rgba(90, 0, 23, 0.3)"
                                 borderRadius="md"
                                 fontWeight={500}
@@ -221,6 +221,7 @@ export default function Navigation() {
                                 _hover={{ bg: primaryColor }}
                                 onClick={handleLoginClick}
                                 mt={2}
+                                w="full"
                             >
                                 Войти
                             </Button>

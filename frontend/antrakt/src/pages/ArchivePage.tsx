@@ -79,7 +79,7 @@ const ArchivePage: React.FC = () => {
         return (
             <Box>
                 <Navigation />
-                <Box textAlign="center" py={20} bg="black">
+                <Box textAlign="center" py={{ base: 12, md: 20 }} bg="black">
                     <Alert status="error" variant="subtle" flexDirection="column" alignItems="center">
                         <AlertIcon boxSize="40px" mr={0} />
                         <AlertTitle mt={4} mb={1} fontSize="md" color="white">
@@ -99,7 +99,7 @@ const ArchivePage: React.FC = () => {
         <Box bg={darkBg} minH="100vh" display="flex" flexDirection="column" overflowX="hidden">
             <Navigation />
 
-            <Box flex="1" py={20} position="relative" px={{ base: 4, md: 8 }}>
+            <Box flex="1" py={{ base: 12, md: 20 }} position="relative" px={{ base: 4, md: 8 }}>
                 {/* Декоративные элементы */}
                 <MotionBox
                     position="absolute"
@@ -220,7 +220,7 @@ const ArchivePage: React.FC = () => {
                                         <Image
                                             src={project.archive_image || "/placeholder-image.jpg"}
                                             alt={project.title}
-                                            height="300px"
+                                            height={{ base: "220px", md: "300px" }}
                                             objectFit="cover"
                                             fallbackSrc="/placeholder-image.jpg"
                                             w="100%"

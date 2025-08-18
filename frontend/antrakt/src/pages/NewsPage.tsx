@@ -86,7 +86,7 @@ const NewsPage: React.FC = () => {
         <Box bg={darkBg} minH="100vh" display="flex" flexDirection="column" overflowX="hidden">
             <Navigation />
 
-            <Box flex="1" py={20} position="relative" px={{ base: 4, md: 8 }}>
+            <Box flex="1" py={{ base: 12, md: 20 }} position="relative" px={{ base: 4, md: 8 }}>
                 <MotionBox
                     position="absolute"
                     top="-10%"
@@ -173,7 +173,7 @@ const NewsPage: React.FC = () => {
                             <Spinner size="xl" color={primaryColor} thickness="4px" />
                         </Flex>
                     ) : publishedNews.length === 0 ? (
-                        <Box textAlign="center" py={20}>
+                        <Box textAlign="center" py={{ base: 12, md: 20 }}>
                             <Image
                                 src="/empty-state.svg"
                                 alt="Новостей нет"
@@ -186,7 +186,7 @@ const NewsPage: React.FC = () => {
                             <Text color={grayText}>Скоро здесь появятся свежие новости театра</Text>
                         </Box>
                     ) : (
-                        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
+                        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={{ base: 6, md: 8 }}>
                             {publishedNews.map((item) => (
                                 <MotionBox
                                     key={item.id}
@@ -220,7 +220,7 @@ const NewsPage: React.FC = () => {
                                             <Image
                                                 src={item.image_url}
                                                 alt={item.title}
-                                                height="200px"
+                                                height={{ base: "180px", md: "200px" }}
                                                 objectFit="cover"
                                                 fallbackSrc="/placeholder-image.jpg"
                                                 w="100%"
