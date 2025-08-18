@@ -108,7 +108,7 @@ export default function AuthModal({
             isOpen={isOpen}
             onClose={onClose}
             isCentered
-            size="lg"
+            size={{ base: "sm", md: "lg" }}
             motionPreset="scale"
             closeOnOverlayClick={!isSubmitting}
         >
@@ -135,7 +135,7 @@ export default function AuthModal({
                     isDisabled={isSubmitting}
                 />
 
-                <Box p={{ base: 6, md: 8 }}>
+                <Box p={{ base: 4, md: 8 }}>
                     <AnimatePresence mode="wait">
                         <MotionBox
                             key="login"
@@ -146,7 +146,7 @@ export default function AuthModal({
                         >
                             <Heading
                                 as="h3"
-                                fontSize="2xl"
+                                fontSize={{ base: "xl", md: "2xl" }}
                                 color="white"
                                 mb={6}
                                 textAlign="center"
@@ -235,11 +235,11 @@ export default function AuthModal({
                                     isLoading={isSubmitting}
                                     loadingText={"Вход..."}
                                     onClick={handleSubmit}
-                                    size="lg"
-                                    fontSize="md"
+                                    size={{ base: "md", md: "lg" }}
+                                    fontSize={{ base: "sm", md: "md" }}
                                     fontWeight="bold"
                                     transition="all 0.3s"
-                                    py={6}
+                                    py={{ base: 4, md: 6 }}
                                 >
                                     Войти
                                 </Button>

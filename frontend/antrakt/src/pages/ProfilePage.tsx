@@ -397,7 +397,7 @@ export default function ProfilePage() {
     return (
         <Box bg="black" minH="100vh" display="flex" flexDirection="column" overflowX="hidden">
             <Navigation />
-            <Box flex="1" py={20} position="relative" px={{ base: 4, md: 8 }}>
+            <Box flex="1" py={{ base: 12, md: 20 }} position="relative" px={{ base: 4, md: 8 }}>
                 <MotionBox
                     position="absolute"
                     top="-10%"
@@ -456,7 +456,7 @@ export default function ProfilePage() {
                         borderRadius="xl"
                         border="1px solid"
                         borderColor="rgba(64, 0, 16, 0.7)"
-                        p={8}
+                        p={{ base: 4, md: 8 }}
                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                         initial="hidden"
                         animate="visible"
@@ -599,7 +599,7 @@ export default function ProfilePage() {
                         borderRadius="xl"
                         border="1px solid"
                         borderColor="rgba(64, 0, 16, 0.7)"
-                        p={8}
+                        p={{ base: 4, md: 8 }}
                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                         _hover={{ boxShadow: "0 10px 25px rgba(245, 101, 101, 0.4)", transition: { duration: 0.5, ease: "easeOut" } }}
                     >
@@ -660,7 +660,7 @@ export default function ProfilePage() {
                 </Modal>
 
                 {/* Модальное окно для редактирования профиля */}
-                <Modal isOpen={isEditModalOpen} onClose={onEditModalClose} isCentered size="lg">
+                <Modal isOpen={isEditModalOpen} onClose={onEditModalClose} isCentered size={{ base: "sm", md: "lg" }}>
                     <ModalOverlay />
                     <ModalContent bg="#1a1a1a" color="white" borderRadius="xl" border="1px solid" borderColor="rgba(64, 0, 16, 0.7)">
                         <ModalHeader>Редактировать профиль</ModalHeader>

@@ -59,7 +59,7 @@ export default function NewsSection() {
     };
 
     return (
-        <Box py={20} bg="black" position="relative" overflow="hidden" id="news">
+        <Box py={{ base: 12, md: 20 }} bg="black" position="relative" overflow="hidden" id="news">
             {/* Декоративный элемент */}
             <MotionBox
                 position="absolute"
@@ -87,7 +87,7 @@ export default function NewsSection() {
                 >
                     <Heading
                         as="h2"
-                        fontSize={{ base: "3xl", md: "4xl" }}
+                        fontSize={{ base: "2xl", sm: "3xl", md: "4xl" }}
                         color="white"
                         mb={4}
                         position="relative"
@@ -153,15 +153,15 @@ export default function NewsSection() {
                         </Grid>
 
                         {/* Кнопка "Все новости" */}
-                        <Flex justify="center" mt={12}>
+                        <Flex justify="center" mt={{ base: 8, md: 12 }}>
                             <Button
                                 as={RouterLink}
                                 to="/news"
                                 variant="theater"
-                                size="lg"
-                                px={10}
-                                py={6}
-                                fontSize="lg"
+                                size={{ base: "md", md: "lg" }}
+                                px={{ base: 6, md: 10 }}
+                                py={{ base: 4, md: 6 }}
+                                fontSize={{ base: "md", md: "lg" }}
                                 rightIcon={<span>→</span>}
                                 _hover={{
                                     transform: "translateX(5px)",

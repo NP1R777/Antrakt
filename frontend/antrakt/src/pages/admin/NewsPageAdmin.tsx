@@ -214,7 +214,7 @@ const NewsPageAdmin: React.FC = () => {
 
         if (news.length === 0) {
             return (
-                <Box textAlign="center" py={20}>
+                <Box textAlign="center" py={{ base: 12, md: 20 }}>
                     <CFaNewspaper size="4em" color="#666" />
                     <Text mt={4} color="#666" fontSize="lg">
                         Новости не найдены

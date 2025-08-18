@@ -204,7 +204,7 @@ const PerformanceDetail: React.FC = () => {
         return (
             <Box>
                 <Navigation />
-                <Box textAlign="center" py={20} bg="black">
+                <Box textAlign="center" py={{ base: 12, md: 20 }} bg="black">
                     <Alert status="error" variant="subtle" flexDirection="column" alignItems="center">
                         <AlertIcon boxSize="40px" mr={0} />
                         <AlertTitle mt={4} mb={1} fontSize="md" color="white">
@@ -224,7 +224,7 @@ const PerformanceDetail: React.FC = () => {
         return (
             <Box>
                 <Navigation />
-                <Box textAlign="center" py={20} bg="black">
+                <Box textAlign="center" py={{ base: 12, md: 20 }} bg="black">
                     <Heading size="md" mb={4} color="white">Спектакль не найден</Heading>
                     <Button
                         variant="outline"
@@ -251,7 +251,7 @@ const PerformanceDetail: React.FC = () => {
     return (
         <Box bg="black" display="flex" flexDirection="column" minH="100vh">
             <Navigation />
-            <Box flex="1" py={20} px={{ base: 4, md: 8 }} bg="black" position="relative">
+            <Box flex="1" py={{ base: 12, md: 20 }} px={{ base: 4, md: 8 }} bg="black" position="relative">
                 <MotionBox
                     position="absolute"
                     bottom="-20%"
@@ -281,20 +281,20 @@ const PerformanceDetail: React.FC = () => {
                     </Button>
 
                     <Grid
-                        templateColumns={{ base: "1fr", md: "300px 1fr" }}
-                        gap={8}
+                        templateColumns={{ base: "1fr", md: "280px 1fr" }}
+                        gap={{ base: 4, md: 8 }}
                         bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(64, 0, 16, 0.3))"
                         borderRadius="xl"
                         border="1px solid"
                         borderColor="rgba(64, 0, 16, 0.7)"
                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
-                        p={8}
+                        p={{ base: 4, md: 8 }}
                     >
                         <GridItem>
                             <Image
                                 src={performance.image_url}
                                 alt={performance.title}
-                                width="300px"
+                                width={{ base: "100%", md: "280px" }}
                                 height="auto"
                                 objectFit="contain"
                                 border="4px solid"
@@ -397,14 +397,14 @@ const PerformanceDetail: React.FC = () => {
                                 align="center"
                                 justify="center"
                                 overflow="hidden"
-                                h={{ base: "250px", md: "400px" }} // Увеличенная высота
-                                w="100%" // Занимает всю доступную ширину
+                                h={{ base: "240px", sm: "300px", md: "420px" }}
+                                w="100%"
                                 borderRadius="xl"
                                 bg="rgba(20, 20, 20, 0.5)"
                                 border="1px solid"
                                 borderColor="rgba(64, 0, 16, 0.7)"
                                 boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
-                                p={2}
+                                p={{ base: 1, md: 2 }}
                             >
                                 <IconButton
                                     aria-label="Предыдущее фото"
@@ -498,7 +498,7 @@ const PerformanceDetail: React.FC = () => {
             <Footer />
 
             {/* Модальное окно для просмотра фото */}
-            <Modal isOpen={isOpen} onClose={handleModalClose} size="6xl" isCentered>
+            <Modal isOpen={isOpen} onClose={handleModalClose} size={{ base: "full", md: "6xl" }} isCentered>
                 <ModalOverlay bg="rgba(0, 0, 0, 0.8)" />
                 <ModalContent bg="transparent" boxShadow="none">
                     <ModalCloseButton
@@ -510,7 +510,7 @@ const PerformanceDetail: React.FC = () => {
                         onClick={handleModalClose}
                     />
 
-                    <Flex position="relative" h="85vh" align="center" justify="center">
+                    <Flex position="relative" h={{ base: "80vh", md: "85vh" }} align="center" justify="center">
                         <IconButton
                             aria-label="Предыдущее фото"
                             icon={<ChevronLeftIcon />}

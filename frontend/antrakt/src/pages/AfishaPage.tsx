@@ -80,7 +80,7 @@ const AfishaPage: React.FC = () => {
         return (
             <Box>
                 <Navigation />
-                <Box textAlign="center" py={20} bg="black">
+                <Box textAlign="center" py={{ base: 12, md: 20 }} bg="black">
                     <Alert status="error" variant="subtle" flexDirection="column" alignItems="center">
                         <AlertIcon boxSize="40px" mr={0} />
                         <AlertTitle mt={4} mb={1} fontSize="md" color="white">
@@ -99,7 +99,7 @@ const AfishaPage: React.FC = () => {
     return (
         <Box bg="black" minH="100vh" display="flex" flexDirection="column" overflowX="hidden">
             <Navigation />
-            <Box flex="1" py={20} position="relative" px={{ base: 4, md: 8 }}>
+            <Box flex="1" py={{ base: 12, md: 20 }} position="relative" px={{ base: 4, md: 8 }}>
                 {/* Декоративные элементы */}
                 <MotionBox
                     position="absolute"
@@ -217,7 +217,7 @@ const AfishaPage: React.FC = () => {
                                         flexDirection="column"
                                         h="100%"
                                     >
-                                        <Box position="relative" h="400px">
+                                        <Box position="relative" h={{ base: "240px", sm: "300px", md: "380px" }}>
                                             <Image
                                                 src={item.image_url || "/placeholder-image.jpg"}
                                                 alt={item.title}

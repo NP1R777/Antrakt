@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -19,13 +19,12 @@ import {
     AlertDescription
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
-import Footer from "../../components/Footer";
 import Navigation from "../../components/Navigation";
+import Footer from "../../components/Footer";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaQuoteLeft, FaUserTie, FaBook, FaUser, FaPaintBrush, FaVideo, FaMusic } from "react-icons/fa";
 import { yearDeclension, performanceDeclension } from "../../utils/declension";
 
-// Стилизованные компоненты для иконок
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
 const CFaFilm = chakra(FaFilm as any);
 const CFaQuoteLeft = chakra(FaQuoteLeft as any);
@@ -38,7 +37,6 @@ const CFaMusic = chakra(FaMusic as any);
 
 const MotionBox = motion(Box);
 
-// Интерфейс для данных актера
 interface ServerActor {
     name: string;
     image_url: string;
@@ -57,7 +55,6 @@ interface ServerActor {
     role_in_perfomances: string[] | null;
 }
 
-// Интерфейс для спектакля
 interface Performance {
     id: number;
     title: string;
@@ -69,34 +66,16 @@ interface Performance {
 const ActorDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+
     const [actor, setActor] = useState<ServerActor | null>(null);
     const [performances, setPerformances] = useState<Performance[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    // Функция для получения ID спектакля по названию
-    const findPerformanceIdByTitle = (title: string): number | null => {
-        const performance = performances.find(p => p.title.toLowerCase() === title.toLowerCase());
-        return performance ? performance.id : null;
-    };
-
-    // Функция для обработки клика по карточке спектакля
-    const handlePerformanceClick = (performanceTitle: string) => {
-        const performanceId = findPerformanceIdByTitle(performanceTitle);
-        if (performanceId) {
-            navigate(`/performance/${performanceId}`);
-        } else {
-            // Если спектакль не найден, можно показать уведомление или попробовать другой подход
-            console.warn(`Спектакль "${performanceTitle}" не найден в базе данных`);
-        }
-    };
-
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                
-                // Загружаем данные актера и список всех спектаклей параллельно
                 const [actorResponse, performancesResponse] = await Promise.all([
                     axios.get(`http://localhost:8000/actor${id}`),
                     axios.get(`http://localhost:8000/perfomances/`)
@@ -116,18 +95,26 @@ const ActorDetail: React.FC = () => {
                 });
 
                 setPerformances(performancesResponse.data);
-            } catch (err) {
+            } catch (e) {
                 setError("Ошибка загрузки данных актера");
-                console.error(err);
+                console.error(e);
             } finally {
                 setLoading(false);
             }
         };
 
-        if (id) {
-            fetchData();
-        }
+        if (id) fetchData();
     }, [id]);
+
+    const findPerformanceIdByTitle = (title: string): number | null => {
+        const performance = performances.find(p => p.title.toLowerCase() === title.toLowerCase());
+        return performance ? performance.id : null;
+    };
+
+    const handlePerformanceClick = (performanceTitle: string) => {
+        const performanceId = findPerformanceIdByTitle(performanceTitle);
+        if (performanceId) navigate(`/performance/${performanceId}`);
+    };
 
     if (loading) {
         return (
@@ -139,18 +126,11 @@ const ActorDetail: React.FC = () => {
 
     if (error) {
         return (
-            <Box textAlign="center" py={20} bg="black">
+            <Box textAlign="center" py={{ base: 12, md: 20 }} bg="black">
                 <Alert status="error" variant="subtle" flexDirection="column" alignItems="center">
                     <AlertIcon boxSize="40px" mr={0} />
-                    <AlertTitle mt={4} mb={1} fontSize="md" color="white">
-                        Ошибка загрузки
-                    </AlertTitle>
-                    <AlertDescription maxWidth="sm" color="gray.400" fontSize="sm">
-                        {error}
-                    </AlertDescription>
-                    <Button mt={4} colorScheme="red" size="sm" onClick={() => window.location.reload()}>
-                        Повторить попытку
-                    </Button>
+                    <AlertTitle mt={4} mb={1} fontSize="md" color="white">Ошибка загрузки</AlertTitle>
+                    <AlertDescription maxWidth="sm" color="gray.400" fontSize="sm">{error}</AlertDescription>
                 </Alert>
             </Box>
         );
@@ -158,7 +138,7 @@ const ActorDetail: React.FC = () => {
 
     if (!actor) {
         return (
-            <Box textAlign="center" py={20} bg="black">
+            <Box textAlign="center" py={{ base: 12, md: 20 }} bg="black">
                 <Heading size="md" mb={4} color="white">Актер не найден</Heading>
                 <Button
                     variant="outline"
@@ -174,16 +154,14 @@ const ActorDetail: React.FC = () => {
         );
     }
 
-    // Парсинг опыта из строки
     const experienceMatch = actor.time_in_theatre.match(/\d+/);
     const experience = experienceMatch ? parseInt(experienceMatch[0]) : 0;
-    const isFemale = actor.name.match(/[ая]$/i); // Эвристика для пола
+    const isFemale = actor.name.match(/[ая]$/i);
 
     return (
         <Box bg="black" display="flex" flexDirection="column" minH="100vh">
             <Navigation />
-            <Box flex="1" py={20} px={{ base: 4, md: 8 }} bg="black" position="relative">
-                {/* Декоративный элемент */}
+            <Box flex="1" py={{ base: 12, md: 20 }} px={{ base: 4, md: 8 }} bg="black" position="relative">
                 <MotionBox
                     position="absolute"
                     bottom="-20%"
@@ -213,20 +191,20 @@ const ActorDetail: React.FC = () => {
                     </Button>
 
                     <Grid
-                        templateColumns={{ base: "1fr", md: "300px 1fr" }}
-                        gap={8}
+                        templateColumns={{ base: "1fr", md: "280px 1fr" }}
+                        gap={{ base: 4, md: 8 }}
                         bg="rgba(25, 25, 25, 0.8)"
                         borderRadius="xl"
                         border="1px solid"
                         borderColor="gray.800"
                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
-                        p={8}
+                        p={{ base: 4, md: 8 }}
                     >
                         <GridItem>
                             <Image
                                 src={actor.image_url}
                                 alt={actor.name}
-                                width="300px"
+                                width={{ base: "100%", md: "280px" }}
                                 height="auto"
                                 objectFit="contain"
                                 border="4px solid"
@@ -238,13 +216,8 @@ const ActorDetail: React.FC = () => {
 
                         <GridItem>
                             <VStack align="start" spacing={6}>
-                                <Heading as="h1" size="lg" color="white">
-                                    {actor.name}
-                                </Heading>
-
-                                <Text color="whiteAlpha.800" fontSize="sm">
-                                    {isFemale ? "Актриса" : "Актер"}
-                                </Text>
+                                <Heading as="h1" size="lg" color="white">{actor.name}</Heading>
+                                <Text color="whiteAlpha.800" fontSize="sm">{isFemale ? "Актриса" : "Актер"}</Text>
 
                                 <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6} w="full">
                                     <VStack align="start">
@@ -253,30 +226,20 @@ const ActorDetail: React.FC = () => {
                                             Основная информация
                                         </Heading>
                                         {actor.place_of_work && (
-                                            <Text fontSize="md" color="gray.400">
-                                                <b>Место работы:</b> {actor.place_of_work}
-                                            </Text>
+                                            <Text fontSize="md" color="gray.400"><b>Место работы:</b> {actor.place_of_work}</Text>
                                         )}
                                         {actor.time_in_theatre && (
-                                            <Text fontSize="md" color="gray.400">
-                                                <b>В студии:</b> {experience} {yearDeclension(experience)}
-                                            </Text>
+                                            <Text fontSize="md" color="gray.400"><b>В студии:</b> {experience} {yearDeclension(experience)}</Text>
                                         )}
-                                        {actor.favorite_writer?.length > 0 && (
-                                            <Text fontSize="md" color="gray.400">
-                                                <b>Любимый писатель:</b> {actor.favorite_writer.join(", ")}
-                                            </Text>
-                                        )}
-                                        {actor.favorite_character?.length > 0 && (
-                                            <Text fontSize="md" color="gray.400">
-                                                <b>Любимый персонаж:</b> {actor.favorite_character.join(", ")}
-                                            </Text>
-                                        )}
-                                        {actor.favorite_painter?.length > 0 && (
-                                            <Text fontSize="md" color="gray.400">
-                                                <b>Любимый художник:</b> {actor.favorite_painter.join(", ")}
-                                            </Text>
-                                        )}
+                                        {actor.favorite_writer?.length ? (
+                                            <Text fontSize="md" color="gray.400"><b>Любимый писатель:</b> {actor.favorite_writer.join(", ")}</Text>
+                                        ) : null}
+                                        {actor.favorite_character?.length ? (
+                                            <Text fontSize="md" color="gray.400"><b>Любимый персонаж:</b> {actor.favorite_character.join(", ")}</Text>
+                                        ) : null}
+                                        {actor.favorite_painter?.length ? (
+                                            <Text fontSize="md" color="gray.400"><b>Любимый художник:</b> {actor.favorite_painter.join(", ")}</Text>
+                                        ) : null}
                                     </VStack>
 
                                     <VStack align="start">
@@ -284,31 +247,21 @@ const ActorDetail: React.FC = () => {
                                             <CFaFilm mr={2} color="#F56565" />
                                             Творчество
                                         </Heading>
-                                        {actor.perfomances?.length > 0 && (
-                                            <Text fontSize="md" color="gray.400">
-                                                <b>Спектаклей:</b> {actor.perfomances.length} {performanceDeclension(actor.perfomances.length)}
-                                            </Text>
-                                        )}
-                                        {actor.favorite_film?.length > 0 && (
-                                            <Text fontSize="md" color="gray.400">
-                                                <b>Любимый фильм:</b> {actor.favorite_film.join(", ")}
-                                            </Text>
-                                        )}
-                                        {actor.favorite_piece?.length > 0 && (
-                                            <Text fontSize="md" color="gray.400">
-                                                <b>Любимая пьеса:</b> {actor.favorite_piece.join(", ")}
-                                            </Text>
-                                        )}
-                                        {actor.favorite_song?.length > 0 && (
-                                            <Text fontSize="md" color="gray.400">
-                                                <b>Любимая песня:</b> {actor.favorite_song.join(", ")}
-                                            </Text>
-                                        )}
-                                        {actor.author_song?.length > 0 && (
-                                            <Text fontSize="md" color="gray.400">
-                                                <b>Автор песни:</b> {actor.author_song.join(", ")}
-                                            </Text>
-                                        )}
+                                        {actor.perfomances?.length ? (
+                                            <Text fontSize="md" color="gray.400"><b>Спектаклей:</b> {actor.perfomances.length} {performanceDeclension(actor.perfomances.length)}</Text>
+                                        ) : null}
+                                        {actor.favorite_film?.length ? (
+                                            <Text fontSize="md" color="gray.400"><b>Любимый фильм:</b> {actor.favorite_film.join(", ")}</Text>
+                                        ) : null}
+                                        {actor.favorite_piece?.length ? (
+                                            <Text fontSize="md" color="gray.400"><b>Любимая пьеса:</b> {actor.favorite_piece.join(", ")}</Text>
+                                        ) : null}
+                                        {actor.favorite_song?.length ? (
+                                            <Text fontSize="md" color="gray.400"><b>Любимая песня:</b> {actor.favorite_song.join(", ")}</Text>
+                                        ) : null}
+                                        {actor.author_song?.length ? (
+                                            <Text fontSize="md" color="gray.400"><b>Автор песни:</b> {actor.author_song.join(", ")}</Text>
+                                        ) : null}
                                     </VStack>
                                 </Grid>
 
@@ -318,18 +271,14 @@ const ActorDetail: React.FC = () => {
                                             <CFaQuoteLeft mr={2} color="#F56565" />
                                             Любимая цитата
                                         </Heading>
-                                        <Text fontStyle="italic" fontSize="md" color="gray.400">
-                                            "{actor.favorite_quote}"
-                                        </Text>
+                                        <Text fontStyle="italic" fontSize="md" color="gray.400">"{actor.favorite_quote}"</Text>
                                         {actor.author_quote && (
-                                            <Text textAlign="right" mt={2} fontSize="sm" color="gray.400">
-                                                — {actor.author_quote}
-                                            </Text>
+                                            <Text textAlign="right" mt={2} fontSize="sm" color="gray.400">— {actor.author_quote}</Text>
                                         )}
                                     </Box>
                                 )}
 
-                                {actor.perfomances?.length > 0 && (
+                                {actor.perfomances?.length ? (
                                     <Box w="full" mt={6}>
                                         <Heading as="h3" size="sm" mb={3} display="flex" alignItems="center" color="white">
                                             <CFaTheaterMasks mr={2} color="#F56565" />
@@ -345,30 +294,19 @@ const ActorDetail: React.FC = () => {
                                                     borderRadius="md"
                                                     bg="rgba(25, 25, 25, 0.8)"
                                                     cursor="pointer"
-                                                    whileHover={{
-                                                        y: -4,
-                                                        boxShadow: "0 8px 16px rgba(245, 101, 101, 0.3)",
-                                                        scale: 1.02,
-                                                        transition: { duration: 0.2 }
-                                                    }}
-                                                    whileTap={{
-                                                        scale: 0.98,
-                                                        transition: { duration: 0.1 }
-                                                    }}
-                                                    initial={{ y: 0, boxShadow: "0 5px 20px rgba(0, 0, 0, 0.5)" }}
+                                                    whileHover={{ y: -4, boxShadow: "0 8px 16px rgba(245, 101, 101, 0.3)", scale: 1.02, transition: { duration: 0.2 } }}
+                                                    whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
                                                     onClick={() => handlePerformanceClick(perfomance)}
                                                 >
                                                     <Text fontWeight="bold" color="white" fontSize="sm">{perfomance}</Text>
                                                     {actor.role_in_perfomances?.[idx] && (
-                                                        <Text fontSize="xs" color="gray.400" mt={1}>
-                                                            Роль: {actor.role_in_perfomances[idx]}
-                                                        </Text>
+                                                        <Text fontSize="xs" color="gray.400" mt={1}>Роль: {actor.role_in_perfomances[idx]}</Text>
                                                     )}
                                                 </MotionBox>
                                             ))}
                                         </Grid>
                                     </Box>
-                                )}
+                                ) : null}
                             </VStack>
                         </GridItem>
                     </Grid>

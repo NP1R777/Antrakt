@@ -74,7 +74,7 @@ const AchievementDetail: React.FC = () => {
 
     if (error) {
         return (
-            <Box textAlign="center" py={20} bg="black">
+            <Box textAlign="center" py={{ base: 12, md: 20 }} bg="black">
                 <Alert status="error" variant="subtle" flexDirection="column" alignItems="center">
                     <AlertIcon boxSize="40px" mr={0} />
                     <AlertTitle mt={4} mb={1} fontSize="md" color="white">
@@ -93,7 +93,7 @@ const AchievementDetail: React.FC = () => {
 
     if (!achievement) {
         return (
-            <Box textAlign="center" py={20} bg="black">
+            <Box textAlign="center" py={{ base: 12, md: 20 }} bg="black">
                 <Heading size="md" mb={4} color="white">Достижение не найдено</Heading>
                 <Button
                     variant="outline"
@@ -112,7 +112,7 @@ const AchievementDetail: React.FC = () => {
     return (
         <Box bg="black" display="flex" flexDirection="column" minH="100vh">
             <Navigation />
-            <Box flex="1" py={20} px={{ base: 4, md: 8 }} bg="black" position="relative" overflow='hidden'>
+            <Box flex="1" py={{ base: 12, md: 20 }} px={{ base: 4, md: 8 }} bg="black" position="relative" overflow='hidden'>
                 <MotionBox
                     position="absolute"
                     top="-15%"
@@ -143,13 +143,13 @@ const AchievementDetail: React.FC = () => {
 
                     <Grid
                         templateColumns={{ base: "1fr", lg: "1fr 2fr" }}
-                        gap={10}
+                        gap={{ base: 6, md: 10 }}
                         bg="rgba(20, 20, 20, 0.9)"
                         borderRadius="xl"
                         border="1px solid"
                         borderColor="rgba(64, 0, 16, 0.7)"
                         boxShadow="0 8px 25px rgba(0, 0, 0, 0.6)"
-                        p={6}
+                        p={{ base: 4, md: 6 }}
                     >
                         <GridItem>
                             <Image
@@ -157,7 +157,7 @@ const AchievementDetail: React.FC = () => {
                                 alt="Achievement Image"
                                 w="100%"
                                 h="auto"
-                                maxH="400px"
+                                maxH={{ base: "260px", md: "400px" }}
                                 objectFit="contain"
                                 border="4px solid"
                                 borderColor="#800020"

@@ -173,7 +173,7 @@ const TeamPage: React.FC = () => {
         <Box minH="100vh" bg="black" display="flex" flexDirection="column" overflowY="hidden">
             <Navigation />
 
-            <Box flex="1" py={20} px={{ base: 4, md: 8 }} position="relative">
+            <Box flex="1" py={{ base: 12, md: 20 }} px={{ base: 4, md: 8 }} position="relative">
                 {/* Декоративный элемент */}
                 <MotionBox
                     position="absolute"
@@ -256,8 +256,8 @@ const TeamPage: React.FC = () => {
 
                         <MotionGrid
                             templateColumns={{
-                                base: "1fr", md: directors.length === 1
-                                    ? "minmax(300px, 450px)" : "repeat(2, 1fr)"
+                                base: "1fr",
+                                md: directors.length === 1 ? "minmax(260px, 450px)" : "repeat(2, 1fr)"
                             }}
                             gap={8}
                             justifyContent="center" // Центрирование карточек

@@ -50,7 +50,7 @@ export default function Performances() {
 
     return (
         <Box
-            py={20}
+            py={{ base: 12, md: 20 }}
             bg="black"
             position="relative"
             overflow="hidden"
@@ -96,7 +96,7 @@ export default function Performances() {
                 >
                     <Heading
                         as="h2"
-                        fontSize={{ base: "3xl", md: "4xl" }}
+                        fontSize={{ base: "2xl", sm: "3xl", md: "4xl" }}
                         color="white"
                         mb={4}
                     >

@@ -46,7 +46,7 @@ const AfishaDetail: React.FC = () => {
         return (
             <Box bg="black" display="flex" flexDirection="column" minH="100vh">
                 <Navigation />
-                <Box textAlign="center" py={20} bg="black">
+                <Box textAlign="center" py={{ base: 12, md: 20 }} bg="black">
                     <Heading size="md" mb={4} color="white">Запись не найдена</Heading>
                     <Button
                         variant="outline"
@@ -67,7 +67,7 @@ const AfishaDetail: React.FC = () => {
     return (
         <Box bg="black" display="flex" flexDirection="column" minH="100vh">
             <Navigation />
-            <Box flex="1" py={20} px={{ base: 4, md: 8 }} bg="black" position="relative">
+            <Box flex="1" py={{ base: 12, md: 20 }} px={{ base: 4, md: 8 }} bg="black" position="relative">
                 <MotionBox
                     position="absolute"
                     bottom="-20%"
@@ -97,20 +97,20 @@ const AfishaDetail: React.FC = () => {
                     </Button>
 
                     <Grid
-                        templateColumns={{ base: "1fr", md: "300px 1fr" }}
-                        gap={8}
+                        templateColumns={{ base: "1fr", md: "280px 1fr" }}
+                        gap={{ base: 4, md: 8 }}
                         bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(64, 0, 16, 0.3))"
                         borderRadius="xl"
                         border="1px solid"
                         borderColor="rgba(64, 0, 16, 0.7)"
                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
-                        p={8}
+                        p={{ base: 4, md: 8 }}
                     >
                         <GridItem>
                             <Image
                                 src={item.image_url || "/placeholder-image.jpg"}
                                 alt={item.title}
-                                width="300px"
+                                width={{ base: "100%", md: "280px" }}
                                 height="auto"
                                 objectFit="contain"
                                 border="4px solid"
@@ -158,8 +158,8 @@ const AfishaDetail: React.FC = () => {
                                             <Button
                                                 variant="solid"
                                                 colorScheme="red"
-                                                size="md"
-                                                mt={-100}
+                                                size={{ base: "sm", md: "md" }}
+                                                mt={{ base: 0, md: -100 }}
                                                 onClick={() => window.location.href = item.ticket_url!}
                                             >
                                                 Купить билет!
