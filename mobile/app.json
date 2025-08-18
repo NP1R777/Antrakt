@@ -1,0 +1,14 @@
+{
+	"expo": {
+		"name": "mobile",
+		"slug": "mobile",
+		"scheme": "antrakt",
+		"web": {
+			"bundler": "metro",
+			"output": "static"
+		},
+		"experiments": {
+			"typedRoutes": true
+		}
+	}
+}
