@@ -82,6 +82,7 @@ interface Performance {
     deleted_at?: string | null;
     performances_image: string;
     images_list: string[]; // Добавлено поле для галереи
+    ticket_url?: string | null; // Ссылка на покупку билетов
 }
 
 const genres = [
@@ -441,6 +442,26 @@ export const PerformanceForm: React.FC<{
                             {currentPerformance.afisha ? "В 'Афиша'" : "В 'Спектакли'"}
                         </Text>
                     </FormControl>
+
+                    {currentPerformance.afisha && (
+                        <FormControl>
+                            <FormLabel display="flex" alignItems="center" gap={2}>
+                                <CFaImage color={primaryColor} />
+                                <Text as="span" fontWeight="semibold">Ссылка на покупку билетов</Text>
+                            </FormLabel>
+                            <Input
+                                name="ticket_url"
+                                type="url"
+                                placeholder="https://example.com/your-ticket-link"
+                                value={currentPerformance.ticket_url || ''}
+                                onChange={handleInputChange}
+                                focusBorderColor={primaryColor}
+                                bg="#333333"
+                                borderColor="#444444"
+                                _hover={{ borderColor: '#555555' }}
+                            />
+                        </FormControl>
+                    )}
 
                     <FormControl>
                         <FormLabel display="flex" alignItems="center" gap={2}>

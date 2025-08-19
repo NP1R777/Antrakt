@@ -38,6 +38,7 @@ interface AfishaItem {
     image_url: string | null;
     genre?: string;
     the_cast?: string[];
+    ticket_url?: string; // Только для спектаклей
 }
 
 const AfishaPage: React.FC = () => {
