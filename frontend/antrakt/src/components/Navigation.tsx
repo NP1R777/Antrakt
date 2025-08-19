@@ -135,6 +135,16 @@ export default function Navigation() {
                         >
                             Войти
                         </Button>
+                    ) : user?.is_superuser ? (
+                        <Button
+                            variant="solid"
+                            bg={primaryColor}
+                            color={lightText}
+                            _hover={{ opacity: 0.9, transform: "translateY(-2px)" }}
+                            onClick={() => navigate('/admin')}
+                        >
+                            Админ-панель
+                        </Button>
                     ) : (
                         <Menu>
                             <MenuButton>
@@ -155,18 +165,6 @@ export default function Navigation() {
                                 >
                                     Профиль
                                 </MenuItem>
-
-                                {user?.is_superuser && (
-                                    <MenuItem
-                                        bg={darkBg}
-                                        _hover={{ bg: "#1a1a1a" }}
-                                        color={lightText}
-                                        onClick={() => navigate('/admin')} // Заменено window.location.href на navigate для согласованности
-                                    >
-                                        Админ-панель
-                                    </MenuItem>
-                                )}
-
                                 <MenuItem
                                     bg={darkBg}
                                     _hover={{ bg: "#1a1a1a" }}
@@ -224,6 +222,20 @@ export default function Navigation() {
                                 w="full"
                             >
                                 Войти
+                            </Button>
+                        )}
+
+                        {isAuthenticated && user?.is_superuser && (
+                            <Button
+                                variant="solid"
+                                bg={primaryColor}
+                                color={lightText}
+                                _hover={{ opacity: 0.9 }}
+                                onClick={() => navigate('/admin')}
+                                mt={2}
+                                w="full"
+                            >
+                                Админ-панель
                             </Button>
                         )}
                     </Stack>
