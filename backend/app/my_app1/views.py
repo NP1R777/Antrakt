@@ -553,7 +553,7 @@ class AfishaList(APIView):
     def get(self, request, format=None):
         performances = Perfomances.objects.filter(afisha=True).values(
             'id', 'title', 'description', 'premiere_date',
-            'age_limit', 'image_url', 'the_cast', 'genre'
+            'age_limit', 'image_url', 'the_cast', 'genre', 'ticket_url'
         )
 
         archives = Archive.objects.filter(afisha=True).values(
@@ -570,7 +570,8 @@ class AfishaList(APIView):
                 'age_limit': p['age_limit'],
                 'image_url': p['image_url'],
                 'the_cast': p['the_cast'],
-                'genre': p['genre']
+                'genre': p['genre'],
+                'ticket_url': p.get('ticket_url')
             } for p in performances
         ]
 

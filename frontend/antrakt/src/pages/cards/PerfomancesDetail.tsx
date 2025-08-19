@@ -56,6 +56,7 @@ interface Performance {
     afisha: boolean;
     image_url: string;
     images_list: string[] | null;
+    ticket_url?: string | null;
 }
 
 const PerformanceDetail: React.FC = () => {
@@ -351,6 +352,16 @@ const PerformanceDetail: React.FC = () => {
                                             <Text fontSize="md" color="gray.400">
                                                 <b>Актёрский состав:</b> {performance.the_cast.join(", ")}
                                             </Text>
+                                        )}
+                                        {performance.ticket_url && (
+                                            <Button
+                                                variant="solid"
+                                                colorScheme="red"
+                                                size={{ base: "sm", md: "md" }}
+                                                onClick={() => window.location.href = performance.ticket_url!}
+                                            >
+                                                Купить билет!
+                                            </Button>
                                         )}
                                     </VStack>
                                 </Grid>
