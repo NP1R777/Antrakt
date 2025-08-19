@@ -1,6 +1,42 @@
 version: '3.8'
 
 services:
+  db-dump:
+    image: postgres:17
+    container_name: antrakt-db-dump
+    environment:
+      PGPASSWORD: "123"
+    volumes:
+      - ./database:/out
+    entrypoint: ["bash", "-lc"]
+    # Dump from host DB (Windows Docker Desktop provides host.docker.internal)
+    command: >-
+      "pg_dump -h host.docker.internal -p 5432 -U postgres -d antrakt --no-owner --no-privileges --clean --if-exists > /out/init.sql"
+    restart: "no"
+
+  postgres:
+    image: postgres:17
+    container_name: antrakt-postgres
+    environment:
+      POSTGRES_DB: antrakt
+      POSTGRES_USER: antrakt
+      POSTGRES_PASSWORD: antrakt
+    ports:
+      - "5432:5432"
+    depends_on:
+      db-dump:
+        condition: service_completed_successfully
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U antrakt -d antrakt"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
   minio:
     image: minio/minio:latest
     container_name: minio
@@ -21,6 +57,67 @@ services:
       start_period: 20s
     restart: unless-stopped
 
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command: >-
+      "mc alias set local http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} &&
+       mc mb -p local/antrakt-images || true &&
+       mc anonymous set public local/antrakt-images || true"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: antrakt-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: antrakt
+      DATABASE_USER: antrakt
+      DATABASE_PASSWORD: antrakt
+      USE_MINIO_STORAGE: "True"
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_BUCKET_NAME: antrakt-images
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_URL_PROTOCOL: http:
+      # Optional superuser in dev
+      DJANGO_SUPERUSER_USERNAME: admin
+      DJANGO_SUPERUSER_EMAIL: admin@example.com
+      DJANGO_SUPERUSER_PASSWORD: admin
+    ports:
+      - "8000:8000"
+    volumes:
+      - media_data:/app/app/media
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend/antrakt
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: http://localhost:8000
+    container_name: antrakt-frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+
 volumes:
+  pg_data:
   minio_data:
     name: minio_data
+  media_data:
