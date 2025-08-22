@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   minio:
     image: minio/minio:latest
@@ -20,7 +18,6 @@ services:
       retries: 3
       start_period: 20s
     restart: unless-stopped
-
 volumes:
   minio_data:
     name: minio_data

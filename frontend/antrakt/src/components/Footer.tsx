@@ -1,4 +1,4 @@
-import { Box, Flex, Text, Link, Grid, GridItem, Heading, Icon, chakra } from "@chakra-ui/react";
+import { Box, Flex, Text, Link, Grid, GridItem, Heading, Icon, chakra, Image } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import { Link as RouterLink } from "react-router-dom";
 import {
@@ -204,7 +204,7 @@ export default function Footer() {
                         </Grid>
                     </GridItem>
 
-                    {/* Подписка */}
+                    {/* Наш партнёр */}
                     <GridItem>
                         <Heading as="h4" fontSize="lg" mb={6} color={lightText} position="relative" pb={2}
                             _after={{
@@ -217,49 +217,24 @@ export default function Footer() {
                                 bg: primaryColor
                             }}
                         >
-                            Подписаться
+                            Наш партнёр
                         </Heading>
 
-                        <Text color={grayText} mb={4}>
-                            Узнавайте первыми о новых спектаклях, мастер-классах и акциях
+                        <Image
+                            src="http://localhost:9000/antrakt-images/unnamed.jpg" // Placeholder для логотипа партнёра
+                            alt="Логотип партнёра"
+                            mb={4}
+                            maxH="130px" // Ограничение высоты для логотипа
+                            objectFit="contain"
+                            borderRadius="50%"
+                            ml="40px"
+                        />
+
+                        <Text color={grayText} fontSize="sm">
+                            Городской центр культуры открылся в 1992 году и в настоящее время
+                            является одним из ведущих учреждений культурно-досуговой деятельности
+                            на территории Норильска.
                         </Text>
-
-                        <chakra.form display="flex" flexDirection="column" gap={3}>
-                            <chakra.input
-                                type="email"
-                                placeholder="Ваш email"
-                                bg="#1a1a1a"
-                                border="1px solid #333"
-                                borderRadius="md"
-                                p={3}
-                                color={lightText}
-                                _placeholder={{ color: "#555" }}
-                                _focus={{
-                                    outline: "none",
-                                    borderColor: primaryColor,
-                                    boxShadow: `0 0 0 1px ${primaryColor}`
-                                }}
-                            />
-
-                            <MotionBox
-                                as="button"
-                                type="submit"
-                                bg={primaryColor}
-                                color={lightText}
-                                fontWeight="bold"
-                                p={3}
-                                borderRadius="md"
-                                cursor="pointer"
-                                whileHover={{
-                                    backgroundColor: "#600018",
-                                    boxShadow: `0 5px 15px ${primaryColor}33`
-                                }}
-                                whileTap={{ scale: 0.98 }}
-                                transition="all 0.2s"
-                            >
-                                Подписаться
-                            </MotionBox>
-                        </chakra.form>
                     </GridItem>
                 </Grid>
 

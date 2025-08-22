@@ -229,7 +229,7 @@ const PerformanceDetail: React.FC = () => {
                     <Heading size="md" mb={4} color="white">Спектакль не найден</Heading>
                     <Button
                         variant="outline"
-                        color="#FC8181"
+                        color="#F56565"
                         _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
                         size="sm"
                         fontSize="sm"
@@ -243,28 +243,22 @@ const PerformanceDetail: React.FC = () => {
         );
     }
 
-    const formatDuration = (duration: string | null) => {
-        if (!duration) return "Не указано";
-        const [hours, minutes] = duration.split(":");
-        return `${hours}ч ${minutes}мин`;
-    };
-
     return (
         <Box bg="black" display="flex" flexDirection="column" minH="100vh">
             <Navigation />
-            <Box flex="1" py={{ base: 12, md: 20 }} px={{ base: 4, md: 8 }} bg="black" position="relative">
+            <Box flex="1" py={20} px={{ base: 4, md: 8 }} bg="black" position="relative">
                 <MotionBox
                     position="absolute"
-                    bottom="-20%"
-                    left="-10%"
-                    w="500px"
-                    h="500px"
-                    bg="#800020"
+                    top="-15%"
+                    right="-10%"
+                    w="400px"
+                    h="400px"
+                    bg="linear-gradient(135deg, #F56565, #40001010)"
                     borderRadius="full"
                     filter="blur(80px)"
-                    opacity={0.15}
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 6, repeat: Infinity, repeatType: "reverse" }}
+                    opacity={0.2}
+                    animate={{ scale: [1, 1.15, 1] }}
+                    transition={{ duration: 5, repeat: Infinity, repeatType: "reverse" }}
                 />
 
                 <Box maxW="container.xl" mx="auto" position="relative" zIndex="1">
@@ -272,7 +266,7 @@ const PerformanceDetail: React.FC = () => {
                         leftIcon={<ChevronLeftIcon />}
                         mb={6}
                         variant="outline"
-                        color="#FC8181"
+                        color="#F56565"
                         _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
                         size="sm"
                         fontSize="sm"
@@ -282,20 +276,20 @@ const PerformanceDetail: React.FC = () => {
                     </Button>
 
                     <Grid
-                        templateColumns={{ base: "1fr", md: "280px 1fr" }}
-                        gap={{ base: 4, md: 8 }}
-                        bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(64, 0, 16, 0.3))"
+                        templateColumns={{ base: "1fr", md: "300px 1fr" }}
+                        gap={8}
+                        bg="linear-gradient(135deg, rgba(25, 25, 25, 0.9), rgba(64, 64, 64, 0.3))"
                         borderRadius="xl"
                         border="1px solid"
-                        borderColor="rgba(64, 0, 16, 0.7)"
+                        borderColor="rgba(64, 64, 64, 0.7)"
                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
-                        p={{ base: 4, md: 8 }}
+                        p={8}
                     >
                         <GridItem>
                             <Image
                                 src={performance.image_url}
                                 alt={performance.title}
-                                width={{ base: "100%", md: "280px" }}
+                                width="300px"
                                 height="auto"
                                 objectFit="contain"
                                 border="4px solid"
@@ -307,71 +301,73 @@ const PerformanceDetail: React.FC = () => {
 
                         <GridItem>
                             <VStack align="start" spacing={6} w="full">
-                                <Heading as="h1" size="lg" color="white">
-                                    {performance.title}
-                                </Heading>
+                                <Flex justify="space-between" align="center" w="full">
+                                    <Heading as="h1" size="lg" color="#e0e0e0">
+                                        {performance.title}
+                                    </Heading>
+                                    {performance.ticket_url && (
+                                        <Button
+                                            as="a"
+                                            href={performance.ticket_url}
+                                            colorScheme="red"
+                                            size="lg"
+                                        >
+                                            КУПИТЬ БИЛЕТ!
+                                        </Button>
+                                    )}
+                                </Flex>
 
-                                <Text color="whiteAlpha.800" fontSize="sm">
+                                <Text color="#a0a0a0" fontSize="sm">
                                     Спектакль
                                 </Text>
 
                                 <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6} w="full">
                                     <VStack align="start">
-                                        <Heading as="h3" size="sm" display="flex" alignItems="center" color="white">
-                                            <CFaUserTie mr={2} color="#F56565" />
+                                        <Heading as="h3" size="sm" display="flex" alignItems="center" color="#e0e0e0">
+                                            <CFaTheaterMasks mr={2} color="#F56565" />
                                             Основная информация
                                         </Heading>
-                                        <Text fontSize="md" color="gray.400">
+                                        <Text fontSize="md" color="#e0e0e0">
                                             <b>Автор:</b> {performance.author}
                                         </Text>
-                                        <Text fontSize="md" color="gray.400">
+                                        <Text fontSize="md" color="#e0e0e0">
                                             <b>Жанр:</b> {performance.genre}
                                         </Text>
-                                        <Text fontSize="md" color="gray.400">
+                                        <Text fontSize="md" color="#e0e0e0">
                                             <b>Возрастное ограничение:</b> {performance.age_limit}
                                         </Text>
-                                        <Text fontSize="md" color="gray.400">
-                                            <b>Длительность:</b> {formatDuration(performance.duration)}
-                                        </Text>
-                                        <Text fontSize="md" color="gray.400">
-                                            <b>Дата премьеры:</b> {performance.premiere_date ? new Date(performance.premiere_date).toLocaleDateString() : "Не указана"}
-                                        </Text>
+                                        {performance.duration && (
+                                            <Text fontSize="md" color="#e0e0e0">
+                                                <b>Продолжительность:</b> {performance.duration}
+                                            </Text>
+                                        )}
+                                        {performance.premiere_date && (
+                                            <Text fontSize="md" color="#e0e0e0">
+                                                <b>Дата премьеры:</b> {new Date(performance.premiere_date).toLocaleDateString()}
+                                            </Text>
+                                        )}
                                     </VStack>
 
                                     <VStack align="start">
-                                        <Heading as="h3" size="sm" display="flex" alignItems="center" color="white">
+                                        <Heading as="h3" size="sm" display="flex" alignItems="center" color="#e0e0e0">
                                             <CFaUsers mr={2} color="#F56565" />
                                             Команда
                                         </Heading>
-                                        {performance.production_team?.length > 0 && (
-                                            <Text fontSize="md" color="gray.400">
-                                                <b>Постановочная команда:</b> {performance.production_team.join(", ")}
-                                            </Text>
-                                        )}
-                                        {performance.the_cast?.length > 0 && (
-                                            <Text fontSize="md" color="gray.400">
-                                                <b>Актёрский состав:</b> {performance.the_cast.join(", ")}
-                                            </Text>
-                                        )}
-                                        {performance.ticket_url && (
-                                            <Button
-                                                variant="solid"
-                                                colorScheme="red"
-                                                size={{ base: "sm", md: "md" }}
-                                                onClick={() => window.location.href = performance.ticket_url!}
-                                            >
-                                                Купить билет!
-                                            </Button>
-                                        )}
+                                        <Text fontSize="md" color="#e0e0e0">
+                                            <b>Постановочная команда:</b> {performance.production_team.join(', ')}
+                                        </Text>
+                                        <Text fontSize="md" color="#e0e0e0">
+                                            <b>Актёрский состав:</b> {performance.the_cast.join(', ')}
+                                        </Text>
                                     </VStack>
                                 </Grid>
 
                                 <Box w="full" mt={4}>
-                                    <Heading as="h3" size="sm" mb={3} display="flex" alignItems="center" color="white">
-                                        <CFaTheaterMasks mr={2} color="#F56565" />
+                                    <Heading as="h3" size="sm" mb={3} display="flex" alignItems="center" color="#e0e0e0">
+                                        <CFaFilm mr={2} color="#F56565" />
                                         Описание
                                     </Heading>
-                                    <Text fontSize="md" color="gray.400" w="full">
+                                    <Text fontSize="md" color="#a0a0a0" w="full">
                                         {performance.description}
                                     </Text>
                                 </Box>
@@ -408,14 +404,14 @@ const PerformanceDetail: React.FC = () => {
                                 align="center"
                                 justify="center"
                                 overflow="hidden"
-                                h={{ base: "240px", sm: "300px", md: "420px" }}
+                                h={{ base: "250px", md: "400px" }}
                                 w="100%"
                                 borderRadius="xl"
                                 bg="rgba(20, 20, 20, 0.5)"
                                 border="1px solid"
                                 borderColor="rgba(64, 0, 16, 0.7)"
                                 boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
-                                p={{ base: 1, md: 2 }}
+                                p={2}
                             >
                                 <IconButton
                                     aria-label="Предыдущее фото"
@@ -441,7 +437,6 @@ const PerformanceDetail: React.FC = () => {
                                     onClick={handleGalleryNext}
                                 />
 
-                                {/* Анимированное изображение */}
                                 <AnimatePresence initial={false} custom={direction}>
                                     <MotionImage
                                         key={galleryIndex}
@@ -451,8 +446,8 @@ const PerformanceDetail: React.FC = () => {
                                         animate="center"
                                         exit="exit"
                                         transition={{
-                                            x: { type: "spring", stiffness: 400, damping: 40 },
-                                            opacity: { duration: 0.15 }
+                                            x: { type: "spring", stiffness: 300, damping: 30 },
+                                            opacity: { duration: 0.2 }
                                         }}
                                         src={performance.images_list[galleryIndex]}
                                         alt={`Фото спектакля ${galleryIndex + 1}`}
@@ -508,7 +503,6 @@ const PerformanceDetail: React.FC = () => {
             </Box>
             <Footer />
 
-            {/* Модальное окно для просмотра фото */}
             <Modal isOpen={isOpen} onClose={handleModalClose} size={{ base: "full", md: "6xl" }} isCentered>
                 <ModalOverlay bg="rgba(0, 0, 0, 0.8)" />
                 <ModalContent bg="transparent" boxShadow="none">
@@ -550,7 +544,6 @@ const PerformanceDetail: React.FC = () => {
                             onClick={nextImage}
                         />
 
-                        {/* Анимированное изображение в модальном окне без задержек */}
                         <AnimatePresence initial={false} custom={direction}>
                             <MotionImage
                                 key={currentImageIndex}
