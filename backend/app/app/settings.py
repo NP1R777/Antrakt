@@ -67,7 +67,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
-        'APP_DIRS': True,
+        'APP_DIRS': False,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
@@ -140,7 +140,7 @@ DATABASES = {
         'PORT': db_port,
     }
 }
-print(f"✓ Настроена конфигурация PostgreSQL: {db_host}:{db_port}")
+print(f"Настроена конфигурация PostgreSQL: {db_host}:{db_port}")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -177,6 +177,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # Для React build
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')   # Для collectstatic
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -192,7 +194,7 @@ else:  # Linux/Mac development
 
 # Media files configuration
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # File upload settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
@@ -231,4 +233,4 @@ if USE_MINIO_STORAGE:
     MEDIA_URL = f"{AWS_S3_URL_PROTOCOL}//{AWS_S3_CUSTOM_DOMAIN}/"
 
 # Настройки для работы с разными типами БД
-print("✓ Используется PostgreSQL с полной функциональностью")
+print("Используется PostgreSQL с полной функциональностью")

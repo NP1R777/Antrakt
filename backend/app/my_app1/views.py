@@ -1,6 +1,7 @@
 import uuid
 import boto3
 from .models import *
+from .serializers import *
 from datetime import datetime
 from urllib.parse import urlparse
 from rest_framework.views import APIView
@@ -12,9 +13,6 @@ from rest_framework import status, generics, permissions
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .serializers import (UserSerializer, PerfomanceSerializer, ActorsSerializer,
-                          DirectorsSerializer, NewsSerializer, ArchiveSerializer,
-                          AchievementsSerializer, CustomTokenObtainPairSerializer)
 
 
 class UserList(APIView):

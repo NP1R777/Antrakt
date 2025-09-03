@@ -1,23 +1,93 @@
+# services:
+#   minio:
+#     image: minio/minio:latest
+#     container_name: minio
+#     ports:
+#       - "9000:9000"
+#       - "9001:9001"
+#     environment:
+#       MINIO_ROOT_USER: minioadmin
+#       MINIO_ROOT_PASSWORD: minioadmin123
+#     command: server /data --console-address ":9001"
+#     volumes:
+#       - minio_data:/data
+#     healthcheck:
+#       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+#       interval: 10s
+#       timeout: 10s
+#       retries: 3
+#       start_period: 20s
+#     restart: unless-stopped
+# volumes:
+#   minio_data:
+#     name: minio_data
+version: '3.8'
+
 services:
+  # Backend сервис
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:123@db:5432/antrakt_db
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin123
+      - MINIO_BUCKET_NAME=antrakt
+    depends_on:
+      - db
+      - minio
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+
+  # Frontend сервис
+  frontend:
+    build:
+      context: ./frontend/antrakt
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/antrakt:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+  # MinIO для хранения изображений
   minio:
-    image: minio/minio:latest
-    container_name: minio
+    image: minio/minio
     ports:
       - "9000:9000"
       - "9001:9001"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin123
-    command: server /data --console-address ":9001"
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin123
     volumes:
       - minio_data:/data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
+      - ./minio/import:/import  # Для импорта существующих изображений
+    command: server /data --console-address ":9001"
     restart: unless-stopped
+
+  # PostgreSQL база данных
+  db:
+    image: postgres:17
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=antrakt_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
 volumes:
+  postgres_data:
   minio_data:
-    name: minio_data

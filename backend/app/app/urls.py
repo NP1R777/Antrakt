@@ -21,6 +21,7 @@ from django.http import JsonResponse
 from django.urls import path, include
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
+from django.views.generic import TemplateView
 
 
 def health_check(request):
