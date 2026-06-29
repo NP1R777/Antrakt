@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Button,
     VStack,
@@ -65,6 +65,24 @@ const CFaTrash = chakra(FaTrash as any);
 const primaryColor = '#800020';
 const accentColor = '#4ECDC4';
 
+interface PerformanceShow {
+    id?: number;
+    show_datetime: string; // ISO / datetime-local
+    ticket_url?: string | null;
+}
+
+interface CastMember {
+    id?: number;
+    actor: number; // id актёра
+    actor_name?: string;
+    role: string;
+}
+
+interface ActorOption {
+    id: number;
+    name: string;
+}
+
 interface Performance {
     id: number;
     title: string;
@@ -77,7 +95,8 @@ interface Performance {
     is_active: boolean;
     age_limit: string;
     production_team: string[];
-    the_cast: string[];
+    shows: PerformanceShow[];
+    cast: CastMember[];
     afisha: boolean;
     deleted_at?: string | null;
     performances_image: string;
@@ -111,20 +130,120 @@ export const PerformanceForm: React.FC<{
     onSuccess: () => void;
     onCancel: () => void;
 }> = ({ initialData, onSuccess, onCancel }) => {
-    const [currentPerformance, setCurrentPerformance] = useState<Partial<Performance>>(initialData || {
-        is_active: true,
-        production_team: [],
-        the_cast: [],
-        afisha: true,
-        deleted_at: null,
-        performances_image: '',
-        images_list: [] // Инициализация галереи
-    });
+    // datetime-local требует формат "YYYY-MM-DDTHH:MM". Бэкенд отдаёт время
+    // в таймзоне театра (Asia/Krasnoyarsk), поэтому просто берём первые 16
+    // символов — это и есть местное время показа.
+    const toLocalInput = (value?: string | null) =>
+        value ? value.slice(0, 16) : '';
+
+    const normalizeInitial = (data?: Partial<Performance>): Partial<Performance> => {
+        const base: Partial<Performance> = {
+            is_active: true,
+            production_team: [],
+            shows: [],
+            cast: [],
+            afisha: true,
+            deleted_at: null,
+            performances_image: '',
+            images_list: []
+        };
+        if (!data) return base;
+        return {
+            ...base,
+            ...data,
+            production_team: data.production_team || [],
+            images_list: data.images_list || [],
+            shows: (data.shows || []).map(s => ({
+                ...s,
+                show_datetime: toLocalInput(s.show_datetime)
+            })),
+            cast: (data.cast || []).map(c => ({
+                id: c.id,
+                actor: c.actor,
+                actor_name: c.actor_name,
+                role: c.role
+            }))
+        };
+    };
+
+    const [currentPerformance, setCurrentPerformance] = useState<Partial<Performance>>(
+        normalizeInitial(initialData)
+    );
     const [listInputs, setListInputs] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isGalleryUploading, setIsGalleryUploading] = useState(false);
+    const [actorOptions, setActorOptions] = useState<ActorOption[]>([]);
+    const [newShow, setNewShow] = useState<{ show_datetime: string; ticket_url: string }>({
+        show_datetime: '',
+        ticket_url: ''
+    });
+    const [newCast, setNewCast] = useState<{ actor: string; role: string }>({
+        actor: '',
+        role: ''
+    });
     const toast = useToast();
     const { isOpen, onOpen, onClose } = useDisclosure();
+
+    useEffect(() => {
+        axios.get('http://localhost:8000/actors/')
+            .then(res => setActorOptions(
+                (res.data || []).map((a: any) => ({ id: a.id, name: a.name }))
+            ))
+            .catch(err => console.error('Не удалось загрузить актёров:', err));
+    }, []);
+
+    const actorNameById = (id: number) =>
+        actorOptions.find(a => a.id === id)?.name || `Актёр #${id}`;
+
+    const handleAddShow = () => {
+        if (!newShow.show_datetime) return;
+        setCurrentPerformance(prev => ({
+            ...prev,
+            shows: [...(prev.shows || []), {
+                show_datetime: newShow.show_datetime,
+                ticket_url: newShow.ticket_url.trim() || null
+            }]
+        }));
+        setNewShow({ show_datetime: '', ticket_url: '' });
+    };
+
+    const handleRemoveShow = (index: number) => {
+        setCurrentPerformance(prev => {
+            const shows = [...(prev.shows || [])];
+            shows.splice(index, 1);
+            return { ...prev, shows };
+        });
+    };
+
+    const handleAddCast = () => {
+        if (!newCast.actor || !newCast.role.trim()) return;
+        const actorId = parseInt(newCast.actor, 10);
+        setCurrentPerformance(prev => ({
+            ...prev,
+            cast: [...(prev.cast || []), {
+                actor: actorId,
+                actor_name: actorNameById(actorId),
+                role: newCast.role.trim()
+            }]
+        }));
+        setNewCast({ actor: '', role: '' });
+    };
+
+    const handleRemoveCast = (index: number) => {
+        setCurrentPerformance(prev => {
+            const cast = [...(prev.cast || [])];
+            cast.splice(index, 1);
+            return { ...prev, cast };
+        });
+    };
+
+    const formatShowLabel = (value: string) => {
+        if (!value) return '';
+        const [datePart, timePart] = value.split('T');
+        if (!datePart) return value;
+        const [y, m, d] = datePart.split('-');
+        return `${d}.${m}.${y}${timePart ? ' ' + timePart.slice(0, 5) : ''}`;
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -497,7 +616,126 @@ export const PerformanceForm: React.FC<{
                     </FormControl>
 
                     {renderListField('production_team', 'Постановочная команда', <CFaUsers color={accentColor} />)}
-                    {renderListField('the_cast', 'Актёрский состав', <CFaUser color={accentColor} />)}
+
+                    {/* Показы спектакля (несколько дат и времён) */}
+                    <FormControl>
+                        <FormLabel display="flex" alignItems="center" gap={2} mb={2}>
+                            <CFaCalendar color={accentColor} />
+                            <Text as="span" fontWeight="semibold">Показы (дата и время)</Text>
+                        </FormLabel>
+                        <HStack mb={2} align="flex-end">
+                            <Input
+                                type="datetime-local"
+                                value={newShow.show_datetime}
+                                onChange={(e) => setNewShow(prev => ({ ...prev, show_datetime: e.target.value }))}
+                                focusBorderColor={accentColor}
+                                bg="#333333"
+                                borderColor="#444444"
+                                _hover={{ borderColor: '#555555' }}
+                            />
+                            <Input
+                                placeholder="Ссылка на билеты (необязательно)"
+                                value={newShow.ticket_url}
+                                onChange={(e) => setNewShow(prev => ({ ...prev, ticket_url: e.target.value }))}
+                                focusBorderColor={accentColor}
+                                bg="#333333"
+                                borderColor="#444444"
+                                _hover={{ borderColor: '#555555' }}
+                            />
+                            <IconButton
+                                aria-label="Добавить показ"
+                                icon={<CFaPlus />}
+                                onClick={handleAddShow}
+                                bg={accentColor}
+                                _hover={{ bg: '#5EDDD5' }}
+                            />
+                        </HStack>
+                        <Wrap spacing={2} minH="50px" mb={4}>
+                            <AnimatePresence>
+                                {(currentPerformance.shows || []).map((show, index) => (
+                                    <MotionTag
+                                        key={index}
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.8 }}
+                                        size="md"
+                                        variant="solid"
+                                        bg="#444444"
+                                        borderRadius="full"
+                                        px={3}
+                                        py={1}
+                                    >
+                                        <TagLabel>{formatShowLabel(show.show_datetime)}</TagLabel>
+                                        <TagCloseButton onClick={() => handleRemoveShow(index)} />
+                                    </MotionTag>
+                                ))}
+                            </AnimatePresence>
+                        </Wrap>
+                    </FormControl>
+
+                    {/* Состав: актёр + роль (скрыт от пользователей, пока спектакль в "Афише") */}
+                    <FormControl>
+                        <FormLabel display="flex" alignItems="center" gap={2} mb={2}>
+                            <CFaUser color={accentColor} />
+                            <Text as="span" fontWeight="semibold">Актёрский состав (актёр и роль)</Text>
+                        </FormLabel>
+                        <HStack mb={2} align="flex-end">
+                            <Select
+                                placeholder="Выберите актёра"
+                                value={newCast.actor}
+                                onChange={(e) => setNewCast(prev => ({ ...prev, actor: e.target.value }))}
+                                focusBorderColor={accentColor}
+                                bg="#333333"
+                                borderColor="#444444"
+                                _hover={{ borderColor: '#555555' }}
+                            >
+                                {actorOptions.map(a => (
+                                    <option key={a.id} value={a.id} style={{ backgroundColor: '#333333', color: 'white' }}>
+                                        {a.name}
+                                    </option>
+                                ))}
+                            </Select>
+                            <Input
+                                placeholder="Роль"
+                                value={newCast.role}
+                                onChange={(e) => setNewCast(prev => ({ ...prev, role: e.target.value }))}
+                                focusBorderColor={accentColor}
+                                bg="#333333"
+                                borderColor="#444444"
+                                _hover={{ borderColor: '#555555' }}
+                            />
+                            <IconButton
+                                aria-label="Добавить актёра в состав"
+                                icon={<CFaPlus />}
+                                onClick={handleAddCast}
+                                bg={accentColor}
+                                _hover={{ bg: '#5EDDD5' }}
+                            />
+                        </HStack>
+                        <Wrap spacing={2} minH="50px" mb={4}>
+                            <AnimatePresence>
+                                {(currentPerformance.cast || []).map((member, index) => (
+                                    <MotionTag
+                                        key={index}
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.8 }}
+                                        size="md"
+                                        variant="solid"
+                                        bg="#444444"
+                                        borderRadius="full"
+                                        px={3}
+                                        py={1}
+                                    >
+                                        <TagLabel>
+                                            {member.actor_name || actorNameById(member.actor)} — {member.role}
+                                        </TagLabel>
+                                        <TagCloseButton onClick={() => handleRemoveCast(index)} />
+                                    </MotionTag>
+                                ))}
+                            </AnimatePresence>
+                        </Wrap>
+                    </FormControl>
 
                     {/* Секция фотогалереи */}
                     <FormControl>
