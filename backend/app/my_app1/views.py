@@ -3,6 +3,8 @@ import boto3
 from .models import *
 from .serializers import *
 from datetime import datetime
+from django.utils import timezone
+from django.db.models import Max
 from urllib.parse import urlparse
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -195,13 +197,15 @@ class PefomancesList(APIView):
     def get(self, request, format=None):
         perfomances = self.model_class.objects.filter(deleted_at=None,
                                                       afisha=False).order_by('premiere_date')
-        serializer = self.serializer_class(perfomances, many=True)
+        serializer = self.serializer_class(perfomances, many=True,
+                                           context={'request': request})
         return Response(serializer.data)
     
 
     @swagger_auto_schema(request_body=PerfomanceSerializer)
     def post(self, request, format=None):
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -215,7 +219,8 @@ class PerfomancesListAdmin(APIView):
 
     def get(self, request, format=None):
         perfomances = self.model_class.objects.order_by('id')
-        serializer = self.serializer_class(perfomances, many=True)
+        serializer = self.serializer_class(perfomances, many=True,
+                                           context={'request': request})
         return Response(serializer.data)
 
 
@@ -226,23 +231,28 @@ class PerfomanceDetail(APIView):
 
     def get(self, request, id, format=None):
         perfomance = get_object_or_404(self.model_class, id=id)
-        serializer = self.serializer_class(perfomance)
+        serializer = self.serializer_class(perfomance, context={'request': request})
         return Response(serializer.data)
     
 
     @swagger_auto_schema(request_body=PerfomanceSerializer)
     def put(self, request, id, format=None):
         perfomance = get_object_or_404(self.model_class, id=id)
-        serializer = self.serializer_class(perfomance, data=request.data, partial=True)
+        serializer = self.serializer_class(perfomance, data=request.data, partial=True,
+                                           context={'request': request})
         if serializer.is_valid():
-            serializer.save()
+            instance = serializer.save()
+            # Ручной перевод в "Спектакли" из админки тоже раздаёт роли актёрам.
+            if not instance.afisha and not instance.roles_propagated:
+                instance = promote_performance(instance)
+            serializer = self.serializer_class(instance, context={'request': request})
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
-    def delete(self, id, request, format=None):
+    def delete(self, request, id, format=None):
         perfomance = get_object_or_404(self.model_class, id=id)
-        perfomance.deleted_at = datetime.now()
+        perfomance.deleted_at = timezone.now()
         perfomance.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -549,10 +559,12 @@ class AfishaList(APIView):
 
 
     def get(self, request, format=None):
-        performances = Perfomances.objects.filter(afisha=True).values(
-            'id', 'title', 'description', 'premiere_date',
-            'age_limit', 'image_url', 'the_cast', 'genre', 'ticket_url'
-        )
+        # В "Афише" состав и роли НЕ отдаём — они появляются только после
+        # перехода спектакля в раздел "Спектакли". Зато отдаём расписание
+        # показов (даты и время), чтобы зрители знали, когда прийти.
+        performances = Perfomances.objects.filter(
+            afisha=True, deleted_at=None
+        ).prefetch_related('shows')
 
         archives = Archive.objects.filter(afisha=True).values(
             'id', 'title', 'description', 'premiere_date', 'age_limit', 'image_url'
@@ -561,15 +573,21 @@ class AfishaList(APIView):
         performances_list = [
             {
                 'type': 'performance',
-                'id': p['id'],
-                'title': p['title'],
-                'description': p['description'],
-                'premiere_date': p['premiere_date'],
-                'age_limit': p['age_limit'],
-                'image_url': p['image_url'],
-                'the_cast': p['the_cast'],
-                'genre': p['genre'],
-                'ticket_url': p.get('ticket_url')
+                'id': p.id,
+                'title': p.title,
+                'description': p.description,
+                'premiere_date': p.premiere_date,
+                'age_limit': p.age_limit,
+                'image_url': p.image_url,
+                'genre': p.genre,
+                'ticket_url': p.ticket_url,
+                'shows': [
+                    {
+                        'id': s.id,
+                        'show_datetime': s.show_datetime,
+                        'ticket_url': s.ticket_url,
+                    } for s in p.shows.all()
+                ],
             } for p in performances
         ]
 

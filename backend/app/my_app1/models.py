@@ -88,12 +88,6 @@ class Perfomances(ImageUploadMixin, models.Model): # Спектакли
         blank=True,
         default=list) # Постановочная команда
     
-    the_cast = ArrayField(
-        models.CharField(max_length=50),
-        blank=True,
-        default=list
-    ) # Актёрский состав
-
     description = models.CharField(max_length=2000, null=False)
     afisha = models.BooleanField(default=True) # Если True -> отображать в разделе "Афиша",
                                                # если False -> отображать в разделе "Спектакли".
