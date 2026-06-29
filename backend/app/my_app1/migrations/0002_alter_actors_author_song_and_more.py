@@ -4,6 +4,35 @@ import django.contrib.postgres.fields
 from django.db import migrations, models
 
 
+def dedupe_phone_numbers(apps, schema_editor):
+    """Make phone_number values unique before the unique constraint is added.
+
+    Existing data can contain duplicate (or blank) phone numbers, which would
+    make the AlterField operations below fail when they introduce
+    ``unique=True``. We keep the phone on the earliest user (lowest id) and
+    clear it on later duplicates. ``phone_number`` is nullable, so this never
+    deletes accounts.
+    """
+    User = apps.get_model('my_app1', 'User')
+    seen = set()
+    for user in User.objects.order_by('id').iterator():
+        phone = (user.phone_number or '').strip()
+        if not phone:
+            if user.phone_number is not None:
+                user.phone_number = None
+                user.save(update_fields=['phone_number'])
+            continue
+        if phone in seen:
+            user.phone_number = None
+            user.save(update_fields=['phone_number'])
+        else:
+            seen.add(phone)
+
+
+def noop(apps, schema_editor):
+    pass
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -11,6 +40,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Make phone_number nullable first so the dedupe step below can clear
+        # duplicate values before the unique constraint is added.
+        migrations.AlterField(
+            model_name='user',
+            name='phone_number',
+            field=models.CharField(blank=True, max_length=20, null=True),
+        ),
+        migrations.RunPython(dedupe_phone_numbers, noop),
         migrations.AlterField(
             model_name='actors',
             name='author_song',
