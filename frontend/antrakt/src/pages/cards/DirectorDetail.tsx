@@ -66,7 +66,6 @@ interface Performance {
     duration: string | null;
     premiere_date: string | null;
     production_team: string[] | null;
-    the_cast: string[] | null;
     description: string;
     afisha: boolean;
     image_url: string;

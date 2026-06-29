@@ -166,7 +166,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# Норильск находится в часовом поясе Красноярска (UTC+7).
+TIME_ZONE = 'Asia/Krasnoyarsk'
 
 USE_I18N = True
 

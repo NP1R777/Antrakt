@@ -51,7 +51,7 @@ interface Performance {
     duration: string | null;
     premiere_date: string | null;
     production_team: string[] | null;
-    the_cast: string[] | null;
+    cast: { id?: number; actor: number; actor_name?: string; role: string }[] | null;
     description: string;
     afisha: boolean;
     image_url: string;
@@ -80,7 +80,7 @@ const PerformanceDetail: React.FC = () => {
                 setPerformance({
                     ...response.data,
                     production_team: response.data.production_team || [],
-                    the_cast: response.data.the_cast || [],
+                    cast: response.data.cast || [],
                     images_list: response.data.images_list || []
                 });
             } catch (err) {
@@ -356,9 +356,14 @@ const PerformanceDetail: React.FC = () => {
                                         <Text fontSize="md" color="#e0e0e0">
                                             <b>Постановочная команда:</b> {performance.production_team.join(', ')}
                                         </Text>
-                                        <Text fontSize="md" color="#e0e0e0">
-                                            <b>Актёрский состав:</b> {performance.the_cast.join(', ')}
-                                        </Text>
+                                        {performance.cast && performance.cast.length > 0 && (
+                                            <Text fontSize="md" color="#e0e0e0">
+                                                <b>Актёрский состав:</b>{' '}
+                                                {performance.cast
+                                                    .map(c => `${c.actor_name || 'Актёр'} — ${c.role}`)
+                                                    .join(', ')}
+                                            </Text>
+                                        )}
                                     </VStack>
                                 </Grid>
 

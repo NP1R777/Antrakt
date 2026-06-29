@@ -65,7 +65,8 @@ interface Performance {
     is_active: boolean;
     age_limit: string;
     production_team: string[];
-    the_cast: string[];
+    shows?: { id?: number; show_datetime: string; ticket_url?: string | null }[];
+    cast?: { id?: number; actor: number; actor_name?: string; role: string }[];
     afisha: boolean;
     deleted_at?: string | null;
 }

@@ -32,9 +32,21 @@ interface AfishaItem {
     age_limit: string | null;
     image_url: string | null;
     genre?: string; // Только для performance
-    the_cast?: string[]; // Только для performance
+    shows?: { id?: number; show_datetime: string; ticket_url?: string | null }[]; // Только для performance
     ticket_url?: string; // Только для performance
 }
+
+// Состав и роли в "Афише" намеренно не показываем — они открываются только
+// после перехода спектакля в раздел "Спектакли".
+const formatShowDatetime = (value: string): string => {
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return value;
+    return d.toLocaleString('ru-RU', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+        timeZone: 'Asia/Krasnoyarsk',
+    });
+};
 
 const AfishaDetail: React.FC = () => {
     const { state } = useLocation(); // Получаем данные из состояния навигации
@@ -146,9 +158,12 @@ const AfishaDetail: React.FC = () => {
                                                 <b>Возрастное ограничение:</b> {item.age_limit}
                                             </Text>
                                         )}
-                                        {item.the_cast && item.the_cast.length > 0 && (
+                                        {item.shows && item.shows.length > 0 && (
                                             <Text fontSize="md" color="gray.400">
-                                                <b>Актёрский состав:</b> {item.the_cast.join(", ")}
+                                                <b>Показы:</b>{' '}
+                                                {item.shows
+                                                    .map(s => formatShowDatetime(s.show_datetime))
+                                                    .join('; ')}
                                             </Text>
                                         )}
                                     </VStack>

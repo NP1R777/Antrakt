@@ -37,7 +37,7 @@ interface AfishaItem {
     age_limit: string | null;
     image_url: string | null;
     genre?: string;
-    the_cast?: string[];
+    shows?: { id?: number; show_datetime: string; ticket_url?: string | null }[];
     ticket_url?: string; // Только для спектаклей
 }
 

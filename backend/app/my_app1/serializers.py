@@ -1,6 +1,8 @@
 from rest_framework import serializers
+from django.db import transaction
 from .models import (User, Perfomances, Actors, DirectorsTheatre,
-                     News, Archive, Achievements)
+                     News, Archive, Achievements,
+                     PerformanceShow, PerformanceCast)
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
@@ -79,12 +81,75 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return super().validate(attrs)
 
 
+class PerformanceShowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PerformanceShow
+        fields = ['id', 'show_datetime', 'ticket_url']
+
+
+class PerformanceCastSerializer(serializers.ModelSerializer):
+    actor_name = serializers.CharField(source='actor.name', read_only=True)
+    actor_image = serializers.URLField(source='actor.image_url', read_only=True)
+
+    class Meta:
+        model = PerformanceCast
+        fields = ['id', 'actor', 'actor_name', 'actor_image', 'role']
+
+
 class PerfomanceSerializer(serializers.ModelSerializer):
     afisha = serializers.BooleanField(default=True)
+    shows = PerformanceShowSerializer(many=True, required=False)
+    cast = PerformanceCastSerializer(many=True, required=False, source='cast_members')
 
     class Meta:
         model = Perfomances
         fields = '__all__'
+
+    def _is_admin(self):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        return bool(user and user.is_authenticated and user.is_superuser)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Состав и роли скрыты от обычных пользователей, пока спектакль в "Афише".
+        # Администраторам (для редактирования) состав отдаём всегда.
+        if instance.afisha and not self._is_admin():
+            data['cast'] = []
+        return data
+
+    def _sync_shows(self, performance, shows_data):
+        for show in shows_data:
+            PerformanceShow.objects.create(performance=performance, **show)
+
+    def _sync_cast(self, performance, cast_data):
+        for member in cast_data:
+            PerformanceCast.objects.create(performance=performance, **member)
+
+    def create(self, validated_data):
+        shows_data = validated_data.pop('shows', [])
+        cast_data = validated_data.pop('cast_members', [])
+        with transaction.atomic():
+            performance = Perfomances.objects.create(**validated_data)
+            self._sync_shows(performance, shows_data)
+            self._sync_cast(performance, cast_data)
+        return performance
+
+    def update(self, instance, validated_data):
+        shows_data = validated_data.pop('shows', None)
+        cast_data = validated_data.pop('cast_members', None)
+        with transaction.atomic():
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+            # Полная замена дочерних записей при их наличии в запросе.
+            if shows_data is not None:
+                instance.shows.all().delete()
+                self._sync_shows(instance, shows_data)
+            if cast_data is not None:
+                instance.cast_members.all().delete()
+                self._sync_cast(instance, cast_data)
+        return instance
 
 
 class ActorsSerializer(serializers.ModelSerializer):
