@@ -1,5 +1,6 @@
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.utils import timezone
 from .mixins import ImageUploadMixin
 from django.conf import settings
 
@@ -94,8 +95,11 @@ class Perfomances(ImageUploadMixin, models.Model): # Спектакли
     ) # Актёрский состав
 
     description = models.CharField(max_length=2000, null=False)
-    afisha = models.BooleanField(default=False) # Если False -> то отображать в разделе "Афиша",
-                                                # если True -> то отображать в разделе "Спектакли".
+    afisha = models.BooleanField(default=True) # Если True -> отображать в разделе "Афиша",
+                                               # если False -> отображать в разделе "Спектакли".
+    roles_propagated = models.BooleanField(default=False) # Были ли роли из состава уже добавлены
+                                                          # на страницы актёров (однократно при переходе
+                                                          # спектакля в раздел "Спектакли").
     image_url = models.URLField(null=False, blank=True)
     performances_image = models.URLField(null=True, blank=True) # Изображение для раздела "Спектакли"
     images_list = ArrayField(
@@ -258,3 +262,88 @@ class Achievements(ImageUploadMixin, models.Model): # Достижения
     achievement = models.CharField(max_length=500, null=False)
     image_url = models.URLField(null=False, blank=True)
     assigned = models.DateField(null=True, blank=True) # Дата присвоения достижения.
+
+
+class PerformanceShow(models.Model): # Показы спектакля (несколько дат и времён)
+    class Meta:
+        db_table = 'performance_show'
+        ordering = ['show_datetime']
+
+    performance = models.ForeignKey(
+        Perfomances,
+        related_name='shows',
+        on_delete=models.CASCADE
+    )
+    show_datetime = models.DateTimeField() # Дата и время конкретного показа (tz-aware)
+    ticket_url = models.URLField(null=True, blank=True) # Ссылка на покупку билетов для этого показа
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class PerformanceCast(models.Model): # Состав спектакля: актёр + его роль
+    class Meta:
+        db_table = 'performance_cast'
+        unique_together = ('performance', 'actor', 'role')
+        ordering = ['id']
+
+    performance = models.ForeignKey(
+        Perfomances,
+        related_name='cast_members',
+        on_delete=models.CASCADE
+    )
+    actor = models.ForeignKey(
+        Actors,
+        related_name='cast_roles',
+        on_delete=models.CASCADE
+    )
+    role = models.CharField(max_length=100) # Роль актёра в этом спектакле
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+def promote_performance(performance):
+    """Перевести спектакль из раздела «Афиша» в раздел «Спектакли».
+
+    При первом переходе однократно добавляет роли из состава (`PerformanceCast`)
+    на страницы соответствующих актёров (в массивы `perfomances` /
+    `role_in_perfomances`). Функция идемпотентна и безопасна при параллельных
+    вызовах: запись спектакля и записи актёров блокируются через
+    `select_for_update`, а повторное добавление одной и той же пары
+    (спектакль, роль) исключается.
+
+    Возвращает обновлённый объект спектакля.
+    """
+    with transaction.atomic():
+        perf = Perfomances.objects.select_for_update().get(pk=performance.pk)
+
+        if not perf.afisha and perf.roles_propagated:
+            # Уже переведён и роли разданы — ничего не делаем.
+            return perf
+
+        if not perf.roles_propagated:
+            cast = (perf.cast_members
+                    .select_related('actor')
+                    .order_by('actor_id', 'id'))
+            for member in cast:
+                actor = Actors.objects.select_for_update().get(pk=member.actor_id)
+                titles = list(actor.perfomances or [])
+                roles = list(actor.role_in_perfomances or [])
+                pair_exists = any(
+                    title == perf.title
+                    and (roles[i] if i < len(roles) else None) == member.role
+                    for i, title in enumerate(titles)
+                )
+                if not pair_exists:
+                    titles.append(perf.title)
+                    roles.append(member.role)
+                    actor.perfomances = titles
+                    actor.role_in_perfomances = roles
+                    actor.updated_at = timezone.now()
+                    actor.save(update_fields=[
+                        'perfomances', 'role_in_perfomances', 'updated_at'
+                    ])
+            perf.roles_propagated = True
+
+        perf.afisha = False
+        perf.updated_at = timezone.now()
+        perf.save(update_fields=['afisha', 'roles_propagated', 'updated_at'])
+        return perf
