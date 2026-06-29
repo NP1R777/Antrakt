@@ -21,10 +21,12 @@
 # volumes:
 #   minio_data:
 #     name: minio_data
+
+
 version: '3.8'
 
 services:
-  # Backend сервис
+  # Backend сервис (только API)
   backend:
     build:
       context: ./backend
@@ -37,12 +39,21 @@ services:
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin123
       - MINIO_BUCKET_NAME=antrakt
+      - PYTHONUNBUFFERED=1
     depends_on:
-      - db
-      - minio
-    volumes:
-      - ./backend:/app
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    # Убрано монтирование тома, чтобы не перезаписывать собранный образ
+    # volumes:
+    #   - ./backend:/app
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Frontend сервис
   frontend:
@@ -56,23 +67,29 @@ services:
     depends_on:
       - backend
     volumes:
-      - ./frontend/antrakt:/app
+      - ./frontend/antrakt/src:/app/src
       - /app/node_modules
     restart: unless-stopped
 
   # MinIO для хранения изображений
   minio:
-    image: minio/minio
+    image: minio/minio:latest
+    container_name: minio
     ports:
       - "9000:9000"
       - "9001:9001"
     environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin123
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
-      - ./minio/import:/import  # Для импорта существующих изображений
-    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
     restart: unless-stopped
 
   # PostgreSQL база данных
@@ -87,7 +104,13 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d antrakt_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   postgres_data:
   minio_data:
+    name: minio_data
