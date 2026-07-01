@@ -218,7 +218,10 @@ const ChangePasswordForm: React.FC<{
     const handleSubmit = async () => {
         setIsSubmitting(true);
         try {
-            await axios.put(`http://localhost:8000/user${userId}/`, formData);
+            await axios.post('http://localhost:8000/change-password/', {
+                current_password: formData.current_password,
+                new_password: formData.new_password,
+            });
             toast({
                 title: 'Пароль изменён',
                 description: 'Ваш пароль успешно обновлён',
@@ -227,13 +230,20 @@ const ChangePasswordForm: React.FC<{
                 isClosable: true,
             });
             onSuccess();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Ошибка при смене пароля:', error);
+            const data = error?.response?.data;
+            let description = 'Не удалось изменить пароль';
+            if (data?.error) {
+                description = data.error;
+            } else if (data?.new_password && Array.isArray(data.new_password)) {
+                description = data.new_password[0];
+            }
             toast({
                 title: 'Ошибка',
-                description: 'Не удалось изменить пароль',
+                description,
                 status: 'error',
-                duration: 3000,
+                duration: 4000,
                 isClosable: true,
             });
         } finally {
@@ -309,6 +319,21 @@ export default function ProfilePage() {
     const { isOpen: isPasswordModalOpen, onOpen: onPasswordModalOpen, onClose: onPasswordModalClose } = useDisclosure();
     const [isLoading, setIsLoading] = useState(true);
     const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [myReviews, setMyReviews] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchMyReviews = async () => {
+            try {
+                const res = await axios.get('http://localhost:8000/my/reviews/');
+                setMyReviews(res.data || []);
+            } catch (error) {
+                console.error('Ошибка при загрузке отзывов:', error);
+            }
+        };
+        if (isAuthenticated && user) {
+            fetchMyReviews();
+        }
+    }, [isAuthenticated, user]);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -603,27 +628,44 @@ export default function ProfilePage() {
                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                         _hover={{ boxShadow: "0 10px 25px rgba(245, 101, 101, 0.4)", transition: { duration: 0.5, ease: "easeOut" } }}
                     >
-                        <Heading as="h2" fontSize="2xl" color="white" mb={6}>
-                            Ваша активность
-                        </Heading>
+                        <Flex justify="space-between" align="center" mb={6} wrap="wrap" gap={2}>
+                            <Heading as="h2" fontSize="2xl" color="white">
+                                Мои отзывы
+                            </Heading>
+                            <Text color="gray.400">Всего: {myReviews.length}</Text>
+                        </Flex>
 
-                        <MotionGrid
-                            templateColumns={{ base: '1fr', md: 'repeat(3, 1fr)' }}
-                            gap={6}
-                            variants={{
-                                hidden: { opacity: 0 },
-                                visible: {
-                                    opacity: 1,
-                                    transition: { staggerChildren: 0.2, duration: 1, ease: "easeOut" }
-                                }
-                            }}
-                            initial="hidden"
-                            animate="visible"
-                        >
-                            <StatCard title="Билетов куплено" value="12" />
-                            <StatCard title="Посещено спектаклей" value="8" />
-                            <StatCard title="В избранном" value="5" />
-                        </MotionGrid>
+                        {myReviews.length === 0 ? (
+                            <Text color="gray.500">Вы ещё не оставляли отзывов.</Text>
+                        ) : (
+                            <VStack spacing={4} align="stretch">
+                                {myReviews.map((review) => (
+                                    <Box
+                                        key={review.id}
+                                        bg="rgba(30, 30, 30, 0.5)"
+                                        borderRadius="lg"
+                                        p={4}
+                                        border="1px solid"
+                                        borderColor="rgba(64, 0, 16, 0.7)"
+                                        cursor="pointer"
+                                        _hover={{ borderColor: primaryColor }}
+                                        onClick={() => navigate(
+                                            review.subject_type === 'performance'
+                                                ? `/performance/${review.performance}`
+                                                : `/actor/${review.actor}`
+                                        )}
+                                    >
+                                        <Text color={accentColor} fontSize="sm" mb={1}>
+                                            {review.subject_type === 'performance' ? 'Спектакль' : 'Актёр'}: {review.subject_title || '—'}
+                                        </Text>
+                                        <Text color="gray.200" noOfLines={2}>{review.text}</Text>
+                                        <Text color="gray.500" fontSize="xs" mt={2}>
+                                            {new Date(review.created_at).toLocaleDateString('ru-RU')}
+                                        </Text>
+                                    </Box>
+                                ))}
+                            </VStack>
+                        )}
                     </MotionBox>
                 </Container>
 
@@ -697,28 +739,5 @@ export default function ProfilePage() {
             </Box>
             <Footer />
         </Box>
-    );
-}
-
-function StatCard({ title, value }: { title: string; value: string }) {
-    return (
-        <MotionBox
-            variants={{
-                hidden: { opacity: 0, y: 20 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
-            }}
-            whileHover={{ y: -5, transition: { duration: 0.5, ease: "easeOut" } }}
-            bg="rgba(30, 30, 30, 0.5)"
-            borderRadius="lg"
-            p={6}
-            textAlign="center"
-            border="1px solid"
-            borderColor="rgba(64, 0, 16, 0.7)"
-        >
-            <Text fontSize="3xl" fontWeight="bold" color={primaryColor} mb={2}>
-                {value}
-            </Text>
-            <Text color="gray.300">{title}</Text>
-        </MotionBox>
     );
 }

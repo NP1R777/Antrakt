@@ -233,5 +233,25 @@ if USE_MINIO_STORAGE:
     # MEDIA_URL should point to MinIO public HTTP endpoint
     MEDIA_URL = f"{AWS_S3_URL_PROTOCOL}//{AWS_S3_CUSTOM_DOMAIN}/"
 
+# Email configuration (Яндекс SMTP)
+# По умолчанию используется console-backend (письма печатаются в консоль),
+# чтобы разработка/тесты работали без реальных SMTP-доступов. На проде задайте
+# EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend и SMTP-креды Яндекса
+# (пароль приложения) через переменные окружения / Secrets.
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend'
+)
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.yandex.ru')
+EMAIL_PORT = config('EMAIL_PORT', default=465, cast=int)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=True, cast=bool)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config(
+    'DEFAULT_FROM_EMAIL',
+    default=(EMAIL_HOST_USER or 'noreply@antrakt.local')
+)
+
 # Настройки для работы с разными типами БД
 print("Используется PostgreSQL с полной функциональностью")

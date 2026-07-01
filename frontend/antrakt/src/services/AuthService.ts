@@ -202,6 +202,23 @@ class AuthService {
   }
 
   /**
+   * Регистрация обычного пользователя (email обязателен, телефон опционален)
+   */
+  async register(email: string, password: string, phone: string = ''): Promise<boolean> {
+    try {
+      await axios.post(`${API_BASE_URL}/register/`, {
+        email,
+        password,
+        phone_number: phone || undefined,
+      });
+      return true;
+    } catch (error) {
+      console.error('Ошибка регистрации:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Выход из системы
    */
   async logout(): Promise<void> {

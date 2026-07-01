@@ -28,6 +28,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion"; // Добавлен AnimatePresence
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
+import ReviewsSection from "../../components/ReviewsSection";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaUserTie, FaClock, FaUsers, FaExpand } from "react-icons/fa";
 
@@ -52,6 +53,7 @@ interface Performance {
     premiere_date: string | null;
     production_team: string[] | null;
     cast: { id?: number; actor: number; actor_name?: string; role: string }[] | null;
+    shows: { id?: number; show_datetime: string; ticket_url?: string | null }[] | null;
     description: string;
     afisha: boolean;
     image_url: string;
@@ -81,6 +83,7 @@ const PerformanceDetail: React.FC = () => {
                     ...response.data,
                     production_team: response.data.production_team || [],
                     cast: response.data.cast || [],
+                    shows: response.data.shows || [],
                     images_list: response.data.images_list || []
                 });
             } catch (err) {
@@ -346,6 +349,18 @@ const PerformanceDetail: React.FC = () => {
                                                 <b>Дата премьеры:</b> {new Date(performance.premiere_date).toLocaleDateString()}
                                             </Text>
                                         )}
+                                        {performance.shows && performance.shows.length > 0 && (
+                                            <Text fontSize="md" color="#e0e0e0">
+                                                <b>Показы:</b>{' '}
+                                                {performance.shows
+                                                    .map(s => new Date(s.show_datetime).toLocaleString('ru-RU', {
+                                                        day: '2-digit', month: '2-digit', year: 'numeric',
+                                                        hour: '2-digit', minute: '2-digit',
+                                                        timeZone: 'Asia/Krasnoyarsk',
+                                                    }))
+                                                    .join('; ')}
+                                            </Text>
+                                        )}
                                     </VStack>
 
                                     <VStack align="start">
@@ -503,6 +518,10 @@ const PerformanceDetail: React.FC = () => {
                                 </Flex>
                             </Flex>
                         </Box>
+                    )}
+
+                    {!performance.afisha && (
+                        <ReviewsSection type="performance" targetId={performance.id} />
                     )}
                 </Box>
             </Box>
