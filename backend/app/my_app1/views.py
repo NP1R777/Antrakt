@@ -867,3 +867,15 @@ class MyReviewsList(APIView):
                    .prefetch_related('reactions')
                    .order_by('-created_at'))
         return Response(_serialize_reviews(reviews, request))
+
+
+class ReviewListAdmin(APIView):
+    """Все отзывы (для модерации в админ-панели)."""
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request, format=None):
+        reviews = (Review.objects
+                   .select_related('author', 'performance', 'actor')
+                   .prefetch_related('reactions')
+                   .order_by('-created_at'))
+        return Response(_serialize_reviews(reviews, request))

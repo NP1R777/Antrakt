@@ -79,6 +79,7 @@ urlpatterns = [
     path('review<int:id>/react/', views.ReviewReactionView.as_view(), name='review-react'),
     path('review<int:id>/warn/', views.ReviewWarnView.as_view(), name='review-warn'),
     path('my/reviews/', views.MyReviewsList.as_view(), name='my-reviews'),
+    path('reviews-admin/', views.ReviewListAdmin.as_view(), name='reviews-admin'),
     path('upload-image/', views.ImageUploadView.as_view(), name='upload-image'),
     path('delete-image/', views.ImageDeleteView.as_view(), name='delete-image'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name="schema-swagger-ui"),
