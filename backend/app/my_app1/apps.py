@@ -12,6 +12,7 @@ class MyApp1Config(AppConfig):
             try:
                 import boto3
                 from botocore.exceptions import ClientError
+                from botocore.client import Config as BotoConfig
 
                 s3_client = boto3.client(
                     's3',
@@ -19,6 +20,7 @@ class MyApp1Config(AppConfig):
                     aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                     aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
                     region_name=settings.AWS_S3_REGION_NAME,
+                    config=BotoConfig(proxies={})
                 )
                 bucket = settings.AWS_STORAGE_BUCKET_NAME
                 try:

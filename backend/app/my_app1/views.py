@@ -624,7 +624,7 @@ class ImageUploadView(APIView):
             endpoint_url="http://localhost:9000",
             aws_access_key_id="minioadmin",
             aws_secret_access_key="minioadmin123",
-            config=BotoConfig(signature_version='s3v4')
+            config=BotoConfig(signature_version='s3v4', proxies={})
         )
         bucket = "antrakt-images"
         extension = image.name.split('.')[-1].lower()
@@ -668,7 +668,7 @@ class ImageDeleteView(APIView):
             endpoint_url="http://localhost:9000",
             aws_access_key_id="minioadmin",
             aws_secret_access_key="minioadmin123",
-            config=BotoConfig(signature_version='s3v4')
+            config=BotoConfig(signature_version='s3v4', proxies={})
         )
 
         try:
