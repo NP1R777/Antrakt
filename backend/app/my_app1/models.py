@@ -341,3 +341,64 @@ def promote_performance(performance):
         perf.updated_at = timezone.now()
         perf.save(update_fields=['afisha', 'roles_propagated', 'updated_at'])
         return perf
+
+
+class Review(models.Model): # Отзыв пользователя о спектакле или актёре
+    MAX_REACTIONS_PER_USER = 3 # Не более 3 разных реакций от одного пользователя на отзыв
+
+    class Meta:
+        db_table = 'review'
+        ordering = ['-created_at']
+        constraints = [
+            # У отзыва ровно одна цель: либо спектакль, либо актёр.
+            models.CheckConstraint(
+                check=(
+                    models.Q(performance__isnull=False, actor__isnull=True) |
+                    models.Q(performance__isnull=True, actor__isnull=False)
+                ),
+                name='review_exactly_one_target',
+            ),
+        ]
+
+    author = models.ForeignKey(
+        'User', related_name='reviews', on_delete=models.CASCADE
+    )
+    performance = models.ForeignKey(
+        Perfomances, related_name='reviews', null=True, blank=True,
+        on_delete=models.CASCADE
+    )
+    actor = models.ForeignKey(
+        Actors, related_name='reviews', null=True, blank=True,
+        on_delete=models.CASCADE
+    )
+    text = models.TextField(max_length=2000)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class ReviewReaction(models.Model): # Реакция пользователя на отзыв
+    HEART = 'heart'
+    LIKE = 'like'
+    LAUGH = 'laugh'
+    WOW = 'wow'
+    SAD = 'sad'
+    REACTION_CHOICES = [
+        (HEART, '❤️'),
+        (LIKE, '👍'),
+        (LAUGH, '😂'),
+        (WOW, '😮'),
+        (SAD, '😢'),
+    ]
+
+    class Meta:
+        db_table = 'review_reaction'
+        unique_together = ('review', 'user', 'reaction')
+
+    review = models.ForeignKey(
+        Review, related_name='reactions', on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        'User', related_name='review_reactions', on_delete=models.CASCADE
+    )
+    reaction = models.CharField(max_length=10, choices=REACTION_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
