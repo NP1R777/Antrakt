@@ -4,11 +4,11 @@ from django.test import TestCase
 from django.core.management import call_command
 from django.utils import timezone
 
-from rest_framework.test import APIRequestFactory, force_authenticate
+from rest_framework.test import APIRequestFactory, force_authenticate, APIClient
 
 from my_app1.models import (
     Perfomances, Actors, PerformanceShow, PerformanceCast, User,
-    promote_performance,
+    Review, ReviewReaction, promote_performance,
 )
 from my_app1.serializers import PerfomanceSerializer
 
@@ -159,3 +159,106 @@ class CastVisibilityTests(TestCase):
         PerformanceCast.objects.create(performance=perf, actor=self.actor, role='Роль')
         data = self._serialize(perf, authenticated=False)
         self.assertEqual(len(data['cast']), 1)
+
+
+class RegistrationTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_register_requires_email(self):
+        resp = self.client.post('/register/', {'password': 'Teatr2026!'}, format='json')
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn('email', resp.data)
+
+    def test_register_cannot_create_superuser(self):
+        resp = self.client.post('/register/', {
+            'email': 'viewer@test.com',
+            'password': 'Teatr2026!',
+            'is_superuser': True,
+        }, format='json')
+        self.assertEqual(resp.status_code, 201)
+        user = User.objects.get(email='viewer@test.com')
+        self.assertFalse(user.is_superuser)
+        self.assertFalse(user.is_staff)
+
+    def test_register_duplicate_email_rejected(self):
+        User.objects.create_user(password='x', email='dup@test.com', phone_number='+7-000-000-00-11')
+        resp = self.client.post('/register/', {
+            'email': 'dup@test.com', 'password': 'Teatr2026!',
+        }, format='json')
+        self.assertEqual(resp.status_code, 400)
+
+
+class ReviewApiTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            password='Teatr2026!', email='u@test.com', phone_number='+7-000-000-00-21')
+        self.admin = User.objects.create_superuser(
+            password='Admin2026!', email='a@test.com', phone_number='+7-000-000-00-22')
+        self.performance = Perfomances.objects.create(
+            title='Спектакль', author='А', genre='Драма', age_limit='12+',
+            description='о', afisha=False)
+
+    def test_review_requires_auth(self):
+        resp = self.client.post(f'/perfomance{self.performance.id}/reviews/',
+                                {'text': 'аноним'}, format='json')
+        self.assertIn(resp.status_code, (401, 403))
+
+    def test_create_and_list_review(self):
+        self.client.force_authenticate(self.user)
+        resp = self.client.post(f'/perfomance{self.performance.id}/reviews/',
+                                {'text': 'Отлично!'}, format='json')
+        self.assertEqual(resp.status_code, 201)
+        # Список публичный, но email автора скрыт от анонима.
+        self.client.force_authenticate(None)
+        listing = self.client.get(f'/perfomance{self.performance.id}/reviews/')
+        self.assertEqual(len(listing.data), 1)
+        self.assertIsNone(listing.data[0]['author_email'])
+
+    def test_reaction_limit_three(self):
+        review = Review.objects.create(author=self.user, performance=self.performance, text='t')
+        self.client.force_authenticate(self.user)
+        for r in ['heart', 'like', 'laugh']:
+            resp = self.client.post(f'/review{review.id}/react/', {'reaction': r}, format='json')
+            self.assertEqual(resp.status_code, 200)
+        resp = self.client.post(f'/review{review.id}/react/', {'reaction': 'wow'}, format='json')
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(ReviewReaction.objects.filter(review=review, user=self.user).count(), 3)
+
+    def test_reaction_toggle_off(self):
+        review = Review.objects.create(author=self.user, performance=self.performance, text='t')
+        self.client.force_authenticate(self.user)
+        self.client.post(f'/review{review.id}/react/', {'reaction': 'heart'}, format='json')
+        self.assertEqual(ReviewReaction.objects.count(), 1)
+        self.client.post(f'/review{review.id}/react/', {'reaction': 'heart'}, format='json')
+        self.assertEqual(ReviewReaction.objects.count(), 0)
+
+    def test_only_author_or_admin_deletes(self):
+        other = User.objects.create_user(password='x', email='o@test.com', phone_number='+7-000-000-00-23')
+        review = Review.objects.create(author=self.user, performance=self.performance, text='t')
+        self.client.force_authenticate(other)
+        resp = self.client.delete(f'/review{review.id}/')
+        self.assertEqual(resp.status_code, 403)
+        self.client.force_authenticate(self.admin)
+        resp = self.client.delete(f'/review{review.id}/')
+        self.assertEqual(resp.status_code, 204)
+
+    def test_change_password_verifies_current(self):
+        self.client.force_authenticate(self.user)
+        bad = self.client.post('/change-password/',
+                               {'current_password': 'wrong', 'new_password': 'NewPass2026!'},
+                               format='json')
+        self.assertEqual(bad.status_code, 400)
+        ok = self.client.post('/change-password/',
+                              {'current_password': 'Teatr2026!', 'new_password': 'NewPass2026!'},
+                              format='json')
+        self.assertEqual(ok.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('NewPass2026!'))
+
+    def test_user_list_requires_admin(self):
+        resp = self.client.get('/users/')
+        self.assertIn(resp.status_code, (401, 403))
+        self.client.force_authenticate(self.admin)
+        self.assertEqual(self.client.get('/users/').status_code, 200)

@@ -21,6 +21,7 @@ import {
 import { motion } from "framer-motion";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
+import ReviewsSection from "../../components/ReviewsSection";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaQuoteLeft, FaUserTie, FaBook, FaUser, FaPaintBrush, FaVideo, FaMusic } from "react-icons/fa";
 import { yearDeclension, performanceDeclension } from "../../utils/declension";
@@ -310,6 +311,8 @@ const ActorDetail: React.FC = () => {
                             </VStack>
                         </GridItem>
                     </Grid>
+
+                    <ReviewsSection type="actor" targetId={Number(id)} />
                 </Box>
             </Box>
             <Footer />

@@ -4,6 +4,7 @@ import Hero from "./sections/Hero";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import UsersPage from "./pages/admin/UsersPage";
+import ReviewsPageAdmin from "./pages/admin/ReviewsPageAdmin";
 import Dashboard from "./pages/admin/Dashboard";
 import NewsSection from "./sections/NewsSection";
 import Navigation from "./components/Navigation";
@@ -189,6 +190,17 @@ function App() {
                 <ProtectedAdminRoute>
                   <AdminLayout>
                     <UsersPage />
+                  </AdminLayout>
+                </ProtectedAdminRoute>
+              }
+            />
+
+            <Route
+              path="/admin/reviews"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminLayout>
+                    <ReviewsPageAdmin />
                   </AdminLayout>
                 </ProtectedAdminRoute>
               }
