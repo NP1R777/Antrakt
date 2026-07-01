@@ -39,12 +39,54 @@ const NAV_ITEMS = [
 export default function Navigation() {
     const { isOpen, onToggle } = useDisclosure();
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [authMode, setAuthMode] = useState<"login" | "register">("login");
     const toast = useToast();
     const navigate = useNavigate(); // Добавлен хук useNavigate
-    const { user, isAuthenticated, login, logout } = useAuth();
+    const { user, isAuthenticated, login, register, logout } = useAuth();
 
     const handleLoginClick = () => {
+        setAuthMode("login");
         setIsAuthModalOpen(true);
+    };
+
+    const handleRegisterClick = () => {
+        setAuthMode("register");
+        setIsAuthModalOpen(true);
+    };
+
+    const handleRegister = async (email: string, password: string, phone: string) => {
+        try {
+            const success = await register(email, password, phone);
+            if (success) {
+                toast({
+                    title: "Регистрация успешна!",
+                    description: "Теперь войдите в свой аккаунт.",
+                    status: "success",
+                    duration: 3000,
+                    isClosable: true,
+                    position: "top"
+                });
+            }
+            return success;
+        } catch (error: any) {
+            const data = error?.response?.data;
+            let description = "Не удалось зарегистрироваться";
+            if (data && typeof data === "object") {
+                const firstField = Object.values(data)[0];
+                if (Array.isArray(firstField) && firstField.length) {
+                    description = String(firstField[0]);
+                }
+            }
+            toast({
+                title: "Ошибка регистрации",
+                description,
+                status: "error",
+                duration: 4000,
+                isClosable: true,
+                position: "top"
+            });
+            return false;
+        }
     };
 
     const handleLogin = async (emailOrPhone: string, password: string) => {
@@ -126,15 +168,26 @@ export default function Navigation() {
                     ))}
 
                     {!isAuthenticated ? (
-                        <Button
-                            variant="outline"
-                            color={lightText}
-                            borderColor={primaryColor}
-                            _hover={{ bg: primaryColor, transform: "translateY(-2px)" }}
-                            onClick={handleLoginClick}
-                        >
-                            Войти
-                        </Button>
+                        <Flex gap={3} align="center">
+                            <Button
+                                variant="outline"
+                                color={lightText}
+                                borderColor={primaryColor}
+                                _hover={{ bg: primaryColor, transform: "translateY(-2px)" }}
+                                onClick={handleLoginClick}
+                            >
+                                Войти
+                            </Button>
+                            <Button
+                                variant="solid"
+                                bg={primaryColor}
+                                color={lightText}
+                                _hover={{ opacity: 0.9, transform: "translateY(-2px)" }}
+                                onClick={handleRegisterClick}
+                            >
+                                Регистрация
+                            </Button>
+                        </Flex>
                     ) : user?.is_superuser ? (
                         <Button
                             variant="solid"
@@ -212,16 +265,42 @@ export default function Navigation() {
                         ))}
 
                         {!isAuthenticated && (
+                            <>
+                                <Button
+                                    variant="outline"
+                                    color={lightText}
+                                    borderColor={primaryColor}
+                                    _hover={{ bg: primaryColor }}
+                                    onClick={handleLoginClick}
+                                    mt={2}
+                                    w="full"
+                                >
+                                    Войти
+                                </Button>
+                                <Button
+                                    variant="solid"
+                                    bg={primaryColor}
+                                    color={lightText}
+                                    _hover={{ opacity: 0.9 }}
+                                    onClick={handleRegisterClick}
+                                    w="full"
+                                >
+                                    Регистрация
+                                </Button>
+                            </>
+                        )}
+
+                        {isAuthenticated && !user?.is_superuser && (
                             <Button
-                                variant="outline"
+                                variant="solid"
+                                bg={primaryColor}
                                 color={lightText}
-                                borderColor={primaryColor}
-                                _hover={{ bg: primaryColor }}
-                                onClick={handleLoginClick}
+                                _hover={{ opacity: 0.9 }}
+                                onClick={() => navigate(`/profile/${user?.id}`)}
                                 mt={2}
                                 w="full"
                             >
-                                Войти
+                                Профиль
                             </Button>
                         )}
 
@@ -247,7 +326,11 @@ export default function Navigation() {
                 onClose={() => {
                     setIsAuthModalOpen(false);
                 }}
+                mode={authMode}
+                switchToLogin={() => setAuthMode("login")}
+                switchToRegister={() => setAuthMode("register")}
                 onLogin={handleLogin}
+                onRegister={handleRegister}
             />
         </Box>
     );

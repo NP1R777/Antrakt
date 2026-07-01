@@ -6,6 +6,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (emailOrPhone: string, password: string) => Promise<boolean>;
+  register: (email: string, password: string, phone: string) => Promise<boolean>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   updateUser: (updatedUser: User | null) => void;
@@ -53,6 +54,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return success;
   };
 
+  const register = async (email: string, password: string, phone: string): Promise<boolean> => {
+    return AuthService.register(email, password, phone);
+  };
+
   const logout = async (): Promise<void> => {
     await AuthService.logout();
     updateUser(null); // Используем updateUser вместо setUser
@@ -90,6 +95,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated,
     isLoading,
     login,
+    register,
     logout,
     refreshUser,
     updateUser, // Добавлено
