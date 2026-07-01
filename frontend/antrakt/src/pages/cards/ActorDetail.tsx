@@ -200,7 +200,7 @@ const ActorDetail: React.FC = () => {
                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                         p={{ base: 4, md: 8 }}
                     >
-                        <GridItem>
+                        <GridItem minW="0">
                             <Image
                                 src={actor.image_url}
                                 alt={actor.name}
@@ -214,8 +214,8 @@ const ActorDetail: React.FC = () => {
                             />
                         </GridItem>
 
-                        <GridItem>
-                            <VStack align="start" spacing={6}>
+                        <GridItem minW="0">
+                            <VStack align="start" spacing={6} sx={{ wordBreak: "break-word", overflowWrap: "anywhere" }}>
                                 <Heading as="h1" size="lg" color="white">{actor.name}</Heading>
                                 <Text color="whiteAlpha.800" fontSize="sm">{isFemale ? "Актриса" : "Актер"}</Text>
 
