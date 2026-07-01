@@ -3,6 +3,8 @@ import boto3
 from .models import *
 from .serializers import *
 from datetime import datetime
+from django.conf import settings
+from django.core.mail import send_mail
 from django.utils import timezone
 from django.db.models import Max
 from urllib.parse import urlparse
@@ -20,6 +22,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 class UserList(APIView):
     model_class = User
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
 
 
     def get(self, request, format=None):
@@ -31,6 +34,7 @@ class UserList(APIView):
 class UserListAdmin(APIView):
     model_class = User
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
 
 
     def get(self, request, format=None):
@@ -42,9 +46,17 @@ class UserListAdmin(APIView):
 class UserDetail(APIView):
     model_class = User
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-    
+    def _ensure_can_access(self, request, target_id):
+        # Доступ к чужому профилю — только у администратора.
+        if not (request.user.is_superuser or request.user.id == target_id):
+            return False
+        return True
+
     def get(self, request, id, format=None):
+        if not self._ensure_can_access(request, id):
+            return Response({"error": "Недостаточно прав"}, status=status.HTTP_403_FORBIDDEN)
         user = get_object_or_404(self.model_class, id=id)
         serializer = self.serializer_class(user)
         return Response(serializer.data)
@@ -52,6 +64,8 @@ class UserDetail(APIView):
     
     @swagger_auto_schema(request_body=UserSerializer)
     def put(self, request, id, format=None):
+        if not self._ensure_can_access(request, id):
+            return Response({"error": "Недостаточно прав"}, status=status.HTTP_403_FORBIDDEN)
         user = get_object_or_404(self.model_class, id=id)
         serializer = self.serializer_class(user, data=request.data, partial=True)
         if serializer.is_valid():
@@ -61,14 +75,32 @@ class UserDetail(APIView):
     
 
     def delete(self, request, id, format=None):
+        if not self._ensure_can_access(request, id):
+            return Response({"error": "Недостаточно прав"}, status=status.HTTP_403_FORBIDDEN)
         user = get_object_or_404(self.model_class, id=id)
-        user.deleted_at = datetime.now()
+        user.deleted_at = timezone.now()
         user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class ChangePasswordView(APIView):
+    """Смена пароля с проверкой текущего и корректным хешированием."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, format=None):
+        serializer = ChangePasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = request.user
+        if not user.check_password(serializer.validated_data['current_password']):
+            return Response({"error": "Неверный текущий пароль"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        user.set_password(serializer.validated_data['new_password'])
+        user.save(update_fields=['password'])
+        return Response({"success": True, "message": "Пароль изменён"})
+
+
 class RegisterView(generics.CreateAPIView):
-    serializer_class = UserSerializer
+    serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -76,7 +108,12 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         return Response({
-            "user": UserSerializer(user).data,
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "phone_number": user.phone_number,
+                "is_superuser": user.is_superuser,
+            },
             "message": "Пользователь создан!"
         }, status=status.HTTP_201_CREATED)
 
@@ -676,3 +713,157 @@ class ImageDeleteView(APIView):
             return Response({"success": True, "message": "Изображение удалено"})
         except Exception:
             return Response({"success": False, "message": "Не удалось удалить изображение"}, status=400)
+
+
+# ============================ Отзывы и реакции ============================
+
+def _serialize_reviews(reviews, request):
+    return ReviewSerializer(reviews, many=True, context={'request': request}).data
+
+
+class PerformanceReviewList(APIView):
+    """Отзывы о спектакле: список (публично) и создание (авторизованным)."""
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    def get(self, request, id, format=None):
+        performance = get_object_or_404(Perfomances, id=id)
+        reviews = (performance.reviews
+                   .select_related('author')
+                   .prefetch_related('reactions')
+                   .order_by('-created_at'))
+        return Response(_serialize_reviews(reviews, request))
+
+    def post(self, request, id, format=None):
+        performance = get_object_or_404(Perfomances, id=id)
+        text = (request.data.get('text') or '').strip()
+        if not text:
+            return Response({"error": "Текст отзыва обязателен"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        review = Review.objects.create(
+            author=request.user, performance=performance, text=text
+        )
+        serializer = ReviewSerializer(review, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ActorReviewList(APIView):
+    """Отзывы об актёре: список (публично) и создание (авторизованным)."""
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    def get(self, request, id, format=None):
+        actor = get_object_or_404(Actors, id=id)
+        reviews = (actor.reviews
+                   .select_related('author')
+                   .prefetch_related('reactions')
+                   .order_by('-created_at'))
+        return Response(_serialize_reviews(reviews, request))
+
+    def post(self, request, id, format=None):
+        actor = get_object_or_404(Actors, id=id)
+        text = (request.data.get('text') or '').strip()
+        if not text:
+            return Response({"error": "Текст отзыва обязателен"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        review = Review.objects.create(
+            author=request.user, actor=actor, text=text
+        )
+        serializer = ReviewSerializer(review, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ReviewDetail(APIView):
+    """Удаление отзыва: автором или администратором."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, id, format=None):
+        review = get_object_or_404(Review, id=id)
+        if review.author_id != request.user.id and not request.user.is_superuser:
+            return Response({"error": "Недостаточно прав"},
+                            status=status.HTTP_403_FORBIDDEN)
+        review.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ReviewReactionView(APIView):
+    """Переключение реакции пользователя на отзыв (не более 3 разных типов)."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, id, format=None):
+        review = get_object_or_404(Review, id=id)
+        reaction = request.data.get('reaction')
+        if reaction not in dict(ReviewReaction.REACTION_CHOICES):
+            return Response({"error": "Недопустимая реакция"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        existing = ReviewReaction.objects.filter(
+            review=review, user=request.user, reaction=reaction
+        ).first()
+        if existing:
+            existing.delete()
+        else:
+            count = ReviewReaction.objects.filter(
+                review=review, user=request.user
+            ).count()
+            if count >= Review.MAX_REACTIONS_PER_USER:
+                return Response(
+                    {"error": f"Можно поставить не более "
+                              f"{Review.MAX_REACTIONS_PER_USER} реакций на отзыв"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            ReviewReaction.objects.create(
+                review=review, user=request.user, reaction=reaction
+            )
+
+        review.refresh_from_db()
+        serializer = ReviewSerializer(review, context={'request': request})
+        return Response(serializer.data)
+
+
+class ReviewWarnView(APIView):
+    """Отправка предупреждающего письма автору отзыва (только администратор)."""
+    permission_classes = [permissions.IsAdminUser]
+
+    def post(self, request, id, format=None):
+        review = get_object_or_404(Review, id=id)
+        message = (request.data.get('message') or '').strip()
+        if not message:
+            return Response({"error": "Текст письма обязателен"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if not review.author.email:
+            return Response({"error": "У пользователя не указан email"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        subject = (request.data.get('subject') or
+                   'Предупреждение от театра «Антракт»')
+        try:
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[review.author.email],
+                fail_silently=False,
+            )
+        except Exception as exc:
+            return Response({"error": f"Не удалось отправить письмо: {exc}"},
+                            status=status.HTTP_502_BAD_GATEWAY)
+        return Response({"success": True, "message": "Письмо отправлено"})
+
+
+class MyReviewsList(APIView):
+    """Отзывы текущего пользователя (для личного кабинета)."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, format=None):
+        reviews = (Review.objects
+                   .filter(author=request.user)
+                   .select_related('author', 'performance', 'actor')
+                   .prefetch_related('reactions')
+                   .order_by('-created_at'))
+        return Response(_serialize_reviews(reviews, request))
