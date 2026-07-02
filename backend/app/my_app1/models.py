@@ -444,3 +444,25 @@ class ReviewReaction(models.Model): # Реакция пользователя н
     )
     reaction = models.CharField(max_length=10, choices=REACTION_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class EmailVerification(models.Model): # Код подтверждения email при регистрации
+    CODE_TTL_MINUTES = 10       # срок жизни кода
+    MAX_ATTEMPTS = 5            # максимум попыток ввода кода
+    RESEND_COOLDOWN_SECONDS = 30  # минимальный интервал между отправками кода
+
+    class Meta:
+        db_table = 'email_verification'
+
+    email = models.EmailField(unique=True)
+    code = models.CharField(max_length=6)
+    # Пароль будущего пользователя хранится уже захешированным.
+    password = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
+    attempts = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_sent_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField()
+
+    def is_expired(self):
+        return timezone.now() >= self.expires_at
