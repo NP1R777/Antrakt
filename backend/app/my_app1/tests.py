@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, date
 
 from django.test import TestCase
 from django.core.management import call_command
@@ -8,7 +8,8 @@ from rest_framework.test import APIRequestFactory, force_authenticate, APIClient
 
 from my_app1.models import (
     Perfomances, Actors, PerformanceShow, PerformanceCast, User,
-    Review, ReviewReaction, promote_performance,
+    Review, ReviewReaction, DirectorsTheatre, Archive, News,
+    EmailVerification, promote_performance,
 )
 from my_app1.serializers import PerfomanceSerializer
 
@@ -170,16 +171,39 @@ class RegistrationTests(TestCase):
         self.assertEqual(resp.status_code, 400)
         self.assertIn('email', resp.data)
 
-    def test_register_cannot_create_superuser(self):
+    def test_register_sends_code_without_creating_user(self):
         resp = self.client.post('/register/', {
             'email': 'viewer@test.com',
             'password': 'Teatr2026!',
-            'is_superuser': True,
+        }, format='json')
+        self.assertEqual(resp.status_code, 200)
+        # Пользователь ещё НЕ создан, есть только заявка на подтверждение.
+        self.assertFalse(User.objects.filter(email='viewer@test.com').exists())
+        self.assertTrue(EmailVerification.objects.filter(email='viewer@test.com').exists())
+
+    def test_verify_creates_regular_user(self):
+        self.client.post('/register/', {
+            'email': 'viewer@test.com', 'password': 'Teatr2026!', 'is_superuser': True,
+        }, format='json')
+        code = EmailVerification.objects.get(email='viewer@test.com').code
+        resp = self.client.post('/register/verify/', {
+            'email': 'viewer@test.com', 'code': code,
         }, format='json')
         self.assertEqual(resp.status_code, 201)
         user = User.objects.get(email='viewer@test.com')
+        # Регистрация никогда не создаёт администратора.
         self.assertFalse(user.is_superuser)
         self.assertFalse(user.is_staff)
+        self.assertTrue(user.check_password('Teatr2026!'))
+        # Заявка удаляется после подтверждения.
+        self.assertFalse(EmailVerification.objects.filter(email='viewer@test.com').exists())
+
+    def test_verify_wrong_code_rejected(self):
+        self.client.post('/register/', {'email': 'v2@test.com', 'password': 'Teatr2026!'}, format='json')
+        resp = self.client.post('/register/verify/', {'email': 'v2@test.com', 'code': '000000'}, format='json')
+        self.assertEqual(resp.status_code, 400)
+        self.assertFalse(User.objects.filter(email='v2@test.com').exists())
+        self.assertEqual(EmailVerification.objects.get(email='v2@test.com').attempts, 1)
 
     def test_register_duplicate_email_rejected(self):
         User.objects.create_user(password='x', email='dup@test.com', phone_number='+7-000-000-00-11')
@@ -262,3 +286,66 @@ class ReviewApiTests(TestCase):
         self.assertIn(resp.status_code, (401, 403))
         self.client.force_authenticate(self.admin)
         self.assertEqual(self.client.get('/users/').status_code, 200)
+
+
+class ActorTenureTests(TestCase):
+    def test_years_in_theatre_computed_from_joined_at(self):
+        today = timezone.localdate()
+        actor = make_actor()
+        actor.joined_at = date(today.year - 3, today.month, 1)
+        actor.save()
+        self.assertEqual(actor.years_in_theatre, 3)
+        self.assertTrue(actor.is_active)
+
+    def test_departed_actor_counter_frozen(self):
+        today = timezone.localdate()
+        actor = make_actor()
+        actor.joined_at = date(today.year - 10, 1, 1)
+        actor.left_at = date(today.year - 5, 1, 1)  # ушёл, пробыв 5 лет
+        actor.save()
+        self.assertFalse(actor.is_active)
+        self.assertEqual(actor.years_in_theatre, 5)
+
+    def test_serializer_exposes_computed_fields(self):
+        from my_app1.serializers import ActorsSerializer
+        today = timezone.localdate()
+        actor = make_actor()
+        actor.joined_at = date(today.year - 2, today.month, 1)
+        actor.save()
+        data = ActorsSerializer(actor).data
+        self.assertEqual(data['time_in_theatre'], '2')
+        self.assertTrue(data['is_active'])
+
+
+class ExtendedReviewTargetTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            password='Teatr2026!', email='ru@test.com', phone_number='+7-000-000-00-31')
+        self.director = DirectorsTheatre.objects.create(name='Реж', description='о')
+        self.news = News.objects.create(title='Новость', description='о')
+        self.archive_past = Archive.objects.create(title='Прошлое', description='о', afisha=False)
+        self.archive_afisha = Archive.objects.create(title='Афиша', description='о', afisha=True)
+
+    def test_director_review(self):
+        self.client.force_authenticate(self.user)
+        resp = self.client.post(f'/director{self.director.id}/reviews/', {'text': 'ок'}, format='json')
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(resp.data['subject_type'], 'director')
+
+    def test_news_review(self):
+        self.client.force_authenticate(self.user)
+        resp = self.client.post(f'/news{self.news.id}/reviews/', {'text': 'ок'}, format='json')
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(resp.data['subject_type'], 'news')
+
+    def test_archive_review_allowed_for_past(self):
+        self.client.force_authenticate(self.user)
+        resp = self.client.post(f'/archive{self.archive_past.id}/reviews/', {'text': 'ок'}, format='json')
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(resp.data['subject_type'], 'archive')
+
+    def test_archive_review_blocked_for_afisha(self):
+        self.client.force_authenticate(self.user)
+        resp = self.client.post(f'/archive{self.archive_afisha.id}/reviews/', {'text': 'ок'}, format='json')
+        self.assertEqual(resp.status_code, 400)
