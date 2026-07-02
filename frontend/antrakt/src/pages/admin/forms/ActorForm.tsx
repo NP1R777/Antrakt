@@ -10,11 +10,6 @@ import {
     Flex,
     Input,
     Textarea,
-    NumberInput,
-    NumberInputField,
-    NumberInputStepper,
-    NumberIncrementStepper,
-    NumberDecrementStepper,
     Wrap,
     IconButton,
     Tooltip,
@@ -59,7 +54,8 @@ interface Actor {
     id: number;
     name: string;
     place_of_work: string;
-    time_in_theatre: number;
+    joined_at: string | null; // Дата прихода в театр (YYYY-MM-DD)
+    left_at: string | null;   // Дата ухода (null = активный)
     favorite_writer: string[];
     favorite_character: string[];
     favorite_painter: string[];
@@ -108,12 +104,6 @@ export const ActorForm: React.FC<{
     const [listInputs, setListInputs] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const toast = useToast();
-
-    const getYearsText = (years: number) => {
-        if (years % 10 === 1 && years % 100 !== 11) return `${years} год`;
-        if ([2, 3, 4].includes(years % 10) && ![12, 13, 14].includes(years % 100)) return `${years} года`;
-        return `${years} лет`;
-    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -314,32 +304,45 @@ export const ActorForm: React.FC<{
                     <FormControl>
                         <FormLabel display="flex" alignItems="center" gap={2}>
                             <CFaHistory color={primaryColor} />
-                            <Text as="span" fontWeight="semibold">Время в студии</Text>
+                            <Text as="span" fontWeight="semibold">Дата прихода в театр</Text>
                         </FormLabel>
-                        <NumberInput
-                            min={0}
-                            value={currentActor.time_in_theatre || 0}
-                            onChange={(valueString) => setCurrentActor(prev => ({
+                        <Input
+                            type="month"
+                            value={(currentActor.joined_at || '').slice(0, 7)}
+                            onChange={(e) => setCurrentActor(prev => ({
                                 ...prev,
-                                time_in_theatre: parseInt(valueString) || 0
+                                joined_at: e.target.value ? `${e.target.value}-01` : null
                             }))}
-                        >
-                            <NumberInputField
-                                placeholder="Количество лет"
-                                bg="#333333"
-                                borderColor="#444444"
-                                _hover={{ borderColor: '#555555' }}
-                            />
-                            <NumberInputStepper>
-                                <NumberIncrementStepper color="white" />
-                                <NumberDecrementStepper color="white" />
-                            </NumberInputStepper>
-                        </NumberInput>
-                        {currentActor.time_in_theatre !== undefined && (
-                            <Text mt={1} fontSize="sm" color="#AAAAAA">
-                                {getYearsText(currentActor.time_in_theatre)}
-                            </Text>
-                        )}
+                            bg="#333333"
+                            borderColor="#444444"
+                            _hover={{ borderColor: '#555555' }}
+                            focusBorderColor={primaryColor}
+                        />
+                        <Text mt={1} fontSize="sm" color="#AAAAAA">
+                            Стаж «в студии» считается автоматически от этой даты.
+                        </Text>
+                    </FormControl>
+
+                    <FormControl>
+                        <FormLabel display="flex" alignItems="center" gap={2}>
+                            <CFaHistory color={primaryColor} />
+                            <Text as="span" fontWeight="semibold">Дата ухода (если выбыл)</Text>
+                        </FormLabel>
+                        <Input
+                            type="date"
+                            value={currentActor.left_at || ''}
+                            onChange={(e) => setCurrentActor(prev => ({
+                                ...prev,
+                                left_at: e.target.value || null
+                            }))}
+                            bg="#333333"
+                            borderColor="#444444"
+                            _hover={{ borderColor: '#555555' }}
+                            focusBorderColor={primaryColor}
+                        />
+                        <Text mt={1} fontSize="sm" color="#AAAAAA">
+                            Заполните, если актёр больше не в театре — карточка уйдёт в «Выбывшие актёры», счётчик заморозится.
+                        </Text>
                     </FormControl>
 
                     <FormControl>

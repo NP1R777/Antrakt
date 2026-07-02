@@ -113,7 +113,8 @@ class Actors(ImageUploadMixin, models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True, default=None)
     name = models.CharField(max_length=50, null=False)
     place_of_work = models.CharField(max_length=200, blank=True) # Место работы
-    time_in_theatre = models.CharField(max_length=10, blank=True) # В студии
+    joined_at = models.DateField(null=True, blank=True) # Когда актёр пришёл в театр (год+месяц)
+    left_at = models.DateField(null=True, blank=True) # Когда актёр выбыл (null = активный)
     favorite_writer = ArrayField(
         models.CharField(max_length=250),
         blank=True,
@@ -171,6 +172,26 @@ class Actors(ImageUploadMixin, models.Model):
     ) # Роли в спектаклях
 
     image_url = models.URLField(null=False, blank=True)
+
+    @property
+    def is_active(self):
+        """Активный актёр — тот, у кого не проставлена дата ухода."""
+        return self.left_at is None
+
+    @property
+    def years_in_theatre(self):
+        """Число полных лет в студии, вычисляется от даты прихода.
+
+        Для выбывших актёров счётчик «замораживается» на дате ухода (left_at),
+        иначе считается до сегодняшнего дня (в таймзоне театра).
+        """
+        if not self.joined_at:
+            return 0
+        end = self.left_at or timezone.localdate()
+        years = end.year - self.joined_at.year
+        if (end.month, end.day) < (self.joined_at.month, self.joined_at.day):
+            years -= 1
+        return max(years, 0)
 
 
 class DirectorsTheatre(ImageUploadMixin, models.Model): # Режиссёры театра

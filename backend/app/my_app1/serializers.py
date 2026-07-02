@@ -218,10 +218,19 @@ class PerfomanceSerializer(serializers.ModelSerializer):
 
 class ActorsSerializer(serializers.ModelSerializer):
     deleted_at = serializers.DateTimeField(required=False, allow_null=True, default=None)
+    # Вычисляемые поля: стаж в студии считается из joined_at/left_at.
+    time_in_theatre = serializers.SerializerMethodField()
+    is_active = serializers.SerializerMethodField()
 
     class Meta:
         model = Actors
         fields = '__all__'
+
+    def get_time_in_theatre(self, obj):
+        return str(obj.years_in_theatre)
+
+    def get_is_active(self, obj):
+        return obj.is_active
 
 
 class DirectorsSerializer(serializers.ModelSerializer):

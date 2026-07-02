@@ -42,6 +42,7 @@ interface TeamMember {
     experience: number;
     productions: number;
     isDirector: boolean;
+    isActive: boolean;
     color: string;
     accentColor: string;
     imageUrl: string;
@@ -62,6 +63,7 @@ interface ServerActor {
     name: string;
     place_of_work: string;
     time_in_theatre: string;
+    is_active: boolean;
     favorite_quote: string;
     author_quote: string;
     perfomances: string[] | null;
@@ -122,6 +124,7 @@ const TeamPage: React.FC = () => {
                         experience,
                         productions: actor.perfomances?.length || 0,
                         isDirector: false,
+                        isActive: actor.is_active !== false,
                         ...actorColors[index % actorColors.length],
                         imageUrl: actor.image_url
                     };
@@ -168,6 +171,92 @@ const TeamPage: React.FC = () => {
             </Box>
         );
     }
+
+    const activeActors = actors.filter((a) => a.isActive);
+    const departedActors = actors.filter((a) => !a.isActive);
+
+    const renderActorCard = (actor: TeamMember) => (
+        <MotionGridItem
+            key={actor.id}
+            variants={{
+                hidden: { opacity: 0, scale: 0.8 },
+                visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
+            }}
+        >
+            <MotionBox
+                bg="rgba(25, 25, 25, 0.8)"
+                borderRadius="xl"
+                overflow="hidden"
+                border="1px solid"
+                borderColor="gray.800"
+                boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
+                whileHover={{
+                    scale: 1.03,
+                    boxShadow: `0 10px 20px rgba(245, 101, 101, 0.3)`,
+                    background: "linear-gradient(135deg, rgba(25, 25, 25, 0.8), rgba(128, 0, 32, 0.1))",
+                    transition: { duration: 0.3 }
+                }}
+                transition={{ duration: 0.3 }}
+                h="100%"
+                display="flex"
+                flexDirection="column"
+            >
+                <Box position="relative">
+                    <Image
+                        src={actor.imageUrl}
+                        alt={actor.name}
+                        width="100%"
+                        height="auto"
+                        maxHeight="300px"
+                        objectFit="contain"
+                        transition="all 0.5s ease"
+                    />
+                    <Box
+                        position="absolute"
+                        bottom={0}
+                        left={0}
+                        right={0}
+                        h="40%"
+                        bgGradient="linear(to-t, rgba(0,0,0,0.9), transparent)"
+                    />
+                    <Box position="absolute" bottom={5} left={5} right={5}>
+                        <Heading as="h3" size="md" color="white">
+                            {actor.name}
+                        </Heading>
+                        <Text color="whiteAlpha.800" fontSize="sm">
+                            {actor.role}
+                        </Text>
+                    </Box>
+                </Box>
+                <Box p={8} flex="1">
+                    <Flex align="center" mb={4}>
+                        <CalendarIcon mr={2} color={actor.accentColor} />
+                        <Text color="gray.400" fontSize="sm">
+                            В студии: {actor.experience} {yearDeclension(actor.experience)}
+                        </Text>
+                    </Flex>
+                    <Flex align="center" mb={4}>
+                        <CFaFilm mr={2} color={actor.accentColor} />
+                        <Text color="gray.400" fontSize="sm">
+                            Сыграно: {actor.productions} {performanceDeclension(actor.productions)}
+                        </Text>
+                    </Flex>
+                    <Button
+                        variant="outline"
+                        color={primaryColor}
+                        _hover={{ color: "#FC8181", borderColor: "#FC8181" }}
+                        size="sm"
+                        rightIcon={<ChevronRightIcon />}
+                        w="full"
+                        fontSize="sm"
+                        onClick={() => navigate(`/actor/${actor.id}`)}
+                    >
+                        Подробнее
+                    </Button>
+                </Box>
+            </MotionBox>
+        </MotionGridItem>
+    );
 
     return (
         <Box minH="100vh" bg="black" display="flex" flexDirection="column" overflowY="hidden">
@@ -396,92 +485,58 @@ const TeamPage: React.FC = () => {
                                 }
                             }}
                         >
-                            {actors.map((actor) => (
-                                <MotionGridItem
-                                    key={actor.id}
-                                    variants={{
-                                        hidden: { opacity: 0, scale: 0.8 },
-                                        visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
-                                    }}
-                                >
-                                    <MotionBox
-                                        bg="rgba(25, 25, 25, 0.8)"
-                                        borderRadius="xl"
-                                        overflow="hidden"
-                                        border="1px solid"
-                                        borderColor="gray.800"
-                                        boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
-                                        whileHover={{
-                                            scale: 1.03,
-                                            boxShadow: `0 10px 20px rgba(245, 101, 101, 0.3)`,
-                                            background: "linear-gradient(135deg, rgba(25, 25, 25, 0.8), rgba(128, 0, 32, 0.1))",
-                                            transition: { duration: 0.3 }
-                                        }}
-                                        transition={{
-                                            duration: 0.3
-                                        }}
-                                        h="100%"
-                                        display="flex"
-                                        flexDirection="column"
-                                    >
-                                        <Box position="relative">
-                                            <Image
-                                                src={actor.imageUrl}
-                                                alt={actor.name}
-                                                width="100%"
-                                                height="auto"
-                                                maxHeight="300px"
-                                                objectFit="contain"
-                                                transition="all 0.5s ease"
-                                            />
-                                            <Box
-                                                position="absolute"
-                                                bottom={0}
-                                                left={0}
-                                                right={0}
-                                                h="40%"
-                                                bgGradient="linear(to-t, rgba(0,0,0,0.9), transparent)"
-                                            />
-                                            <Box position="absolute" bottom={5} left={5} right={5}>
-                                                <Heading as="h3" size="md" color="white">
-                                                    {actor.name}
-                                                </Heading>
-                                                <Text color="whiteAlpha.800" fontSize="sm">
-                                                    {actor.role}
-                                                </Text>
-                                            </Box>
-                                        </Box>
-                                        <Box p={8} flex="1">
-                                            <Flex align="center" mb={4}>
-                                                <CalendarIcon mr={2} color={actor.accentColor} />
-                                                <Text color="gray.400" fontSize="sm">
-                                                    В студии: {actor.experience} {yearDeclension(actor.experience)}
-                                                </Text>
-                                            </Flex>
-                                            <Flex align="center" mb={4}>
-                                                <CFaFilm mr={2} color={actor.accentColor} />
-                                                <Text color="gray.400" fontSize="sm">
-                                                    Сыграно: {actor.productions} {performanceDeclension(actor.productions)}
-                                                </Text>
-                                            </Flex>
-                                            <Button
-                                                variant="outline"
-                                                color={primaryColor}
-                                                _hover={{ color: "#FC8181", borderColor: "#FC8181" }}
-                                                size="sm"
-                                                rightIcon={<ChevronRightIcon />}
-                                                w="full"
-                                                fontSize="sm"
-                                                onClick={() => navigate(`/actor/${actor.id}`)}
-                                            >
-                                                Подробнее
-                                            </Button>
-                                        </Box>
-                                    </MotionBox>
-                                </MotionGridItem>
-                            ))}
+                            {activeActors.map(renderActorCard)}
                         </MotionGrid>
                     </MotionBox>
+
+                    {/* Секция выбывших актёров */}
+                    {departedActors.length > 0 && (
+                        <MotionBox
+                            mt={16}
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5 }}
+                        >
+                            <Heading
+                                as="h2"
+                                fontSize={{ base: "xl", md: "2xl" }}
+                                color="white"
+                                mb={8}
+                                textAlign="center"
+                                position="relative"
+                                _after={{
+                                    content: '""',
+                                    position: "absolute",
+                                    bottom: "-10px",
+                                    left: "50%",
+                                    transform: "translateX(-50%)",
+                                    width: "60px",
+                                    height: "3px",
+                                    bg: primaryColor,
+                                    borderRadius: "full"
+                                }}
+                            >
+                                Выбывшие актёры
+                            </Heading>
+
+                            <MotionGrid
+                                templateColumns={{ base: "1fr", sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }}
+                                gap={8}
+                                initial="hidden"
+                                animate="visible"
+                                variants={{
+                                    hidden: { opacity: 0 },
+                                    visible: {
+                                        opacity: 1,
+                                        transition: { staggerChildren: 0.1 }
+                                    }
+                                }}
+                            >
+                                {departedActors.map(renderActorCard)}
+                            </MotionGrid>
+                        </MotionBox>
+                    )}
                 </Container>
             </Box>
 
