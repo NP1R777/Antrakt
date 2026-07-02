@@ -271,19 +271,37 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ['id', 'author', 'author_name', 'author_photo', 'author_email',
-                  'performance', 'actor', 'subject_title', 'subject_type',
+                  'performance', 'actor', 'director', 'archive', 'news',
+                  'subject_title', 'subject_type',
                   'text', 'created_at', 'reactions', 'my_reactions']
-        read_only_fields = ['author', 'performance', 'actor', 'created_at']
+        read_only_fields = ['author', 'performance', 'actor', 'director',
+                            'archive', 'news', 'created_at']
 
     def get_subject_title(self, obj):
         if obj.performance_id:
             return obj.performance.title
         if obj.actor_id:
             return obj.actor.name
+        if obj.director_id:
+            return obj.director.name
+        if obj.archive_id:
+            return obj.archive.title
+        if obj.news_id:
+            return obj.news.title
         return None
 
     def get_subject_type(self, obj):
-        return 'performance' if obj.performance_id else 'actor'
+        if obj.performance_id:
+            return 'performance'
+        if obj.actor_id:
+            return 'actor'
+        if obj.director_id:
+            return 'director'
+        if obj.archive_id:
+            return 'archive'
+        if obj.news_id:
+            return 'news'
+        return None
 
     def _current_user(self):
         request = self.context.get('request')

@@ -28,6 +28,7 @@ import {
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import Footer from "../../components/Footer";
+import ReviewsSection from "../../components/ReviewsSection";
 import Navigation from "../../components/Navigation";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaQuoteLeft, FaUserTie, FaBook, FaUser, FaPaintBrush, FaVideo, FaMusic } from "react-icons/fa";
@@ -325,6 +326,8 @@ const DirectorDetail: React.FC = () => {
                             </VStack>
                         </GridItem>
                     </Grid>
+
+                    <ReviewsSection type="director" targetId={Number(id)} />
                 </Box>
             </Box>
             <Footer />

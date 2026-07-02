@@ -28,6 +28,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
+import ReviewsSection from "../../components/ReviewsSection";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { FaNewspaper, FaCalendarAlt, FaExpand } from "react-icons/fa";
 
@@ -415,6 +416,8 @@ const NewsDetail: React.FC = () => {
                             </Flex>
                         </Box>
                     )}
+
+                    <ReviewsSection type="news" targetId={Number(id)} />
                 </Box>
             </Box>
             <Footer />

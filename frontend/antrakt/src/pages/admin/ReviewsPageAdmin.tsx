@@ -39,6 +39,14 @@ const REACTION_EMOJI: Record<string, string> = {
     heart: '❤️', like: '👍', laugh: '😂', wow: '😮', sad: '😢',
 };
 
+const SUBJECT_META: Record<string, { label: string; color: string }> = {
+    performance: { label: 'Спектакль', color: 'purple' },
+    actor: { label: 'Актёр', color: 'teal' },
+    director: { label: 'Режиссёр', color: 'orange' },
+    archive: { label: 'Архив', color: 'blue' },
+    news: { label: 'Новость', color: 'pink' },
+};
+
 interface ReactionCount { reaction: string; count: number; }
 
 interface AdminReview {
@@ -46,7 +54,7 @@ interface AdminReview {
     author_name: string;
     author_email: string | null;
     subject_title: string | null;
-    subject_type: 'performance' | 'actor';
+    subject_type: 'performance' | 'actor' | 'director' | 'archive' | 'news';
     text: string;
     created_at: string;
     reactions: ReactionCount[];
@@ -131,8 +139,8 @@ const ReviewsPageAdmin: React.FC = () => {
                             <Flex justify="space-between" align="flex-start" wrap="wrap" gap={2}>
                                 <Box>
                                     <HStack mb={1} spacing={2}>
-                                        <Badge colorScheme={review.subject_type === 'performance' ? 'purple' : 'teal'}>
-                                            {review.subject_type === 'performance' ? 'Спектакль' : 'Актёр'}
+                                        <Badge colorScheme={SUBJECT_META[review.subject_type]?.color || 'gray'}>
+                                            {SUBJECT_META[review.subject_type]?.label || review.subject_type}
                                         </Badge>
                                         <Text color="white" fontWeight="bold">{review.subject_title || '—'}</Text>
                                     </HStack>

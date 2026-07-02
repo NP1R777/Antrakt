@@ -779,6 +779,98 @@ class ActorReviewList(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+class DirectorReviewList(APIView):
+    """Отзывы о режиссёре: список (публично) и создание (авторизованным)."""
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    def get(self, request, id, format=None):
+        director = get_object_or_404(DirectorsTheatre, id=id)
+        reviews = (director.reviews
+                   .select_related('author')
+                   .prefetch_related('reactions')
+                   .order_by('-created_at'))
+        return Response(_serialize_reviews(reviews, request))
+
+    def post(self, request, id, format=None):
+        director = get_object_or_404(DirectorsTheatre, id=id)
+        text = (request.data.get('text') or '').strip()
+        if not text:
+            return Response({"error": "Текст отзыва обязателен"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        review = Review.objects.create(
+            author=request.user, director=director, text=text
+        )
+        serializer = ReviewSerializer(review, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ArchiveReviewList(APIView):
+    """Отзывы к архивному мероприятию (только для раздела «Архив», afisha=False)."""
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    def get(self, request, id, format=None):
+        archive = get_object_or_404(Archive, id=id)
+        reviews = (archive.reviews
+                   .select_related('author')
+                   .prefetch_related('reactions')
+                   .order_by('-created_at'))
+        return Response(_serialize_reviews(reviews, request))
+
+    def post(self, request, id, format=None):
+        archive = get_object_or_404(Archive, id=id)
+        # Комментарии разрешены только для прошедших мероприятий (раздел «Архив»).
+        if archive.afisha:
+            return Response(
+                {"error": "Комментарии доступны только для прошедших мероприятий"},
+                status=status.HTTP_400_BAD_REQUEST)
+        text = (request.data.get('text') or '').strip()
+        if not text:
+            return Response({"error": "Текст отзыва обязателен"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        review = Review.objects.create(
+            author=request.user, archive=archive, text=text
+        )
+        serializer = ReviewSerializer(review, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class NewsReviewList(APIView):
+    """Комментарии к новости: список (публично) и создание (авторизованным)."""
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    def get(self, request, id, format=None):
+        news = get_object_or_404(News, id=id)
+        reviews = (news.reviews
+                   .select_related('author')
+                   .prefetch_related('reactions')
+                   .order_by('-created_at'))
+        return Response(_serialize_reviews(reviews, request))
+
+    def post(self, request, id, format=None):
+        news = get_object_or_404(News, id=id)
+        text = (request.data.get('text') or '').strip()
+        if not text:
+            return Response({"error": "Текст отзыва обязателен"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        review = Review.objects.create(
+            author=request.user, news=news, text=text
+        )
+        serializer = ReviewSerializer(review, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
 class ReviewDetail(APIView):
     """Удаление отзыва: автором или администратором."""
     permission_classes = [permissions.IsAuthenticated]
@@ -863,7 +955,8 @@ class MyReviewsList(APIView):
     def get(self, request, format=None):
         reviews = (Review.objects
                    .filter(author=request.user)
-                   .select_related('author', 'performance', 'actor')
+                   .select_related('author', 'performance', 'actor',
+                                   'director', 'archive', 'news')
                    .prefetch_related('reactions')
                    .order_by('-created_at'))
         return Response(_serialize_reviews(reviews, request))
@@ -875,7 +968,8 @@ class ReviewListAdmin(APIView):
 
     def get(self, request, format=None):
         reviews = (Review.objects
-                   .select_related('author', 'performance', 'actor')
+                   .select_related('author', 'performance', 'actor',
+                                   'director', 'archive', 'news')
                    .prefetch_related('reactions')
                    .order_by('-created_at'))
         return Response(_serialize_reviews(reviews, request))

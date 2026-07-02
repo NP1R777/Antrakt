@@ -19,6 +19,7 @@ import {
 import { motion } from "framer-motion";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
+import ReviewsSection from "../../components/ReviewsSection";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaProjectDiagram } from "react-icons/fa";
 import { Image as ChakraImage } from "@chakra-ui/react";
@@ -32,6 +33,7 @@ interface ArchiveProject {
     title: string;
     description?: string;
     image_url: string;
+    afisha: boolean;
 }
 
 const ArchiveDetail: React.FC = () => {
@@ -160,6 +162,10 @@ const ArchiveDetail: React.FC = () => {
                             </VStack>
                         </GridItem>
                     </Grid>
+
+                    {project.afisha === false && (
+                        <ReviewsSection type="archive" targetId={Number(id)} />
+                    )}
                 </Container>
             </Box>
             <Footer />

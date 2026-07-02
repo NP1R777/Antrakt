@@ -59,15 +59,25 @@ interface Review {
     my_reactions: string[];
 }
 
+type ReviewTargetType = 'performance' | 'actor' | 'director' | 'archive' | 'news';
+
 interface ReviewsSectionProps {
-    type: 'performance' | 'actor';
+    type: ReviewTargetType;
     targetId: number;
 }
+
+const URL_PREFIX: Record<ReviewTargetType, string> = {
+    performance: 'perfomance',
+    actor: 'actor',
+    director: 'director',
+    archive: 'archive',
+    news: 'news',
+};
 
 const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
     const { user, isAuthenticated } = useAuth();
     const toast = useToast();
-    const listUrl = `${API}/${type === 'performance' ? 'perfomance' : 'actor'}${targetId}/reviews/`;
+    const listUrl = `${API}/${URL_PREFIX[type]}${targetId}/reviews/`;
 
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
