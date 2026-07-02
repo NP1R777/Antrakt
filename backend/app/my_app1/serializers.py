@@ -218,10 +218,19 @@ class PerfomanceSerializer(serializers.ModelSerializer):
 
 class ActorsSerializer(serializers.ModelSerializer):
     deleted_at = serializers.DateTimeField(required=False, allow_null=True, default=None)
+    # Вычисляемые поля: стаж в студии считается из joined_at/left_at.
+    time_in_theatre = serializers.SerializerMethodField()
+    is_active = serializers.SerializerMethodField()
 
     class Meta:
         model = Actors
         fields = '__all__'
+
+    def get_time_in_theatre(self, obj):
+        return str(obj.years_in_theatre)
+
+    def get_is_active(self, obj):
+        return obj.is_active
 
 
 class DirectorsSerializer(serializers.ModelSerializer):
@@ -262,19 +271,37 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ['id', 'author', 'author_name', 'author_photo', 'author_email',
-                  'performance', 'actor', 'subject_title', 'subject_type',
+                  'performance', 'actor', 'director', 'archive', 'news',
+                  'subject_title', 'subject_type',
                   'text', 'created_at', 'reactions', 'my_reactions']
-        read_only_fields = ['author', 'performance', 'actor', 'created_at']
+        read_only_fields = ['author', 'performance', 'actor', 'director',
+                            'archive', 'news', 'created_at']
 
     def get_subject_title(self, obj):
         if obj.performance_id:
             return obj.performance.title
         if obj.actor_id:
             return obj.actor.name
+        if obj.director_id:
+            return obj.director.name
+        if obj.archive_id:
+            return obj.archive.title
+        if obj.news_id:
+            return obj.news.title
         return None
 
     def get_subject_type(self, obj):
-        return 'performance' if obj.performance_id else 'actor'
+        if obj.performance_id:
+            return 'performance'
+        if obj.actor_id:
+            return 'actor'
+        if obj.director_id:
+            return 'director'
+        if obj.archive_id:
+            return 'archive'
+        if obj.news_id:
+            return 'news'
+        return None
 
     def _current_user(self):
         request = self.context.get('request')

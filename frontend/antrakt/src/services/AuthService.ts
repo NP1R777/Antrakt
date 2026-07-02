@@ -205,17 +205,29 @@ class AuthService {
    * Регистрация обычного пользователя (email обязателен, телефон опционален)
    */
   async register(email: string, password: string, phone: string = ''): Promise<boolean> {
-    try {
-      await axios.post(`${API_BASE_URL}/register/`, {
-        email,
-        password,
-        phone_number: phone || undefined,
-      });
-      return true;
-    } catch (error) {
-      console.error('Ошибка регистрации:', error);
-      throw error;
-    }
+    // Шаг 1: отправка кода подтверждения на почту (пользователь ещё не создаётся).
+    await axios.post(`${API_BASE_URL}/register/`, {
+      email,
+      password,
+      phone_number: phone || undefined,
+    });
+    return true;
+  }
+
+  /**
+   * Шаг 2: подтверждение кода из письма — создаёт пользователя.
+   */
+  async verifyRegistration(email: string, code: string): Promise<boolean> {
+    await axios.post(`${API_BASE_URL}/register/verify/`, { email, code });
+    return true;
+  }
+
+  /**
+   * Повторная отправка кода подтверждения.
+   */
+  async resendCode(email: string): Promise<boolean> {
+    await axios.post(`${API_BASE_URL}/register/resend/`, { email });
+    return true;
   }
 
   /**

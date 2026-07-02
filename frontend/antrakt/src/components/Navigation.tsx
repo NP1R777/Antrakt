@@ -42,7 +42,7 @@ export default function Navigation() {
     const [authMode, setAuthMode] = useState<"login" | "register">("login");
     const toast = useToast();
     const navigate = useNavigate(); // Добавлен хук useNavigate
-    const { user, isAuthenticated, login, register, logout } = useAuth();
+    const { user, isAuthenticated, login, register, verifyRegistration, resendCode, logout } = useAuth();
 
     const handleLoginClick = () => {
         setAuthMode("login");
@@ -54,32 +54,66 @@ export default function Navigation() {
         setIsAuthModalOpen(true);
     };
 
+    const extractError = (error: any, fallback: string) => {
+        const data = error?.response?.data;
+        if (data && typeof data === "object") {
+            if (typeof data.error === "string") return data.error;
+            const firstField = Object.values(data)[0];
+            if (Array.isArray(firstField) && firstField.length) return String(firstField[0]);
+        }
+        return fallback;
+    };
+
     const handleRegister = async (email: string, password: string, phone: string) => {
         try {
             const success = await register(email, password, phone);
             if (success) {
                 toast({
-                    title: "Регистрация успешна!",
-                    description: "Теперь войдите в свой аккаунт.",
-                    status: "success",
-                    duration: 3000,
+                    title: "Код отправлен",
+                    description: "Проверьте почту и введите код подтверждения.",
+                    status: "info",
+                    duration: 4000,
                     isClosable: true,
                     position: "top"
                 });
             }
             return success;
         } catch (error: any) {
-            const data = error?.response?.data;
-            let description = "Не удалось зарегистрироваться";
-            if (data && typeof data === "object") {
-                const firstField = Object.values(data)[0];
-                if (Array.isArray(firstField) && firstField.length) {
-                    description = String(firstField[0]);
-                }
-            }
             toast({
                 title: "Ошибка регистрации",
-                description,
+                description: extractError(error, "Не удалось зарегистрироваться"),
+                status: "error",
+                duration: 4000,
+                isClosable: true,
+                position: "top"
+            });
+            return false;
+        }
+    };
+
+    const handleVerify = async (email: string, code: string) => {
+        try {
+            return await verifyRegistration(email, code);
+        } catch (error: any) {
+            toast({
+                title: "Ошибка подтверждения",
+                description: extractError(error, "Неверный код"),
+                status: "error",
+                duration: 4000,
+                isClosable: true,
+                position: "top"
+            });
+            return false;
+        }
+    };
+
+    const handleResend = async (email: string) => {
+        try {
+            return await resendCode(email);
+        } catch (error: any) {
+            toast({
+                title: "Не удалось отправить код",
+                description: extractError(error, "Попробуйте позже"),
                 status: "error",
                 duration: 4000,
                 isClosable: true,
@@ -331,6 +365,8 @@ export default function Navigation() {
                 switchToRegister={() => setAuthMode("register")}
                 onLogin={handleLogin}
                 onRegister={handleRegister}
+                onVerify={handleVerify}
+                onResend={handleResend}
             />
         </Box>
     );

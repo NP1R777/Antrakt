@@ -1,9 +1,11 @@
 import uuid
+import random
 import boto3
 from .models import *
 from .serializers import *
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.utils import timezone
 from django.db.models import Max
@@ -99,23 +101,147 @@ class ChangePasswordView(APIView):
         return Response({"success": True, "message": "Пароль изменён"})
 
 
+def _generate_code():
+    return f"{random.randint(0, 999999):06d}"
+
+
+def _send_verification_email(email, code):
+    send_mail(
+        subject='Код подтверждения регистрации — театр «Антракт»',
+        message=(f'Ваш код подтверждения регистрации: {code}\n'
+                 f'Код действителен {EmailVerification.CODE_TTL_MINUTES} минут.\n\n'
+                 f'Если вы не регистрировались на сайте театра «Антракт», '
+                 f'просто проигнорируйте это письмо.'),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[email],
+        fail_silently=False,
+    )
+
+
 class RegisterView(generics.CreateAPIView):
+    """Шаг 1 регистрации: проверка данных и отправка кода подтверждения на email.
+
+    Пользователь на этом шаге НЕ создаётся — сохраняется только запись
+    EmailVerification. Реальный аккаунт появится после подтверждения кода.
+    """
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return Response({
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "phone_number": user.phone_number,
-                "is_superuser": user.is_superuser,
-            },
-            "message": "Пользователь создан!"
-        }, status=status.HTTP_201_CREATED)
+        data = serializer.validated_data
+        email = data['email']
+
+        existing = EmailVerification.objects.filter(email=email).first()
+        if existing and existing.last_sent_at:
+            elapsed = (timezone.now() - existing.last_sent_at).total_seconds()
+            if elapsed < EmailVerification.RESEND_COOLDOWN_SECONDS:
+                wait = int(EmailVerification.RESEND_COOLDOWN_SECONDS - elapsed)
+                return Response(
+                    {"error": f"Код уже отправлен. Повторите через {wait} сек."},
+                    status=status.HTTP_429_TOO_MANY_REQUESTS)
+
+        code = _generate_code()
+        EmailVerification.objects.update_or_create(
+            email=email,
+            defaults={
+                'code': code,
+                'password': make_password(data['password']),
+                'phone_number': data.get('phone_number') or None,
+                'attempts': 0,
+                'last_sent_at': timezone.now(),
+                'expires_at': timezone.now() + timedelta(
+                    minutes=EmailVerification.CODE_TTL_MINUTES),
+            }
+        )
+        try:
+            _send_verification_email(email, code)
+        except Exception as exc:
+            return Response({"error": f"Не удалось отправить код: {exc}"},
+                            status=status.HTTP_502_BAD_GATEWAY)
+        return Response(
+            {"message": "Код подтверждения отправлен на почту", "email": email},
+            status=status.HTTP_200_OK)
+
+
+class RegisterVerifyView(APIView):
+    """Шаг 2 регистрации: проверка кода и создание пользователя."""
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, format=None):
+        email = request.data.get('email')
+        code = (request.data.get('code') or '').strip()
+        pending = EmailVerification.objects.filter(email=email).first()
+        if not pending:
+            return Response(
+                {"error": "Заявка на регистрацию не найдена. Зарегистрируйтесь заново."},
+                status=status.HTTP_400_BAD_REQUEST)
+        if pending.is_expired():
+            pending.delete()
+            return Response({"error": "Срок действия кода истёк. Запросите новый код."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if pending.attempts >= EmailVerification.MAX_ATTEMPTS:
+            pending.delete()
+            return Response({"error": "Слишком много попыток. Зарегистрируйтесь заново."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if code != pending.code:
+            pending.attempts += 1
+            pending.save(update_fields=['attempts'])
+            remaining = EmailVerification.MAX_ATTEMPTS - pending.attempts
+            return Response(
+                {"error": f"Неверный код. Осталось попыток: {remaining}"},
+                status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(email__iexact=email).exists():
+            pending.delete()
+            return Response({"error": "Пользователь с таким email уже существует"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        phone = pending.phone_number
+        if phone and User.objects.filter(phone_number=phone).exists():
+            phone = None  # телефон заняли за время подтверждения — не блокируем регистрацию
+
+        user = User(email=email, phone_number=phone, profile_photo='')
+        user.password = pending.password  # уже захешированный на шаге 1
+        user.save()
+        pending.delete()
+        return Response(
+            {"message": "Регистрация подтверждена", "email": email},
+            status=status.HTTP_201_CREATED)
+
+
+class RegisterResendView(APIView):
+    """Повторная отправка кода подтверждения (с кулдауном)."""
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, format=None):
+        email = request.data.get('email')
+        pending = EmailVerification.objects.filter(email=email).first()
+        if not pending:
+            return Response(
+                {"error": "Заявка на регистрацию не найдена. Зарегистрируйтесь заново."},
+                status=status.HTTP_400_BAD_REQUEST)
+        if pending.last_sent_at:
+            elapsed = (timezone.now() - pending.last_sent_at).total_seconds()
+            if elapsed < EmailVerification.RESEND_COOLDOWN_SECONDS:
+                wait = int(EmailVerification.RESEND_COOLDOWN_SECONDS - elapsed)
+                return Response(
+                    {"error": f"Повторная отправка возможна через {wait} сек."},
+                    status=status.HTTP_429_TOO_MANY_REQUESTS)
+
+        pending.code = _generate_code()
+        pending.attempts = 0
+        pending.last_sent_at = timezone.now()
+        pending.expires_at = timezone.now() + timedelta(
+            minutes=EmailVerification.CODE_TTL_MINUTES)
+        pending.save(update_fields=['code', 'attempts', 'last_sent_at', 'expires_at'])
+        try:
+            _send_verification_email(email, pending.code)
+        except Exception as exc:
+            return Response({"error": f"Не удалось отправить код: {exc}"},
+                            status=status.HTTP_502_BAD_GATEWAY)
+        return Response({"message": "Новый код отправлен"}, status=status.HTTP_200_OK)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -779,6 +905,98 @@ class ActorReviewList(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+class DirectorReviewList(APIView):
+    """Отзывы о режиссёре: список (публично) и создание (авторизованным)."""
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    def get(self, request, id, format=None):
+        director = get_object_or_404(DirectorsTheatre, id=id)
+        reviews = (director.reviews
+                   .select_related('author')
+                   .prefetch_related('reactions')
+                   .order_by('-created_at'))
+        return Response(_serialize_reviews(reviews, request))
+
+    def post(self, request, id, format=None):
+        director = get_object_or_404(DirectorsTheatre, id=id)
+        text = (request.data.get('text') or '').strip()
+        if not text:
+            return Response({"error": "Текст отзыва обязателен"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        review = Review.objects.create(
+            author=request.user, director=director, text=text
+        )
+        serializer = ReviewSerializer(review, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ArchiveReviewList(APIView):
+    """Отзывы к архивному мероприятию (только для раздела «Архив», afisha=False)."""
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    def get(self, request, id, format=None):
+        archive = get_object_or_404(Archive, id=id)
+        reviews = (archive.reviews
+                   .select_related('author')
+                   .prefetch_related('reactions')
+                   .order_by('-created_at'))
+        return Response(_serialize_reviews(reviews, request))
+
+    def post(self, request, id, format=None):
+        archive = get_object_or_404(Archive, id=id)
+        # Комментарии разрешены только для прошедших мероприятий (раздел «Архив»).
+        if archive.afisha:
+            return Response(
+                {"error": "Комментарии доступны только для прошедших мероприятий"},
+                status=status.HTTP_400_BAD_REQUEST)
+        text = (request.data.get('text') or '').strip()
+        if not text:
+            return Response({"error": "Текст отзыва обязателен"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        review = Review.objects.create(
+            author=request.user, archive=archive, text=text
+        )
+        serializer = ReviewSerializer(review, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class NewsReviewList(APIView):
+    """Комментарии к новости: список (публично) и создание (авторизованным)."""
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    def get(self, request, id, format=None):
+        news = get_object_or_404(News, id=id)
+        reviews = (news.reviews
+                   .select_related('author')
+                   .prefetch_related('reactions')
+                   .order_by('-created_at'))
+        return Response(_serialize_reviews(reviews, request))
+
+    def post(self, request, id, format=None):
+        news = get_object_or_404(News, id=id)
+        text = (request.data.get('text') or '').strip()
+        if not text:
+            return Response({"error": "Текст отзыва обязателен"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        review = Review.objects.create(
+            author=request.user, news=news, text=text
+        )
+        serializer = ReviewSerializer(review, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
 class ReviewDetail(APIView):
     """Удаление отзыва: автором или администратором."""
     permission_classes = [permissions.IsAuthenticated]
@@ -863,7 +1081,8 @@ class MyReviewsList(APIView):
     def get(self, request, format=None):
         reviews = (Review.objects
                    .filter(author=request.user)
-                   .select_related('author', 'performance', 'actor')
+                   .select_related('author', 'performance', 'actor',
+                                   'director', 'archive', 'news')
                    .prefetch_related('reactions')
                    .order_by('-created_at'))
         return Response(_serialize_reviews(reviews, request))
@@ -875,7 +1094,8 @@ class ReviewListAdmin(APIView):
 
     def get(self, request, format=None):
         reviews = (Review.objects
-                   .select_related('author', 'performance', 'actor')
+                   .select_related('author', 'performance', 'actor',
+                                   'director', 'archive', 'news')
                    .prefetch_related('reactions')
                    .order_by('-created_at'))
         return Response(_serialize_reviews(reviews, request))
