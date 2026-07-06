@@ -349,3 +349,28 @@ class ExtendedReviewTargetTests(TestCase):
         self.client.force_authenticate(self.user)
         resp = self.client.post(f'/archive{self.archive_afisha.id}/reviews/', {'text': 'ок'}, format='json')
         self.assertEqual(resp.status_code, 400)
+
+
+class AdminEndpointPermissionTests(TestCase):
+    """Админские эндпоинты открыты суперпользователю (даже если is_staff=False),
+    и закрыты для обычных пользователей."""
+
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_staffless_superuser_has_admin_access(self):
+        su = User.objects.create(
+            email='su@test.com', phone_number='+7-000-000-77-77',
+            profile_photo='', is_superuser=True, is_staff=False)
+        su.set_password('short')  # короткий пароль (как у старых аккаунтов)
+        su.save()
+        self.client.force_authenticate(su)
+        self.assertEqual(self.client.get('/users/').status_code, 200)
+        self.assertEqual(self.client.get('/reviews-admin/').status_code, 200)
+
+    def test_regular_user_denied_admin_access(self):
+        u = User.objects.create_user(
+            password='plainpass1', email='ru2@test.com', phone_number='+7-000-000-66-66')
+        self.client.force_authenticate(u)
+        self.assertEqual(self.client.get('/users/').status_code, 403)
+        self.assertEqual(self.client.get('/reviews-admin/').status_code, 403)
