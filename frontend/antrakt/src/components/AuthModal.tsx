@@ -114,7 +114,11 @@ export default function AuthModal({
 
     // Шаг входа / шаг 1 регистрации (данные)
     const handleSubmitCredentials = async () => {
-        const passwordError = validatePassword(password);
+        // При входе не навязываем минимальную длину — у старых аккаунтов
+        // пароль может быть короче 8 символов. Требование 8+ только для регистрации.
+        const passwordError = isRegister
+            ? validatePassword(password)
+            : (password ? "" : "Пароль обязателен");
         const identifierError = isRegister ? validateEmail(email) : validateEmailOrPhone(emailOrPhone);
         if (identifierError || passwordError) {
             setErrors({

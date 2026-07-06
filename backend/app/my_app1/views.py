@@ -21,10 +21,22 @@ from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
+class IsSuperUser(permissions.BasePermission):
+    """Доступ только суперпользователям (админам сайта).
+
+    В проекте роль «админ» определяется полем is_superuser (по нему пускает и
+    фронтенд/админ-панель), поэтому админские эндпоинты проверяют именно его,
+    а не is_staff (как в стандартном DRF IsAdminUser).
+    """
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(user and user.is_authenticated and user.is_superuser)
+
+
 class UserList(APIView):
     model_class = User
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsSuperUser]
 
 
     def get(self, request, format=None):
@@ -36,7 +48,7 @@ class UserList(APIView):
 class UserListAdmin(APIView):
     model_class = User
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsSuperUser]
 
 
     def get(self, request, format=None):
@@ -1047,7 +1059,7 @@ class ReviewReactionView(APIView):
 
 class ReviewWarnView(APIView):
     """Отправка предупреждающего письма автору отзыва (только администратор)."""
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsSuperUser]
 
     def post(self, request, id, format=None):
         review = get_object_or_404(Review, id=id)
@@ -1090,7 +1102,7 @@ class MyReviewsList(APIView):
 
 class ReviewListAdmin(APIView):
     """Все отзывы (для модерации в админ-панели)."""
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsSuperUser]
 
     def get(self, request, format=None):
         reviews = (Review.objects
