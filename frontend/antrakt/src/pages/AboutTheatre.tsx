@@ -78,7 +78,7 @@ const AboutTheatre: React.FC = () => {
 
                         <GridItem>
                             <Image
-                                src="http://localhost:9000/antrakt-images/%D0%9E%D0%B1%D1%89%D0%B0%D1%8F.jpg"
+                                src="http://localhost:9000/antrakt-images/Общая.jpg"
                                 alt="Театр-студия Антракт"
                                 w="100%"
                                 h="auto"
