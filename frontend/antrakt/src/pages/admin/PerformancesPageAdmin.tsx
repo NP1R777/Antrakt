@@ -68,6 +68,9 @@ interface Performance {
     shows?: { id?: number; show_datetime: string; ticket_url?: string | null }[];
     cast?: { id?: number; actor: number; actor_name?: string; role: string }[];
     director?: number | null;
+    production_title?: string;
+    production_collective?: string;
+    production_year?: number | null;
     afisha: boolean;
     deleted_at?: string | null;
 }
