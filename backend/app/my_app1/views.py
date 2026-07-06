@@ -739,7 +739,7 @@ class AfishaList(APIView):
         # показов (даты и время), чтобы зрители знали, когда прийти.
         performances = Perfomances.objects.filter(
             afisha=True, deleted_at=None
-        ).prefetch_related('shows')
+        ).select_related('director').prefetch_related('shows')
 
         archives = Archive.objects.filter(afisha=True).values(
             'id', 'title', 'description', 'premiere_date', 'age_limit', 'image_url'
@@ -756,6 +756,8 @@ class AfishaList(APIView):
                 'image_url': p.image_url,
                 'genre': p.genre,
                 'ticket_url': p.ticket_url,
+                'director': p.director_id,
+                'director_name': (p.director.name if p.director_id else None),
                 'shows': [
                     {
                         'id': s.id,

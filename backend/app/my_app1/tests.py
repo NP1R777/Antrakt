@@ -374,3 +374,38 @@ class AdminEndpointPermissionTests(TestCase):
         self.client.force_authenticate(u)
         self.assertEqual(self.client.get('/users/').status_code, 403)
         self.assertEqual(self.client.get('/reviews-admin/').status_code, 403)
+
+
+class DirectorPromotionTests(TestCase):
+    def setUp(self):
+        self.now = timezone.now()
+        self.director = DirectorsTheatre.objects.create(name='Режиссёр', description='о')
+        self.factory = APIRequestFactory()
+
+    def _perf(self, afisha=True):
+        return Perfomances.objects.create(
+            title='Спектакль реж', author='А', genre='Драма', age_limit='12+',
+            description='о', afisha=afisha, director=self.director,
+            premiere_date=date(self.now.year - 1, 5, 1))
+
+    def test_director_gets_performance_on_promotion(self):
+        perf = self._perf(afisha=True)
+        PerformanceShow.objects.create(performance=perf, show_datetime=self.now - timedelta(days=1))
+        promote_performance(perf)
+        promote_performance(perf)  # идемпотентность
+        self.director.refresh_from_db()
+        self.assertIn(perf.title, self.director.perfomances)
+        self.assertEqual(self.director.perfomances.count(perf.title), 1)
+        # Параллельные массивы остаются согласованными по длине.
+        self.assertEqual(len(self.director.perfomances), len(self.director.years))
+        self.assertEqual(len(self.director.perfomances), len(self.director.team_name))
+
+    def test_director_name_visible_in_afisha_but_cast_hidden(self):
+        from my_app1.serializers import PerfomanceSerializer
+        actor = Actors.objects.create(name='А', favorite_quote='ц', author_quote='а', image_url='')
+        perf = self._perf(afisha=True)
+        PerformanceCast.objects.create(performance=perf, actor=actor, role='Роль')
+        request = self.factory.get('/')  # аноним
+        data = PerfomanceSerializer(perf, context={'request': request}).data
+        self.assertEqual(data['director_name'], 'Режиссёр')  # имя видно
+        self.assertEqual(data['cast'], [])  # состав скрыт
