@@ -102,6 +102,7 @@ interface Performance {
     performances_image: string;
     images_list: string[]; // Добавлено поле для галереи
     ticket_url?: string | null; // Ссылка на покупку билетов
+    director?: number | null; // Режиссёр спектакля
 }
 
 const genres = [
@@ -173,6 +174,7 @@ export const PerformanceForm: React.FC<{
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isGalleryUploading, setIsGalleryUploading] = useState(false);
     const [actorOptions, setActorOptions] = useState<ActorOption[]>([]);
+    const [directorOptions, setDirectorOptions] = useState<ActorOption[]>([]);
     const [newShow, setNewShow] = useState<{ show_datetime: string; ticket_url: string }>({
         show_datetime: '',
         ticket_url: ''
@@ -190,6 +192,11 @@ export const PerformanceForm: React.FC<{
                 (res.data || []).map((a: any) => ({ id: a.id, name: a.name }))
             ))
             .catch(err => console.error('Не удалось загрузить актёров:', err));
+        axios.get('http://localhost:8000/directors/')
+            .then(res => setDirectorOptions(
+                (res.data || []).map((d: any) => ({ id: d.id, name: d.name }))
+            ))
+            .catch(err => console.error('Не удалось загрузить режиссёров:', err));
     }, []);
 
     const actorNameById = (id: number) =>
@@ -462,6 +469,34 @@ export const PerformanceForm: React.FC<{
                             borderColor="#444444"
                             _hover={{ borderColor: '#555555' }}
                         />
+                    </FormControl>
+
+                    <FormControl>
+                        <FormLabel display="flex" alignItems="center" gap={2}>
+                            <CFaUser color={primaryColor} />
+                            <Text as="span" fontWeight="semibold">Режиссёр</Text>
+                        </FormLabel>
+                        <Select
+                            placeholder="Выберите режиссёра"
+                            value={currentPerformance.director ?? ''}
+                            onChange={(e) => setCurrentPerformance(prev => ({
+                                ...prev,
+                                director: e.target.value ? parseInt(e.target.value, 10) : null
+                            }))}
+                            focusBorderColor={primaryColor}
+                            bg="#333333"
+                            borderColor="#444444"
+                            _hover={{ borderColor: '#555555' }}
+                        >
+                            {directorOptions.map(d => (
+                                <option key={d.id} value={d.id} style={{ backgroundColor: '#333333', color: 'white' }}>
+                                    {d.name}
+                                </option>
+                            ))}
+                        </Select>
+                        <Text mt={1} fontSize="sm" color="#AAAAAA">
+                            Имя режиссёра видно уже в «Афише». После завершения показов спектакль добавится на его страницу.
+                        </Text>
                     </FormControl>
 
                     <FormControl>

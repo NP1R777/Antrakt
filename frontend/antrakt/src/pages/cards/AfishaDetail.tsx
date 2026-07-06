@@ -32,6 +32,7 @@ interface AfishaItem {
     age_limit: string | null;
     image_url: string | null;
     genre?: string; // Только для performance
+    director_name?: string | null; // Режиссёр (виден уже в "Афише")
     shows?: { id?: number; show_datetime: string; ticket_url?: string | null }[]; // Только для performance
     ticket_url?: string; // Только для performance
 }
@@ -151,6 +152,11 @@ const AfishaDetail: React.FC = () => {
                                         {item.genre && (
                                             <Text fontSize="md" color="gray.400">
                                                 <b>Жанр:</b> {item.genre}
+                                            </Text>
+                                        )}
+                                        {item.director_name && (
+                                            <Text fontSize="md" color="gray.400">
+                                                <b>Режиссёр:</b> {item.director_name}
                                             </Text>
                                         )}
                                         {item.age_limit && (

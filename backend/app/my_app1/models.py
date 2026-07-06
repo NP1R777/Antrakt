@@ -102,6 +102,13 @@ class Perfomances(ImageUploadMixin, models.Model): # Спектакли
         default=list
     ) # Список фотографий со спектакля для карусели внизу карточки спектакля.
     ticket_url = models.URLField(null=True, blank=True) # Ссылка на покупку билетов.
+    director = models.ForeignKey(
+        'DirectorsTheatre',
+        related_name='directed_performances',
+        null=True, blank=True,
+        on_delete=models.SET_NULL
+    ) # Режиссёр спектакля. Имя видно уже в "Афише"; сам спектакль добавляется
+      # режиссёру на страницу при переходе в раздел "Спектакли".
 
 
 class Actors(ImageUploadMixin, models.Model):
@@ -356,6 +363,33 @@ def promote_performance(performance):
                     actor.save(update_fields=[
                         'perfomances', 'role_in_perfomances', 'updated_at'
                     ])
+
+            # Добавляем спектакль режиссёру (на его страницу), однократно.
+            if perf.director_id:
+                director = DirectorsTheatre.objects.select_for_update().get(
+                    pk=perf.director_id)
+                dir_titles = list(director.perfomances or [])
+                if perf.title not in dir_titles:
+                    dir_years = list(director.years or [])
+                    dir_teams = list(director.team_name or [])
+                    if perf.premiere_date:
+                        year = perf.premiere_date.year
+                    else:
+                        last_show = perf.shows.order_by('-show_datetime').first()
+                        year = (last_show.show_datetime.year if last_show
+                                else timezone.now().year)
+                    # Массивы перфомансов/годов/коллективов параллельны по индексу.
+                    dir_titles.append(perf.title)
+                    dir_years.append(year)
+                    dir_teams.append('')
+                    director.perfomances = dir_titles
+                    director.years = dir_years
+                    director.team_name = dir_teams
+                    director.updated_at = timezone.now()
+                    director.save(update_fields=[
+                        'perfomances', 'years', 'team_name', 'updated_at'
+                    ])
+
             perf.roles_propagated = True
 
         perf.afisha = False

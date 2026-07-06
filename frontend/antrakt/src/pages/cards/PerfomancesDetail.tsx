@@ -52,6 +52,7 @@ interface Performance {
     duration: string | null;
     premiere_date: string | null;
     production_team: string[] | null;
+    director_name?: string | null;
     cast: { id?: number; actor: number; actor_name?: string; role: string }[] | null;
     shows: { id?: number; show_datetime: string; ticket_url?: string | null }[] | null;
     description: string;
@@ -333,6 +334,11 @@ const PerformanceDetail: React.FC = () => {
                                         <Text fontSize="md" color="#e0e0e0">
                                             <b>Автор:</b> {performance.author}
                                         </Text>
+                                        {performance.director_name && (
+                                            <Text fontSize="md" color="#e0e0e0">
+                                                <b>Режиссёр:</b> {performance.director_name}
+                                            </Text>
+                                        )}
                                         <Text fontSize="md" color="#e0e0e0">
                                             <b>Жанр:</b> {performance.genre}
                                         </Text>

@@ -164,10 +164,15 @@ class PerfomanceSerializer(serializers.ModelSerializer):
     afisha = serializers.BooleanField(default=True)
     shows = PerformanceShowSerializer(many=True, required=False)
     cast = PerformanceCastSerializer(many=True, required=False, source='cast_members')
+    # Имя режиссёра видно всегда (в т.ч. когда спектакль в "Афише").
+    director_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Perfomances
         fields = '__all__'
+
+    def get_director_name(self, obj):
+        return obj.director.name if obj.director_id else None
 
     def _is_admin(self):
         request = self.context.get('request')
