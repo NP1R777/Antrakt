@@ -71,6 +71,13 @@ class User(AbstractBaseUser):
 
 
 class Perfomances(ImageUploadMixin, models.Model): # Спектакли
+    # Коллективы постановки. По умолчанию (в т.ч. при авто-добавлении режиссёру)
+    # используется труппа Норильского народного театра, для которого делается сайт.
+    COLLECTIVE_NORILSK = 'Труппа норильского народного театра'
+    COLLECTIVE_DA = 'Образцовый коллектив театральная студия «ДА»'
+    DEFAULT_COLLECTIVE = COLLECTIVE_NORILSK
+    COLLECTIVE_CHOICES = [COLLECTIVE_NORILSK, COLLECTIVE_DA]
+
     class Meta:
         db_table = 'perfomances'
     
@@ -109,6 +116,13 @@ class Perfomances(ImageUploadMixin, models.Model): # Спектакли
         on_delete=models.SET_NULL
     ) # Режиссёр спектакля. Имя видно уже в "Афише"; сам спектакль добавляется
       # режиссёру на страницу при переходе в раздел "Спектакли".
+    # Данные для карточки на странице режиссёра (задаются заранее в админке).
+    production_title = models.CharField(max_length=200, blank=True, default='')
+    # Название постановки; если пусто — берётся название спектакля (title).
+    production_collective = models.CharField(max_length=300, blank=True, default='')
+    # Коллектив постановки; если пусто — DEFAULT_COLLECTIVE (труппа Норильского театра).
+    production_year = models.IntegerField(null=True, blank=True)
+    # Год постановки; если пусто — год премьеры / последнего показа / текущий.
 
 
 class Actors(ImageUploadMixin, models.Model):
@@ -365,23 +379,30 @@ def promote_performance(performance):
                     ])
 
             # Добавляем спектакль режиссёру (на его страницу), однократно.
+            # Название/коллектив/год берём из заранее заданных полей спектакля,
+            # с разумными значениями по умолчанию.
             if perf.director_id:
                 director = DirectorsTheatre.objects.select_for_update().get(
                     pk=perf.director_id)
+                prod_title = (perf.production_title or '').strip() or perf.title
                 dir_titles = list(director.perfomances or [])
-                if perf.title not in dir_titles:
+                if prod_title not in dir_titles:
                     dir_years = list(director.years or [])
                     dir_teams = list(director.team_name or [])
-                    if perf.premiere_date:
+                    if perf.production_year:
+                        year = perf.production_year
+                    elif perf.premiere_date:
                         year = perf.premiere_date.year
                     else:
                         last_show = perf.shows.order_by('-show_datetime').first()
                         year = (last_show.show_datetime.year if last_show
                                 else timezone.now().year)
+                    collective = ((perf.production_collective or '').strip()
+                                  or Perfomances.DEFAULT_COLLECTIVE)
                     # Массивы перфомансов/годов/коллективов параллельны по индексу.
-                    dir_titles.append(perf.title)
+                    dir_titles.append(prod_title)
                     dir_years.append(year)
-                    dir_teams.append('')
+                    dir_teams.append(collective)
                     director.perfomances = dir_titles
                     director.years = dir_years
                     director.team_name = dir_teams

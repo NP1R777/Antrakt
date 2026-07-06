@@ -103,7 +103,17 @@ interface Performance {
     images_list: string[]; // Добавлено поле для галереи
     ticket_url?: string | null; // Ссылка на покупку билетов
     director?: number | null; // Режиссёр спектакля
+    // Данные для карточки на странице режиссёра (используются при авто-добавлении):
+    production_title?: string; // Название постановки (если пусто — название спектакля)
+    production_collective?: string; // Коллектив постановки
+    production_year?: number | null; // Год постановки
 }
+
+// Коллективы постановки: два предустановленных варианта (можно ввести свой).
+const COLLECTIVE_OPTIONS = [
+    'Труппа норильского народного театра',
+    'Образцовый коллектив театральная студия «ДА»'
+];
 
 const genres = [
     'Драма',
@@ -146,7 +156,8 @@ export const PerformanceForm: React.FC<{
             afisha: true,
             deleted_at: null,
             performances_image: '',
-            images_list: []
+            images_list: [],
+            production_collective: COLLECTIVE_OPTIONS[0] // по умолчанию — труппа Норильского театра
         };
         if (!data) return base;
         return {
@@ -498,6 +509,75 @@ export const PerformanceForm: React.FC<{
                             Имя режиссёра видно уже в «Афише». После завершения показов спектакль добавится на его страницу.
                         </Text>
                     </FormControl>
+
+                    {currentPerformance.director ? (
+                        <Box
+                            border="1px solid"
+                            borderColor="#444444"
+                            borderRadius="md"
+                            p={4}
+                            bg="rgba(30, 30, 30, 0.5)"
+                        >
+                            <Text fontWeight="semibold" mb={3} color="#e0e0e0">
+                                Данные для страницы режиссёра
+                            </Text>
+
+                            <FormControl mb={3}>
+                                <FormLabel fontSize="sm">Название постановки</FormLabel>
+                                <Input
+                                    name="production_title"
+                                    placeholder="Если пусто — берётся название спектакля"
+                                    value={currentPerformance.production_title || ''}
+                                    onChange={handleInputChange}
+                                    focusBorderColor={primaryColor}
+                                    bg="#333333"
+                                    borderColor="#444444"
+                                    _hover={{ borderColor: '#555555' }}
+                                />
+                            </FormControl>
+
+                            <FormControl mb={3}>
+                                <FormLabel fontSize="sm">Коллектив постановки</FormLabel>
+                                <Input
+                                    name="production_collective"
+                                    list="collectiveOptions"
+                                    placeholder="Труппа норильского народного театра"
+                                    value={currentPerformance.production_collective || ''}
+                                    onChange={handleInputChange}
+                                    focusBorderColor={primaryColor}
+                                    bg="#333333"
+                                    borderColor="#444444"
+                                    _hover={{ borderColor: '#555555' }}
+                                />
+                                <datalist id="collectiveOptions">
+                                    {COLLECTIVE_OPTIONS.map(c => (
+                                        <option key={c} value={c} />
+                                    ))}
+                                </datalist>
+                                <Text mt={1} fontSize="xs" color="#AAAAAA">
+                                    Если пусто — «Труппа норильского народного театра».
+                                </Text>
+                            </FormControl>
+
+                            <FormControl>
+                                <FormLabel fontSize="sm">Год постановки</FormLabel>
+                                <Input
+                                    name="production_year"
+                                    type="number"
+                                    placeholder="Если пусто — год премьеры / показа"
+                                    value={currentPerformance.production_year ?? ''}
+                                    onChange={(e) => setCurrentPerformance(prev => ({
+                                        ...prev,
+                                        production_year: e.target.value ? parseInt(e.target.value, 10) : null
+                                    }))}
+                                    focusBorderColor={primaryColor}
+                                    bg="#333333"
+                                    borderColor="#444444"
+                                    _hover={{ borderColor: '#555555' }}
+                                />
+                            </FormControl>
+                        </Box>
+                    ) : null}
 
                     <FormControl>
                         <FormLabel display="flex" alignItems="center" gap={2}>

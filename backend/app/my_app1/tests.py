@@ -400,6 +400,33 @@ class DirectorPromotionTests(TestCase):
         self.assertEqual(len(self.director.perfomances), len(self.director.years))
         self.assertEqual(len(self.director.perfomances), len(self.director.team_name))
 
+    def test_default_collective_when_not_specified(self):
+        perf = self._perf(afisha=True)
+        PerformanceShow.objects.create(performance=perf, show_datetime=self.now - timedelta(days=1))
+        promote_performance(perf)
+        self.director.refresh_from_db()
+        idx = self.director.perfomances.index(perf.title)
+        # Коллектив по умолчанию — труппа Норильского театра.
+        self.assertEqual(self.director.team_name[idx], Perfomances.DEFAULT_COLLECTIVE)
+        # Год по умолчанию — из премьеры.
+        self.assertEqual(self.director.years[idx], perf.premiere_date.year)
+
+    def test_custom_production_fields_used(self):
+        perf = self._perf(afisha=True)
+        perf.production_title = 'Гроза (особое название)'
+        perf.production_collective = Perfomances.COLLECTIVE_DA
+        perf.production_year = 2019
+        perf.save()
+        PerformanceShow.objects.create(performance=perf, show_datetime=self.now - timedelta(days=1))
+        promote_performance(perf)
+        self.director.refresh_from_db()
+        self.assertIn('Гроза (особое название)', self.director.perfomances)
+        idx = self.director.perfomances.index('Гроза (особое название)')
+        self.assertEqual(self.director.team_name[idx], Perfomances.COLLECTIVE_DA)
+        self.assertEqual(self.director.years[idx], 2019)
+        # Название спектакля (title) не попадает, т.к. задано production_title.
+        self.assertNotIn(perf.title, self.director.perfomances)
+
     def test_director_name_visible_in_afisha_but_cast_hidden(self):
         from my_app1.serializers import PerfomanceSerializer
         actor = Actors.objects.create(name='А', favorite_quote='ц', author_quote='а', image_url='')
