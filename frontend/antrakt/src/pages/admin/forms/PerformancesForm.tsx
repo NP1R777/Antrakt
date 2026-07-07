@@ -63,8 +63,8 @@ const CFaUsers = chakra(FaUsers as any);
 const CFaChild = chakra(FaChild as any);
 const CFaTrash = chakra(FaTrash as any);
 
-const primaryColor = '#800020';
-const accentColor = '#4ECDC4';
+const primaryColor = '#f2f2f2';
+const accentColor = '#c9c9c9';
 
 interface PerformanceShow {
     id?: number;
@@ -417,7 +417,7 @@ export const PerformanceForm: React.FC<{
                     icon={<CFaPlus />}
                     onClick={() => handleAddToList(field)}
                     bg={accentColor}
-                    _hover={{ bg: '#5EDDD5' }}
+                    _hover={{ bg: '#dedede' }}
                 />
             </HStack>
 
@@ -765,7 +765,7 @@ export const PerformanceForm: React.FC<{
                                 icon={<CFaPlus />}
                                 onClick={handleAddShow}
                                 bg={accentColor}
-                                _hover={{ bg: '#5EDDD5' }}
+                                _hover={{ bg: '#dedede' }}
                             />
                         </HStack>
                         <Wrap spacing={2} minH="50px" mb={4}>
@@ -827,7 +827,7 @@ export const PerformanceForm: React.FC<{
                                 icon={<CFaPlus />}
                                 onClick={handleAddCast}
                                 bg={accentColor}
-                                _hover={{ bg: '#5EDDD5' }}
+                                _hover={{ bg: '#dedede' }}
                             />
                         </HStack>
                         <Wrap spacing={2} minH="50px" mb={4}>
@@ -950,8 +950,8 @@ export const PerformanceForm: React.FC<{
                     mr={3}
                     onClick={onCancel}
                     leftIcon={<CFaTimes />}
-                    bg="#B00040"
-                    borderColor="#B00040"
+                    bg="#3a3a3a"
+                    borderColor="#3a3a3a"
                     _hover={{ bg: 'red' }}
                 >
                     Отмена

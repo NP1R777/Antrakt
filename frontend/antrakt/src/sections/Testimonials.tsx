@@ -45,7 +45,7 @@ const testimonials = [
         name: "Ольга Сидорова",
         role: "Театральный критик",
         avatar: "/images/avatar3.jpg",
-        text: "Спектакль 'Гамлет' в постановке студии 'Антракт' - это свежий взгляд на классику. Современные решения не нарушили дух оригинала, а лишь усилили его.",
+        text: "Спектакль 'Гамлет' в постановке Норильского народного театра - это свежий взгляд на классику. Современные решения не нарушили дух оригинала, а лишь усилили его.",
         performance: "Гамлет",
         rating: 4,
         date: "10 июня 2025"
@@ -92,7 +92,7 @@ export default function Testimonials() {
                 right="-5%"
                 w="400px"
                 h="400px"
-                bg="#C53030"
+                bg="#9a9a9a"
                 borderRadius="full"
                 filter="blur(70px)"
                 opacity={0.15}
@@ -152,12 +152,12 @@ function TestimonialCard({ testimonial }: { testimonial: any }) {
             p={6}
             border="1px solid"
             borderColor="gray.800"
-            boxShadow="0 10px 30px rgba(128, 0, 32, 0.1)"
+            boxShadow="0 10px 30px rgba(255, 255, 255, 0.07)"
             position="relative"
             whileHover={{
                 y: -5,
-                borderColor: "#F56565",
-                boxShadow: "0 15px 40px rgba(128, 0, 32, 0.3)"
+                borderColor: "#d9d9d9",
+                boxShadow: "0 15px 40px rgba(255, 255, 255, 0.18)"
             }}
             transition={{ duration: 0.3 }}
             h="100%"
@@ -169,7 +169,7 @@ function TestimonialCard({ testimonial }: { testimonial: any }) {
                 position="absolute"
                 top={6}
                 right={6}
-                color="#F56565"
+                color="#d9d9d9"
                 opacity={0.2}
                 fontSize="4xl"
             />
@@ -179,7 +179,7 @@ function TestimonialCard({ testimonial }: { testimonial: any }) {
                 {[...Array(5)].map((_, i) => (
                     <ChakraFaStar
                         key={i}
-                        color={i < testimonial.rating ? "#F56565" : "gray.700"}
+                        color={i < testimonial.rating ? "#d9d9d9" : "gray.700"}
                         mr={1}
                         fontSize="lg"
                     />
@@ -194,7 +194,7 @@ function TestimonialCard({ testimonial }: { testimonial: any }) {
                     size="lg"
                     mr={4}
                     border="2px solid"
-                    borderColor="#F56565"
+                    borderColor="#d9d9d9"
                 />
                 <Text color="gray.300" fontStyle="italic" flex="1">
                     "{testimonial.text}"
@@ -210,7 +210,7 @@ function TestimonialCard({ testimonial }: { testimonial: any }) {
                     <Text color="gray.400" fontSize="sm">
                         {testimonial.role}
                     </Text>
-                    <Text color="#FC8181" fontSize="sm" fontWeight="500">
+                    <Text color="#e2e2e2" fontSize="sm" fontWeight="500">
                         {testimonial.performance}
                     </Text>
                 </Flex>

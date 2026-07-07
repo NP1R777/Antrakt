@@ -50,8 +50,8 @@ const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
 const MotionButton = motion(Button);
 
-const primaryColor = '#800020';
-const secondaryColor = '#A00030';
+const primaryColor = '#f2f2f2';
+const secondaryColor = '#8a8a8a';
 
 const CFaPlus = chakra(FaPlus as any);
 const CFaTrash = chakra(FaTrash as any);
@@ -374,14 +374,15 @@ const NewsPageAdmin: React.FC = () => {
                             Управление новостями
                         </Heading>
                         <Text color="#AAAAAA">
-                            Здесь вы можете управлять новостями театральной студии "Антракт"
+                            Здесь вы можете управлять новостями Норильского народного театра
                         </Text>
                     </VStack>
 
                     <MotionButton
                         leftIcon={<CFaPlus />}
                         bg={primaryColor}
-                        _hover={{ bg: '#900030' }}
+                        color="#0a0a0a"
+                        _hover={{ bg: "#d9d9d9" }}
                         onClick={openCreateForm}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}

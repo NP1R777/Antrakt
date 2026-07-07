@@ -71,7 +71,7 @@ const AfishaPage: React.FC = () => {
             <Box>
                 <Navigation />
                 <Flex justify="center" align="center" minH="70vh" bg="black">
-                    <Spinner size="xl" color="#800020" />
+                    <Spinner size="xl" color="#f2f2f2" />
                 </Flex>
                 <Footer />
             </Box>
@@ -109,7 +109,7 @@ const AfishaPage: React.FC = () => {
                     left="-10%"
                     w="400px"
                     h="400px"
-                    bg="linear-gradient(135deg, #800020, #400010)"
+                    bg="linear-gradient(135deg, #2a2a2a, #151515)"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.2}
@@ -123,7 +123,7 @@ const AfishaPage: React.FC = () => {
                     right="-10%"
                     w="300px"
                     h="300px"
-                    bg="linear-gradient(135deg, #800020, #400010)"
+                    bg="linear-gradient(135deg, #2a2a2a, #151515)"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.15}
@@ -161,7 +161,7 @@ const AfishaPage: React.FC = () => {
                                 transform: "translateX(-50%)",
                                 width: "80px",
                                 height: "4px",
-                                bg: "#800020",
+                                bg: "#2a2a2a",
                                 borderRadius: "full"
                             }}
                         >
@@ -202,15 +202,15 @@ const AfishaPage: React.FC = () => {
                                 >
                                     <MotionBox
                                         as="div"
-                                        bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(64, 0, 16, 0.3))"
+                                        bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(255, 255, 255, 0.06))"
                                         borderRadius="xl"
                                         overflow="hidden"
                                         border="1px solid"
-                                        borderColor="rgba(64, 0, 16, 0.7)"
+                                        borderColor="rgba(255, 255, 255, 0.15)"
                                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                                         whileHover={{
                                             scale: 1.05,
-                                            boxShadow: "0 10px 25px rgba(128, 0, 32, 0.4)",
+                                            boxShadow: "0 10px 25px rgba(255, 255, 255, 0.22)",
                                             transition: { duration: 0.3 }
                                         }}
                                         onClick={() => navigate(`/${item.type}/${item.id}`, { state: { item, from: '/afisha' } })}

@@ -47,7 +47,7 @@ const AchievementsPage: React.FC = () => {
             <Box>
                 <Navigation />
                 <Flex justify="center" align="center" minH="70vh" bg="#0a0a0a">
-                    <Spinner size="xl" color="#F56565" />
+                    <Spinner size="xl" color="#d9d9d9" />
                 </Flex>
                 <Footer />
             </Box>
@@ -76,7 +76,7 @@ const AchievementsPage: React.FC = () => {
                     left="-15%"
                     w="600px"
                     h="600px"
-                    bg="linear-gradient(135deg, #800020, #400010)"
+                    bg="linear-gradient(135deg, #2a2a2a, #151515)"
                     borderRadius="full"
                     filter="blur(100px)"
                     opacity={0.2}
@@ -105,14 +105,14 @@ const AchievementsPage: React.FC = () => {
                                 transform: "translateX(-50%)",
                                 width: "80px",
                                 height: "4px",
-                                bg: "#800020",
+                                bg: "#2a2a2a",
                                 borderRadius: "full"
                             }}
                         >
                             Наши достижения
                         </Heading>
                         <Text fontSize="lg" color="#a0a0a0" mt={4} maxW="lg" mx="auto">
-                            История успеха и признания театральной студии "Антракт"
+                            История успеха и признания Норильского народного театра
                         </Text>
                     </MotionBox>
 
@@ -144,11 +144,11 @@ const AchievementsPage: React.FC = () => {
                                         borderRadius="2xl"
                                         overflow="hidden"
                                         border="2px solid"
-                                        borderColor="#D4A017"
+                                        borderColor="#a8a8a8"
                                         boxShadow="0 10px 30px rgba(0, 0, 0, 0.5)"
                                         whileHover={{
                                             scale: 1.05,
-                                            boxShadow: "0 15px 40px rgba(212, 160, 23, 0.5)",
+                                            boxShadow: "0 15px 40px rgba(255, 255, 255, 0.25)",
                                             borderColor: "#FFC107",
                                             transition: { duration: 0.5, ease: "easeOut" }
                                         }}
@@ -187,10 +187,10 @@ const AchievementsPage: React.FC = () => {
                                         </Box>
                                         <Button
                                             variant="outline"
-                                            color="#D4A017"
-                                            borderColor="#D4A017"
+                                            color="#a8a8a8"
+                                            borderColor="#a8a8a8"
                                             _hover={{
-                                                bg: "#D4A017",
+                                                bg: "#a8a8a8",
                                                 color: "#ffffff",
                                                 transform: "translateY(-2px)"
                                             }}

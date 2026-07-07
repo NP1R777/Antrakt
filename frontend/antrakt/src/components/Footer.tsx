@@ -17,7 +17,7 @@ const MotionBox = motion(Box);
 const MotionLink = motion(Link);
 
 export default function Footer() {
-    const primaryColor = "#800020";
+    const primaryColor = "#f2f2f2";
     const darkBg = "#0a0a0a";
     const lightText = "#ffffff";
     const grayText = "#a0a0a0";
@@ -88,7 +88,7 @@ export default function Footer() {
                                     borderRadius: "full"
                                 }}
                             >
-                                ТЕАТР СТУДИЯ <Text as="span" color={primaryColor}>АНТРАКТ</Text>
+                                НОРИЛЬСКИЙ НАРОДНЫЙ <Text as="span" color={primaryColor}>ТЕАТР</Text>
                             </Heading>
 
                             <Text color={grayText} mb={6} textAlign={{ base: "center", md: "left" }}>
@@ -247,7 +247,7 @@ export default function Footer() {
                     gap={4}
                 >
                     <Text color={grayText} fontSize="sm">
-                        © {new Date().getFullYear()} Театральная студия "Антракт". Все права защищены.
+                        © {new Date().getFullYear()} Норильский народный театр. Все права защищены.
                     </Text>
                     <Text color={grayText} fontSize="sm">
                         Разработано с ❤️ для театрального искусства

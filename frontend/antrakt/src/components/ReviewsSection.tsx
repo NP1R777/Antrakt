@@ -29,7 +29,7 @@ import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 
 const API = 'http://localhost:8000';
-const primaryColor = '#800020';
+const primaryColor = '#f2f2f2';
 
 const CFaTrash = chakra(FaTrash as any);
 const CFaExclamationTriangle = chakra(FaExclamationTriangle as any);
@@ -173,10 +173,10 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
             <Heading as="h3" size="md" color="white" mb={4}>
                 Отзывы
             </Heading>
-            <Divider borderColor="rgba(128,0,32,0.5)" mb={6} />
+            <Divider borderColor="rgba(255, 255, 255, 0.25)" mb={6} />
 
             {isAuthenticated ? (
-                <Box mb={8} bg="rgba(30,30,30,0.6)" p={4} borderRadius="lg" border="1px solid" borderColor="rgba(128,0,32,0.4)">
+                <Box mb={8} bg="rgba(30,30,30,0.6)" p={4} borderRadius="lg" border="1px solid" borderColor="rgba(255, 255, 255, 0.22)">
                     <Textarea
                         value={text}
                         onChange={(e) => setText(e.target.value)}
@@ -192,8 +192,8 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
                     <Flex justify="flex-end" mt={3}>
                         <Button
                             bg={primaryColor}
-                            color="white"
-                            _hover={{ bg: '#600018' }}
+                            color="#0a0a0a"
+                            _hover={{ bg: "#d9d9d9" }}
                             onClick={handleSubmit}
                             isLoading={isSubmitting}
                             isDisabled={!text.trim()}
@@ -223,11 +223,11 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
                                 p={4}
                                 borderRadius="lg"
                                 border="1px solid"
-                                borderColor="rgba(64,0,16,0.6)"
+                                borderColor="rgba(255, 255, 255, 0.1)"
                             >
                                 <Flex justify="space-between" align="flex-start">
                                     <HStack spacing={3} mb={2}>
-                                        <Avatar size="sm" name={review.author_name} src={review.author_photo || undefined} bg={primaryColor} />
+                                        <Avatar size="sm" name={review.author_name} src={review.author_photo || undefined} bg={primaryColor} color="#0a0a0a" />
                                         <Box>
                                             <Text color="white" fontWeight="bold">{review.author_name}</Text>
                                             <Text color="gray.500" fontSize="xs">
@@ -244,7 +244,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
                                                     size="sm"
                                                     variant="ghost"
                                                     color="orange.300"
-                                                    _hover={{ bg: 'rgba(255,165,0,0.15)' }}
+                                                    _hover={{ bg: 'rgba(255,255,255,0.12)' }}
                                                     onClick={() => openWarn(review)}
                                                 />
                                             </Tooltip>
@@ -257,7 +257,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
                                                     size="sm"
                                                     variant="ghost"
                                                     color="red.300"
-                                                    _hover={{ bg: 'rgba(255,0,0,0.15)' }}
+                                                    _hover={{ bg: 'rgba(255,255,255,0.1)' }}
                                                     onClick={() => handleDelete(review)}
                                                 />
                                             </Tooltip>
@@ -277,8 +277,8 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
                                                     size="sm"
                                                     variant="outline"
                                                     borderColor={mine ? primaryColor : '#333'}
-                                                    bg={mine ? 'rgba(128,0,32,0.3)' : 'transparent'}
-                                                    _hover={{ bg: 'rgba(128,0,32,0.2)' }}
+                                                    bg={mine ? 'rgba(255, 255, 255, 0.18)' : 'transparent'}
+                                                    _hover={{ bg: 'rgba(255, 255, 255, 0.2)' }}
                                                     onClick={() => handleReact(review, key)}
                                                     px={2}
                                                 >
@@ -300,7 +300,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
             {/* Модалка предупреждения (для админа) */}
             <Modal isOpen={isWarnOpen} onClose={onWarnClose} isCentered>
                 <ModalOverlay />
-                <ModalContent bg="#1a1a1a" color="white" border="1px solid" borderColor="rgba(128,0,32,0.6)">
+                <ModalContent bg="#1a1a1a" color="white" border="1px solid" borderColor="rgba(255, 255, 255, 0.2)">
                     <ModalHeader>Предупреждение пользователю</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
@@ -322,8 +322,8 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
                         </Button>
                         <Button
                             bg={primaryColor}
-                            color="white"
-                            _hover={{ bg: '#600018' }}
+                            color="#0a0a0a"
+                            _hover={{ bg: "#d9d9d9" }}
                             onClick={sendWarn}
                             isLoading={isWarning}
                             isDisabled={!warnMessage.trim()}

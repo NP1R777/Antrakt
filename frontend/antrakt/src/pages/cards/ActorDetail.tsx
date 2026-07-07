@@ -120,7 +120,7 @@ const ActorDetail: React.FC = () => {
     if (loading) {
         return (
             <Flex justify="center" align="center" minH="100vh" bg="black">
-                <Spinner size="xl" color="#F56565" />
+                <Spinner size="xl" color="#d9d9d9" />
             </Flex>
         );
     }
@@ -143,8 +143,8 @@ const ActorDetail: React.FC = () => {
                 <Heading size="md" mb={4} color="white">Актер не найден</Heading>
                 <Button
                     variant="outline"
-                    color="#FC8181"
-                    _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
+                    color="#e2e2e2"
+                    _hover={{ color: "#efefef", borderColor: "#efefef" }}
                     size="sm"
                     fontSize="sm"
                     onClick={() => navigate("/team")}
@@ -169,7 +169,7 @@ const ActorDetail: React.FC = () => {
                     left="-10%"
                     w="500px"
                     h="500px"
-                    bg="#C53030"
+                    bg="#9a9a9a"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.15}
@@ -182,8 +182,8 @@ const ActorDetail: React.FC = () => {
                         leftIcon={<ChevronLeftIcon />}
                         mb={6}
                         variant="outline"
-                        color="#FC8181"
-                        _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
+                        color="#e2e2e2"
+                        _hover={{ color: "#efefef", borderColor: "#efefef" }}
                         size="sm"
                         fontSize="sm"
                         onClick={() => navigate(-1)}
@@ -209,7 +209,7 @@ const ActorDetail: React.FC = () => {
                                 height="auto"
                                 objectFit="contain"
                                 border="4px solid"
-                                borderColor="#C53030"
+                                borderColor="#9a9a9a"
                                 borderRadius="md"
                                 boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                             />
@@ -223,7 +223,7 @@ const ActorDetail: React.FC = () => {
                                 <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6} w="full">
                                     <VStack align="start">
                                         <Heading as="h3" size="sm" display="flex" alignItems="center" color="white">
-                                            <CFaUserTie mr={2} color="#F56565" />
+                                            <CFaUserTie mr={2} color="#d9d9d9" />
                                             Основная информация
                                         </Heading>
                                         {actor.place_of_work && (
@@ -245,7 +245,7 @@ const ActorDetail: React.FC = () => {
 
                                     <VStack align="start">
                                         <Heading as="h3" size="sm" display="flex" alignItems="center" color="white">
-                                            <CFaFilm mr={2} color="#F56565" />
+                                            <CFaFilm mr={2} color="#d9d9d9" />
                                             Творчество
                                         </Heading>
                                         {actor.perfomances?.length ? (
@@ -269,7 +269,7 @@ const ActorDetail: React.FC = () => {
                                 {actor.favorite_quote && (
                                     <Box w="full" mt={4}>
                                         <Heading as="h3" size="sm" mb={3} display="flex" alignItems="center" color="white">
-                                            <CFaQuoteLeft mr={2} color="#F56565" />
+                                            <CFaQuoteLeft mr={2} color="#d9d9d9" />
                                             Любимая цитата
                                         </Heading>
                                         <Text fontStyle="italic" fontSize="md" color="gray.400">"{actor.favorite_quote}"</Text>
@@ -282,7 +282,7 @@ const ActorDetail: React.FC = () => {
                                 {actor.perfomances?.length ? (
                                     <Box w="full" mt={6}>
                                         <Heading as="h3" size="sm" mb={3} display="flex" alignItems="center" color="white">
-                                            <CFaTheaterMasks mr={2} color="#F56565" />
+                                            <CFaTheaterMasks mr={2} color="#d9d9d9" />
                                             Роли в спектаклях
                                         </Heading>
                                         <Grid templateColumns="repeat(auto-fill, minmax(250px, 1fr))" gap={4}>
@@ -295,7 +295,7 @@ const ActorDetail: React.FC = () => {
                                                     borderRadius="md"
                                                     bg="rgba(25, 25, 25, 0.8)"
                                                     cursor="pointer"
-                                                    whileHover={{ y: -4, boxShadow: "0 8px 16px rgba(245, 101, 101, 0.3)", scale: 1.02, transition: { duration: 0.2 } }}
+                                                    whileHover={{ y: -4, boxShadow: "0 8px 16px rgba(255, 255, 255, 0.12)", scale: 1.02, transition: { duration: 0.2 } }}
                                                     whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
                                                     onClick={() => handlePerformanceClick(perfomance)}
                                                 >

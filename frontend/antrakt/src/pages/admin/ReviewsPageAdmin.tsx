@@ -30,7 +30,7 @@ import axios from 'axios';
 import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
 
 const API = 'http://localhost:8000';
-const primaryColor = '#800020';
+const primaryColor = '#f2f2f2';
 
 const MotionBox = motion(Box);
 const CFaTrash = chakra(FaTrash as any);
@@ -152,7 +152,7 @@ const ReviewsPageAdmin: React.FC = () => {
                             animate={{ opacity: 1, y: 0 }}
                             bg="rgba(30,30,30,0.6)"
                             border="1px solid"
-                            borderColor="rgba(128,0,32,0.5)"
+                            borderColor="rgba(255, 255, 255, 0.25)"
                             borderRadius="lg"
                             p={4}
                         >
@@ -180,7 +180,7 @@ const ReviewsPageAdmin: React.FC = () => {
                                                 size="sm"
                                                 variant="ghost"
                                                 color="orange.300"
-                                                _hover={{ bg: 'rgba(255,165,0,0.15)' }}
+                                                _hover={{ bg: 'rgba(255,255,255,0.12)' }}
                                                 onClick={() => openWarn(review)}
                                             />
                                         </Tooltip>
@@ -193,7 +193,7 @@ const ReviewsPageAdmin: React.FC = () => {
                                             size="sm"
                                             variant="ghost"
                                             color="red.300"
-                                            _hover={{ bg: 'rgba(255,0,0,0.15)' }}
+                                            _hover={{ bg: 'rgba(255,255,255,0.1)' }}
                                             onClick={() => openDelete(review)}
                                         />
                                     </Tooltip>
@@ -218,7 +218,7 @@ const ReviewsPageAdmin: React.FC = () => {
 
             <Modal isOpen={isOpen} onClose={onClose} isCentered>
                 <ModalOverlay />
-                <ModalContent bg="#1a1a1a" color="white" border="1px solid" borderColor="rgba(128,0,32,0.6)">
+                <ModalContent bg="#1a1a1a" color="white" border="1px solid" borderColor="rgba(255, 255, 255, 0.2)">
                     <ModalHeader>Предупреждение пользователю</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
@@ -240,8 +240,8 @@ const ReviewsPageAdmin: React.FC = () => {
                         </Button>
                         <Button
                             bg={primaryColor}
-                            color="white"
-                            _hover={{ bg: '#600018' }}
+                            color="#0a0a0a"
+                            _hover={{ bg: "#d9d9d9" }}
                             onClick={sendWarn}
                             isLoading={isWarning}
                             isDisabled={!warnMessage.trim()}

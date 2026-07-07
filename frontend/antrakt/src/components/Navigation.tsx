@@ -22,7 +22,7 @@ import { useNavigate, Link as RouterLink } from "react-router-dom"; // Доба�
 import AuthModal from "./AuthModal";
 import { useAuth } from "../contexts/AuthContext";
 
-const primaryColor = "#800020";
+const primaryColor = "#f2f2f2";
 const darkBg = "#0a0a0a";
 const lightText = "#ffffff";
 
@@ -180,8 +180,15 @@ export default function Navigation() {
             >
                 <Box>
                     <Link as={RouterLink} to="/" _hover={{ textDecoration: "none" }}>
-                        <Text fontSize="xl" fontWeight="bold" color={lightText} letterSpacing="wide">
-                            ТЕАТР СТУДИЯ <Text as="span" color={primaryColor}>АНТРАКТ</Text>
+                        <Text
+                            fontSize={{ base: "xl", md: "2xl" }}
+                            fontWeight="bold"
+                            color={lightText}
+                            letterSpacing="widest"
+                            whiteSpace="nowrap"
+                            title="Норильский народный театр"
+                        >
+                            ННТ
                         </Text>
                     </Link>
                 </Box>
@@ -215,7 +222,7 @@ export default function Navigation() {
                             <Button
                                 variant="solid"
                                 bg={primaryColor}
-                                color={lightText}
+                                color="#0a0a0a"
                                 _hover={{ opacity: 0.9, transform: "translateY(-2px)" }}
                                 onClick={handleRegisterClick}
                             >
@@ -226,7 +233,7 @@ export default function Navigation() {
                         <Button
                             variant="solid"
                             bg={primaryColor}
-                            color={lightText}
+                            color="#0a0a0a"
                             _hover={{ opacity: 0.9, transform: "translateY(-2px)" }}
                             onClick={() => navigate('/admin')}
                         >
@@ -239,7 +246,7 @@ export default function Navigation() {
                                     size="sm"
                                     name={user?.email || "User"}
                                     bg={primaryColor}
-                                    color={lightText}
+                                    color="#0a0a0a"
                                     cursor="pointer"
                                 />
                             </MenuButton>
@@ -287,10 +294,10 @@ export default function Navigation() {
                                 color={lightText}
                                 py={2}
                                 px={{ base: 3, sm: 4 }}
-                                bg="rgba(90, 0, 23, 0.3)"
+                                bg="rgba(255, 255, 255, 0.1)"
                                 borderRadius="md"
                                 fontWeight={500}
-                                _hover={{ transform: "translateX(10px)", bg: "rgba(128, 0, 32, 0.5)" }}
+                                _hover={{ transform: "translateX(10px)", bg: "rgba(255, 255, 255, 0.25)" }}
                                 transition="all 0.2s"
                                 display="block"
                             >
@@ -314,7 +321,7 @@ export default function Navigation() {
                                 <Button
                                     variant="solid"
                                     bg={primaryColor}
-                                    color={lightText}
+                                    color="#0a0a0a"
                                     _hover={{ opacity: 0.9 }}
                                     onClick={handleRegisterClick}
                                     w="full"
@@ -328,7 +335,7 @@ export default function Navigation() {
                             <Button
                                 variant="solid"
                                 bg={primaryColor}
-                                color={lightText}
+                                color="#0a0a0a"
                                 _hover={{ opacity: 0.9 }}
                                 onClick={() => navigate(`/profile/${user?.id}`)}
                                 mt={2}
@@ -342,7 +349,7 @@ export default function Navigation() {
                             <Button
                                 variant="solid"
                                 bg={primaryColor}
-                                color={lightText}
+                                color="#0a0a0a"
                                 _hover={{ opacity: 0.9 }}
                                 onClick={() => navigate('/admin')}
                                 mt={2}

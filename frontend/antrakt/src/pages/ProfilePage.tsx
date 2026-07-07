@@ -48,9 +48,9 @@ const CFaSave = motion(FaSave as any);
 const CFaTrash = motion(FaTrash as any);
 const CFaEdit = motion(FaEdit as any);
 
-const primaryColor = '#800020';
-const secondaryColor = '#B00040';
-const accentColor = '#4ECDC4';
+const primaryColor = '#f2f2f2';
+const secondaryColor = '#8a8a8a';
+const accentColor = '#c9c9c9';
 
 interface UserProfile {
     id: number;
@@ -177,16 +177,16 @@ const ProfileForm: React.FC<{
                 <Button
                     variant="outline"
                     color="white"
-                    borderColor="#B00040"
-                    _hover={{ bg: '#B00040' }}
+                    borderColor="#3a3a3a"
+                    _hover={{ bg: '#3a3a3a' }}
                     onClick={onCancel}
                 >
                     Отмена
                 </Button>
                 <Button
                     bg={primaryColor}
-                    color="white"
-                    _hover={{ bg: '#600018' }}
+                    color="#0a0a0a"
+                    _hover={{ bg: "#d9d9d9" }}
                     isLoading={isSubmitting}
                     onClick={handleSubmit}
                     leftIcon={<Icon as={CFaSave} />}
@@ -289,16 +289,16 @@ const ChangePasswordForm: React.FC<{
                 <Button
                     variant="outline"
                     color="white"
-                    borderColor="#B00040"
-                    _hover={{ bg: '#B00040' }}
+                    borderColor="#3a3a3a"
+                    _hover={{ bg: '#3a3a3a' }}
                     onClick={onCancel}
                 >
                     Отмена
                 </Button>
                 <Button
                     bg={primaryColor}
-                    color="white"
-                    _hover={{ bg: '#600018' }}
+                    color="#0a0a0a"
+                    _hover={{ bg: "#d9d9d9" }}
                     isLoading={isSubmitting}
                     onClick={handleSubmit}
                     leftIcon={<Icon as={CFaSave} />}
@@ -429,7 +429,7 @@ export default function ProfilePage() {
                     right="-10%"
                     w="400px"
                     h="400px"
-                    bg="linear-gradient(135deg, #800020, #400010)"
+                    bg="linear-gradient(135deg, #2a2a2a, #151515)"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.2}
@@ -477,10 +477,10 @@ export default function ProfilePage() {
                     <MotionGrid
                         templateColumns={{ base: '1fr', md: '1fr 2fr' }}
                         gap={8}
-                        bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(64, 0, 16, 0.3))"
+                        bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(255, 255, 255, 0.06))"
                         borderRadius="xl"
                         border="1px solid"
-                        borderColor="rgba(64, 0, 16, 0.7)"
+                        borderColor="rgba(255, 255, 255, 0.15)"
                         p={{ base: 4, md: 8 }}
                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                         initial="hidden"
@@ -513,10 +513,10 @@ export default function ProfilePage() {
                                             src={profile?.profile_photo || undefined}
                                             name={profile?.email || 'User'}
                                             bg={primaryColor}
-                                            color="white"
+                                            color="#0a0a0a"
                                             border="4px solid"
                                             borderColor={secondaryColor}
-                                            boxShadow="0 0 20px rgba(128, 0, 32, 0.5)"
+                                            boxShadow="0 0 20px rgba(255, 255, 255, 0.25)"
                                         />
                                     </Box>
                                 )}
@@ -539,7 +539,7 @@ export default function ProfilePage() {
                                     )}
                                 </VStack>
 
-                                <Divider borderColor="rgba(64, 0, 16, 0.7)" />
+                                <Divider borderColor="rgba(255, 255, 255, 0.15)" />
 
                                 <Button
                                     colorScheme="red"
@@ -574,7 +574,7 @@ export default function ProfilePage() {
                                     </Button>
                                 </Flex>
 
-                                <Divider borderColor="rgba(64, 0, 16, 0.7)" />
+                                <Divider borderColor="rgba(255, 255, 255, 0.15)" />
 
                                 <VStack spacing={6} align="stretch">
                                     <FormControl>
@@ -620,13 +620,13 @@ export default function ProfilePage() {
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.4, duration: 1.2, ease: "easeOut" }}
                         mt={8}
-                        bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(64, 0, 16, 0.3))"
+                        bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(255, 255, 255, 0.06))"
                         borderRadius="xl"
                         border="1px solid"
-                        borderColor="rgba(64, 0, 16, 0.7)"
+                        borderColor="rgba(255, 255, 255, 0.15)"
                         p={{ base: 4, md: 8 }}
                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
-                        _hover={{ boxShadow: "0 10px 25px rgba(245, 101, 101, 0.4)", transition: { duration: 0.5, ease: "easeOut" } }}
+                        _hover={{ boxShadow: "0 10px 25px rgba(255, 255, 255, 0.12)", transition: { duration: 0.5, ease: "easeOut" } }}
                     >
                         <Flex justify="space-between" align="center" mb={6} wrap="wrap" gap={2}>
                             <Heading as="h2" fontSize="2xl" color="white">
@@ -646,7 +646,7 @@ export default function ProfilePage() {
                                         borderRadius="lg"
                                         p={4}
                                         border="1px solid"
-                                        borderColor="rgba(64, 0, 16, 0.7)"
+                                        borderColor="rgba(255, 255, 255, 0.15)"
                                         cursor="pointer"
                                         _hover={{ borderColor: primaryColor }}
                                         onClick={() => navigate(
@@ -672,7 +672,7 @@ export default function ProfilePage() {
                 {/* Модальное окно для удаления аккаунта */}
                 <Modal isOpen={isDeleteModalOpen} onClose={onDeleteModalClose} isCentered size="sm">
                     <ModalOverlay />
-                    <ModalContent bg="#1a1a1a" color="white" borderRadius="xl" border="1px solid" borderColor="rgba(64, 0, 16, 0.7)">
+                    <ModalContent bg="#1a1a1a" color="white" borderRadius="xl" border="1px solid" borderColor="rgba(255, 255, 255, 0.15)">
                         <ModalHeader>Удаление аккаунта</ModalHeader>
                         <ModalCloseButton />
                         <ModalBody>
@@ -682,8 +682,8 @@ export default function ProfilePage() {
                             <Button
                                 variant="outline"
                                 color="white"
-                                borderColor="#B00040"
-                                _hover={{ bg: '#B00040' }}
+                                borderColor="#3a3a3a"
+                                _hover={{ bg: '#3a3a3a' }}
                                 mr={3}
                                 onClick={onDeleteModalClose}
                             >
@@ -704,7 +704,7 @@ export default function ProfilePage() {
                 {/* Модальное окно для редактирования профиля */}
                 <Modal isOpen={isEditModalOpen} onClose={onEditModalClose} isCentered size={{ base: "sm", md: "lg" }}>
                     <ModalOverlay />
-                    <ModalContent bg="#1a1a1a" color="white" borderRadius="xl" border="1px solid" borderColor="rgba(64, 0, 16, 0.7)">
+                    <ModalContent bg="#1a1a1a" color="white" borderRadius="xl" border="1px solid" borderColor="rgba(255, 255, 255, 0.15)">
                         <ModalHeader>Редактировать профиль</ModalHeader>
                         <ModalCloseButton />
                         <ModalBody>
@@ -724,7 +724,7 @@ export default function ProfilePage() {
                 {/* Модальное окно для смены пароля */}
                 <Modal isOpen={isPasswordModalOpen} onClose={onPasswordModalClose} isCentered size="sm">
                     <ModalOverlay />
-                    <ModalContent bg="#1a1a1a" color="white" borderRadius="xl" border="1px solid" borderColor="rgba(64, 0, 16, 0.7)">
+                    <ModalContent bg="#1a1a1a" color="white" borderRadius="xl" border="1px solid" borderColor="rgba(255, 255, 255, 0.15)">
                         <ModalHeader>Изменить пароль</ModalHeader>
                         <ModalCloseButton />
                         <ModalBody>

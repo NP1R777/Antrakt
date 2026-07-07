@@ -110,8 +110,8 @@ const ArchiveDetail: React.FC = () => {
                         leftIcon={<ChevronLeftIcon />}
                         mb={6}
                         variant="outline"
-                        color="#FC8181"
-                        _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
+                        color="#e2e2e2"
+                        _hover={{ color: "#efefef", borderColor: "#efefef" }}
                         size="sm"
                         fontSize="sm"
                         onClick={() => navigate(-1)}
@@ -122,10 +122,10 @@ const ArchiveDetail: React.FC = () => {
                     <Grid
                         templateColumns={{ base: "1fr", md: "280px 1fr" }}
                         gap={{ base: 4, md: 8 }}
-                        bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(64, 0, 16, 0.3))"
+                        bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(255, 255, 255, 0.06))"
                         borderRadius="xl"
                         border="1px solid"
-                        borderColor="rgba(64, 0, 16, 0.7)"
+                        borderColor="rgba(255, 255, 255, 0.15)"
                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                         p={{ base: 4, md: 8 }}
                     >
@@ -141,7 +141,7 @@ const ArchiveDetail: React.FC = () => {
                                 height="auto"
                                 objectFit="contain"
                                 border="4px solid"
-                                borderColor="#F56565"
+                                borderColor="#d9d9d9"
                                 borderRadius="md"
                                 boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                             />
@@ -152,7 +152,7 @@ const ArchiveDetail: React.FC = () => {
                                 <Heading as="h1" size="lg" color="#e0e0e0">{project.title}</Heading>
                                 <Box w="full" mt={4}>
                                     <Heading as="h3" size="sm" mb={3} display="flex" alignItems="center" color="#e0e0e0">
-                                        <CFaProject mr={2} color="#800020" />
+                                        <CFaProject mr={2} color="#f2f2f2" />
                                         Описание
                                     </Heading>
                                     <Text fontSize="md" color="#a0a0a0" w="full">

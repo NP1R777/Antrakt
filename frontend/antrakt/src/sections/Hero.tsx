@@ -23,16 +23,17 @@ export default function Hero() {
                     left: 0,
                     width: "100%",
                     height: "100%",
-                    backgroundImage: "url('/images/stage-bg.jpg')",
-                    backgroundSize: "contain",
-                    backgroundPosition: "center",
+                    backgroundImage: "url('/images/hero-bg.jpg')",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center top",
                     backgroundRepeat: "no-repeat",
                     backgroundColor: "black",
+                    filter: "grayscale(100%) contrast(1.05)",
                     zIndex: 0,
                 }}
             />
 
-            {/* Затемнение фона */}
+            {/* Затемнение фона: тёмный монохромный градиент */}
             <MotionDiv
                 style={{
                     opacity: fadeOut,
@@ -41,9 +42,24 @@ export default function Hero() {
                     left: 0,
                     width: "100%",
                     height: "100%",
-                    background: "rgba(0, 0, 0, 0.6)",
+                    background:
+                        "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.88) 100%)",
                     zIndex: 1,
                 }}
+            />
+
+            {/* Мягкое белое свечение за заголовком */}
+            <Box
+                position="absolute"
+                top="50%"
+                left="50%"
+                transform="translate(-50%, -50%)"
+                w={{ base: "320px", md: "620px" }}
+                h={{ base: "320px", md: "620px" }}
+                bg="radial-gradient(circle, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 70%)"
+                filter="blur(20px)"
+                zIndex={1}
+                pointerEvents="none"
             />
 
             {/* Контент */}
@@ -69,10 +85,10 @@ export default function Hero() {
                         as="h1"
                         fontSize={{ base: "3xl", sm: "4xl", md: "6xl" }}
                         mb={6}
-                        textShadow="0 0 10px rgba(128, 0, 32, 0.8)"
+                        textShadow="0 0 10px rgba(255, 255, 255, 0.5)"
                         color="white"
                     >
-                        Театральная студия "Антракт"
+                        Норильский народный театр
                     </Heading>
 
                     <Text fontSize={{ base: "md", md: "xl" }} mb={{ base: 6, md: 10 }} color="white">

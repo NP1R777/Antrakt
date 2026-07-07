@@ -67,7 +67,7 @@ export default function NewsSection() {
                 left="-10%"
                 w="500px"
                 h="500px"
-                bg="#C53030"
+                bg="#9a9a9a"
                 borderRadius="full"
                 filter="blur(80px)"
                 opacity={0.15}
@@ -100,7 +100,7 @@ export default function NewsSection() {
                             transform: "translateX(-50%)",
                             width: "80px",
                             height: "4px",
-                            bg: "#F56565",
+                            bg: "#d9d9d9",
                             borderRadius: "full"
                         }}
                     >
@@ -114,7 +114,7 @@ export default function NewsSection() {
                 {/* Состояния загрузки и ошибок */}
                 {isLoading ? (
                     <Center py={20}>
-                        <Spinner size="xl" color="#F56565" thickness="4px" />
+                        <Spinner size="xl" color="#d9d9d9" thickness="4px" />
                     </Center>
                 ) : error ? (
                     <Center py={10}>
@@ -165,7 +165,7 @@ export default function NewsSection() {
                                 rightIcon={<span>→</span>}
                                 _hover={{
                                     transform: "translateX(5px)",
-                                    boxShadow: "0 0 20px rgba(255, 0, 0, 0.5)"
+                                    boxShadow: "0 0 20px rgba(255, 255, 255, 0.35)"
                                 }}
                                 transition="all 0.3s"
                             >
@@ -190,8 +190,8 @@ function NewsCard({ news, formatDate }: { news: NewsItem; formatDate: (date: str
             boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
             whileHover={{
                 y: -8,
-                borderColor: "#F56565",
-                boxShadow: "0 15px 30px rgba(128, 0, 32, 0.3)"
+                borderColor: "#d9d9d9",
+                boxShadow: "0 15px 30px rgba(255, 255, 255, 0.18)"
             }}
             transition={{ duration: 0.3 }}
             h="100%"
@@ -247,10 +247,10 @@ function NewsCard({ news, formatDate }: { news: NewsItem; formatDate: (date: str
                         as={RouterLink}
                         to={`/news/${news.id}`}
                         variant="link"
-                        color="#FC8181"
+                        color="#e2e2e2"
                         rightIcon={<span>→</span>}
                         _hover={{
-                            color: "#FEB2B2",
+                            color: "#efefef",
                             textDecoration: "underline"
                         }}
                         transition="all 0.2s"

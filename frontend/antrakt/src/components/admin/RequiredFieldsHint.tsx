@@ -14,13 +14,13 @@ const RequiredFieldsHint: React.FC<RequiredFieldsHintProps> = ({ required, note 
     <Box
         mb={5}
         p={3}
-        bg="rgba(128,0,32,0.12)"
+        bg="rgba(255, 255, 255, 0.2)"
         border="1px solid"
-        borderColor="rgba(128,0,32,0.45)"
+        borderColor="rgba(255, 255, 255, 0.2)"
         borderRadius="md"
     >
         <Text fontSize="sm" color="gray.100">
-            <Text as="span" color="#F56565" fontWeight="bold">*</Text>{' '}
+            <Text as="span" color="#d9d9d9" fontWeight="bold">*</Text>{' '}
             <b>Обязательные поля:</b> {required.join(', ')}.
         </Text>
         <Text fontSize="xs" color="gray.400" mt={1}>

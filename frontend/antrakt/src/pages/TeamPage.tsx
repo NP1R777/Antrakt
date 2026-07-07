@@ -79,16 +79,16 @@ const TeamPage: React.FC = () => {
     const [error, setError] = useState("");
 
     // Цветовые схемы, унифицированные с Navigation и Footer
-    const primaryColor = "#800020";
+    const primaryColor = "#f2f2f2";
     const directorColors = [
-        { color: primaryColor, accentColor: "#F56565" },
-        { color: "#E53E3E", accentColor: "#FC8181" }
+        { color: primaryColor, accentColor: "#d9d9d9" },
+        { color: "#cfcfcf", accentColor: "#e2e2e2" }
     ];
     const actorColors = [
-        { color: primaryColor, accentColor: "#F56565" },
-        { color: "#E53E3E", accentColor: "#FC8181" },
-        { color: "#9B2C2C", accentColor: "#FEB2B2" },
-        { color: "#742A2A", accentColor: "#F56565" }
+        { color: primaryColor, accentColor: "#d9d9d9" },
+        { color: "#cfcfcf", accentColor: "#e2e2e2" },
+        { color: "#8a8a8a", accentColor: "#efefef" },
+        { color: "#6f6f6f", accentColor: "#d9d9d9" }
     ];
 
     // Загрузка данных
@@ -192,8 +192,8 @@ const TeamPage: React.FC = () => {
                 boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                 whileHover={{
                     scale: 1.03,
-                    boxShadow: `0 10px 20px rgba(245, 101, 101, 0.3)`,
-                    background: "linear-gradient(135deg, rgba(25, 25, 25, 0.8), rgba(128, 0, 32, 0.1))",
+                    boxShadow: `0 10px 20px rgba(255, 255, 255, 0.12)`,
+                    background: "linear-gradient(135deg, rgba(25, 25, 25, 0.8), rgba(255, 255, 255, 0.07))",
                     transition: { duration: 0.3 }
                 }}
                 transition={{ duration: 0.3 }}
@@ -244,7 +244,7 @@ const TeamPage: React.FC = () => {
                     <Button
                         variant="outline"
                         color={primaryColor}
-                        _hover={{ color: "#FC8181", borderColor: "#FC8181" }}
+                        _hover={{ color: "#e2e2e2", borderColor: "#e2e2e2" }}
                         size="sm"
                         rightIcon={<ChevronRightIcon />}
                         w="full"
@@ -369,16 +369,16 @@ const TeamPage: React.FC = () => {
                                     }}
                                 >
                                     <MotionBox
-                                        bg="linear-gradient(135deg, rgba(97, 0, 24, 0.31), rgba(245, 101, 101, 0.1))" // Градиентный фон
+                                        bg="linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.12))" // Монохромный градиент
                                         borderRadius="xl"
                                         overflow="hidden"
                                         border="1px solid"
-                                        borderColor="rgba(128, 0, 11, 0.73)" // Градиентная граница
+                                        borderColor="rgba(255, 255, 255, 0.15)" // Монохромная граница
                                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                                         whileHover={{
                                             scale: 1.03,
-                                            boxShadow: `0 10px 20px rgba(245, 101, 101, 0.3)`,
-                                            background: "linear-gradient(135deg, rgba(128, 0, 32, 0.4), rgba(245, 101, 101, 0.2))",
+                                            boxShadow: `0 10px 20px rgba(255, 255, 255, 0.12)`,
+                                            background: "linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.12))",
                                             transition: { duration: 0.3 }
                                         }}
                                         transition={{
@@ -426,7 +426,7 @@ const TeamPage: React.FC = () => {
                                             <Button
                                                 variant="outline"
                                                 color={primaryColor}
-                                                _hover={{ color: "#FC8181", borderColor: "#FC8181" }}
+                                                _hover={{ color: "#e2e2e2", borderColor: "#e2e2e2" }}
                                                 size="sm"
                                                 rightIcon={<ChevronRightIcon />}
                                                 w="full"

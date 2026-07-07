@@ -39,8 +39,8 @@ const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
 const MotionButton = motion(Button);
 
-const primaryColor = '#800020';
-const secondaryColor = '#A00030';
+const primaryColor = '#f2f2f2';
+const secondaryColor = '#8a8a8a';
 
 const CFaUserPlus = chakra(FaUserPlus as any);
 const CFaTrash = chakra(FaTrash as any);
@@ -265,7 +265,7 @@ const UsersPage: React.FC = () => {
                                     size="lg"
                                     name={user.email}
                                     bg={primaryColor}
-                                    color="white"
+                                    color="#0a0a0a"
                                     opacity={user.deleted_at ? 0.6 : 1}
                                 />
                                 <Box ml={4} maxW="calc(100% - 80px)">
@@ -365,7 +365,8 @@ const UsersPage: React.FC = () => {
                     <MotionButton
                         leftIcon={<CFaUserPlus />}
                         bg={primaryColor}
-                        _hover={{ bg: '#900030' }}
+                        color="#0a0a0a"
+                        _hover={{ bg: "#d9d9d9" }}
                         onClick={openCreateForm}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}

@@ -42,7 +42,7 @@ const PerformancesPage: React.FC = () => {
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
-    const primaryColor = "#800020";
+    const primaryColor = "#f2f2f2";
 
     useEffect(() => {
         const fetchPerformances = async () => {
@@ -67,7 +67,7 @@ const PerformancesPage: React.FC = () => {
             <Box>
                 <Navigation />
                 <Flex justify="center" align="center" minH="70vh" bg="black">
-                    <Spinner size="xl" color="#F56565" />
+                    <Spinner size="xl" color="#d9d9d9" />
                 </Flex>
                 <Footer />
             </Box>
@@ -105,7 +105,7 @@ const PerformancesPage: React.FC = () => {
                     right="-10%"
                     w="400px"
                     h="400px"
-                    bg="linear-gradient(135deg, #800020, #400010)"
+                    bg="linear-gradient(135deg, #2a2a2a, #151515)"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.2}
@@ -184,15 +184,15 @@ const PerformancesPage: React.FC = () => {
                                 >
                                     <MotionBox
                                         as="div"
-                                        bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(64, 0, 16, 0.3))"
+                                        bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(255, 255, 255, 0.06))"
                                         borderRadius="xl"
                                         overflow="hidden"
                                         border="1px solid"
-                                        borderColor="rgba(64, 0, 16, 0.7)"
+                                        borderColor="rgba(255, 255, 255, 0.15)"
                                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                                         whileHover={{
                                             scale: 1.05,
-                                            boxShadow: "0 10px 25px rgba(245, 101, 101, 0.4)",
+                                            boxShadow: "0 10px 25px rgba(255, 255, 255, 0.12)",
                                             transition: { duration: 0.3 }
                                         }}
                                         onClick={() => navigate(`/performance/${performance.id}`)}

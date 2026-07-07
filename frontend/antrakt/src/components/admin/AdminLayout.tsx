@@ -57,7 +57,7 @@ interface AdminLayoutProps {
     children: React.ReactNode;
 }
 
-const primaryColor = "#800020";
+const primaryColor = "#f2f2f2";
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const { user, logout } = useAuth();
@@ -146,7 +146,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     <CFaTheaterMasks w={8} h={8} color={primaryColor} />
                     <VStack align="start" spacing={0}>
                         <Heading size="md" color="white" fontFamily="Playfair Display">
-                            Антракт
+                            ННТ
                         </Heading>
                         <Text fontSize="xs" color="gray.400">
                             Админ‑панель
@@ -214,7 +214,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     justifyContent="flex-start"
                     w="full"
                     color="white"
-                    _hover={{ bg: "rgba(255,0,0,0.2)", color: "red.300" }}
+                    _hover={{ bg: "rgba(255,255,255,0.12)", color: "white" }}
                     onClick={() => {
                         handleLogout();
                         onClose(); // Закрываем мобильное меню при выходе
@@ -299,7 +299,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     </HStack>
 
                     <HStack spacing={3}>
-                        <Avatar size="sm" name={user?.email} bg={primaryColor} color="white" />
+                        <Avatar size="sm" name={user?.email} bg={primaryColor} color="#0a0a0a" />
                         <VStack
                             spacing={0}
                             align="start"

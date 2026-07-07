@@ -51,7 +51,7 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
                     </AlertDialogHeader>
                     <AlertDialogBody>
                         <Text>Вы уверены, что хотите удалить {itemLabel}?</Text>
-                        <Box mt={4} p={3} bg="rgba(128,0,32,0.15)" borderRadius="md" border="1px solid" borderColor="rgba(128,0,32,0.4)">
+                        <Box mt={4} p={3} bg="rgba(255, 255, 255, 0.2)" borderRadius="md" border="1px solid" borderColor="rgba(255, 255, 255, 0.22)">
                             <Text fontSize="sm" color="gray.300">
                                 <b>«Удалить»</b> — запись скроется с сайта, но останется в базе и будет
                                 окончательно удалена через <b>60 дней</b> (до этого её можно восстановить).
@@ -67,8 +67,8 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
                             Отмена
                         </Button>
                         <Button
-                            bg="#E53E3E"
-                            _hover={{ bg: '#F56565' }}
+                            bg="#cfcfcf"
+                            _hover={{ bg: '#d9d9d9' }}
                             isLoading={busy === 'soft'}
                             onClick={() => run('soft', onSoftDelete)}
                         >
@@ -78,7 +78,7 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
                             variant="outline"
                             borderColor="red.500"
                             color="red.300"
-                            _hover={{ bg: 'rgba(255,0,0,0.15)' }}
+                            _hover={{ bg: 'rgba(255,255,255,0.1)' }}
                             isLoading={busy === 'hard'}
                             onClick={() => run('hard', onHardDelete)}
                         >

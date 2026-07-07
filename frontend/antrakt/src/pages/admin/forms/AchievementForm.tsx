@@ -23,8 +23,8 @@ const CFaSave = chakra(FaSave as any);
 const CFaTrophy = chakra(FaTrophy as any);
 const CFaCalendarAlt = chakra(FaCalendarAlt as any);
 
-const primaryColor = '#800020';
-const accentColor = '#4ECDC4';
+const primaryColor = '#f2f2f2';
+const accentColor = '#c9c9c9';
 
 interface Achievement {
     id?: number;
@@ -186,8 +186,8 @@ export const AchievementForm: React.FC<{
                     mr={3}
                     onClick={onCancel}
                     leftIcon={<CFaTimes />}
-                    bg="#B00040"
-                    borderColor="#B00040"
+                    bg="#3a3a3a"
+                    borderColor="#3a3a3a"
                     _hover={{ bg: 'red' }}
                 >
                     Отмена

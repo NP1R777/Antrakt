@@ -43,7 +43,7 @@ const NewsPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
 
-    const primaryColor = "#800020";
+    const primaryColor = "#f2f2f2";
     const darkBg = "#0a0a0a";
     const lightText = "#e0e0e0";
     const grayText = "#a0a0a0";
@@ -93,7 +93,7 @@ const NewsPage: React.FC = () => {
                     left="-10%"
                     w="400px"
                     h="400px"
-                    bg="linear-gradient(135deg, #800020, #40001010)"
+                    bg="linear-gradient(135deg, #2a2a2a, #15151510)"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.2}
@@ -107,7 +107,7 @@ const NewsPage: React.FC = () => {
                     right="-10%"
                     w="300px"
                     h="300px"
-                    bg="linear-gradient(135deg, #800020, #40001010)"
+                    bg="linear-gradient(135deg, #2a2a2a, #15151510)"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.15}
@@ -204,12 +204,12 @@ const NewsPage: React.FC = () => {
                                         borderRadius="xl"
                                         overflow="hidden"
                                         border="1px solid"
-                                        borderColor="rgba(64, 0, 16, 0.7)"
+                                        borderColor="rgba(255, 255, 255, 0.15)"
                                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                                         whileHover={{
                                             scale: 1.03,
-                                            boxShadow: `0 10px 20px rgba(245, 101, 101, 0.3)`,
-                                            background: "linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(128, 0, 32, 0.2))",
+                                            boxShadow: `0 10px 20px rgba(255, 255, 255, 0.12)`,
+                                            background: "linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(255, 255, 255, 0.2))",
                                             transition: { duration: 0.3 }
                                         }}
                                         display="flex"
@@ -227,12 +227,12 @@ const NewsPage: React.FC = () => {
                                             />
                                         ) : (
                                             <Box
-                                                bgGradient="linear(to-r, gray.700, #80002010)"
+                                                bgGradient="linear(to-r, gray.700, #2a2a2a10)"
                                                 h="200px"
                                                 display="flex"
                                                 alignItems="center"
                                                 justifyContent="center"
-                                                bg="rgba(128, 0, 32, 0.1)"
+                                                bg="rgba(255, 255, 255, 0.07)"
                                             >
                                                 <Text color={grayText}>Изображение отсутствует</Text>
                                             </Box>
@@ -276,7 +276,7 @@ const NewsPage: React.FC = () => {
                                                 alignSelf="flex-start"
                                                 borderColor={primaryColor}
                                                 color={lightText}
-                                                _hover={{ bg: "rgba(128, 0, 32, 0.2)" }}
+                                                _hover={{ bg: "rgba(255, 255, 255, 0.2)" }}
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={() => handleNewsClick(item.id)}
