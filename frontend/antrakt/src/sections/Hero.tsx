@@ -24,27 +24,11 @@ export default function Hero() {
                     width: "100%",
                     height: "100%",
                     backgroundImage: "url('/images/hero-bg.jpg')",
-                    backgroundSize: "cover",
-                    backgroundPosition: "center top",
+                    backgroundSize: "contain",
+                    backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",
                     backgroundColor: "black",
-                    filter: "grayscale(100%) contrast(1.05)",
                     zIndex: 0,
-                }}
-            />
-
-            {/* Затемнение фона: тёмный монохромный градиент */}
-            <MotionDiv
-                style={{
-                    opacity: fadeOut,
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    background:
-                        "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.88) 100%)",
-                    zIndex: 1,
                 }}
             />
 
