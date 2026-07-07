@@ -40,6 +40,7 @@ import {
 } from 'react-icons/fa';
 import axios from 'axios';
 import { PerformanceForm } from './forms/PerformancesForm';
+import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -105,6 +106,21 @@ const PerformancesPage: React.FC = () => {
                 isClosable: true,
             });
             setIsLoading(false);
+        }
+    };
+
+    const handleHardDelete = async () => {
+        if (!deleteId) return;
+        try {
+            await axios.delete(`http://localhost:8000/perfomance${deleteId}/?hard=1`);
+            setPerformances(performances.filter(p => p.id !== deleteId));
+            toast({ title: 'Удалено навсегда', description: 'Спектакль полностью удалён из базы', status: 'info', duration: 2000, isClosable: true });
+        } catch (error) {
+            console.error('Ошибка при удалении спектакля:', error);
+            toast({ title: 'Ошибка', description: 'Не удалось удалить спектакль', status: 'error', duration: 3000, isClosable: true });
+        } finally {
+            onDeleteClose();
+            setDeleteId(null);
         }
     };
 
@@ -412,42 +428,14 @@ const PerformancesPage: React.FC = () => {
             </Modal>
 
             {/* Диалог подтверждения удаления */}
-            <AlertDialog
+            <DeleteConfirmDialog
                 isOpen={isDeleteOpen}
-                leastDestructiveRef={cancelRef}
                 onClose={onDeleteClose}
-            >
-                <AlertDialogOverlay>
-                    <AlertDialogContent bg="#222222" color="white">
-                        <AlertDialogHeader fontSize="lg" fontWeight="bold" fontFamily="Playfair Display">
-                            Удаление спектакля
-                        </AlertDialogHeader>
-
-                        <AlertDialogBody>
-                            Вы уверены, что хотите удалить этот спектакль?
-                        </AlertDialogBody>
-
-                        <AlertDialogFooter>
-                            <Button
-                                ref={cancelRef}
-                                onClick={onDeleteClose}
-                                borderColor="#555555"
-                                _hover={{ bg: '#333333' }}
-                            >
-                                Отмена
-                            </Button>
-                            <Button
-                                bg="#E53E3E"
-                                _hover={{ bg: '#F56565' }}
-                                onClick={handleSoftDelete}
-                                ml={3}
-                            >
-                                Удалить
-                            </Button>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialogOverlay>
-            </AlertDialog>
+                title="Удаление спектакля"
+                itemLabel="этот спектакль"
+                onSoftDelete={handleSoftDelete}
+                onHardDelete={handleHardDelete}
+            />
         </Box>
     );
 };

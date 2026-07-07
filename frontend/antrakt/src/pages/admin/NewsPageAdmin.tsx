@@ -44,6 +44,7 @@ import {
 } from 'react-icons/fa';
 import axios from 'axios';
 import { NewsForm } from './forms/NewsForm';
+import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -100,6 +101,21 @@ const NewsPageAdmin: React.FC = () => {
                 isClosable: true,
             });
             setIsLoading(false);
+        }
+    };
+
+    const handleHardDeleteNews = async () => {
+        if (!deleteId) return;
+        try {
+            await axios.delete(`http://localhost:8000/news${deleteId}/?hard=1`);
+            setNews(prevNews => prevNews.filter(item => item.id !== deleteId));
+            toast({ title: 'Удалено навсегда', description: 'Новость полностью удалена из базы', status: 'info', duration: 2000, isClosable: true });
+        } catch (error) {
+            console.error('Ошибка при удалении новости:', error);
+            toast({ title: 'Ошибка', description: 'Не удалось удалить новость', status: 'error', duration: 3000, isClosable: true });
+        } finally {
+            onDeleteClose();
+            setDeleteId(null);
         }
     };
 
@@ -400,34 +416,14 @@ const NewsPageAdmin: React.FC = () => {
             </Modal>
 
             {/* Диалог подтверждения удаления */}
-            <AlertDialog
+            <DeleteConfirmDialog
                 isOpen={isDeleteOpen}
-                leastDestructiveRef={cancelRef}
                 onClose={onDeleteClose}
-            >
-                <AlertDialogOverlay>
-                    <AlertDialogContent bg="#222222" color="white">
-                        <AlertDialogHeader fontFamily="Playfair Display">
-                            Удалить новость
-                        </AlertDialogHeader>
-                        <AlertDialogBody>
-                            Вы уверены, что хотите удалить эту новость?
-                        </AlertDialogBody>
-                        <AlertDialogFooter>
-                            <Button ref={cancelRef} onClick={onDeleteClose}>
-                                Отмена
-                            </Button>
-                            <Button
-                                colorScheme="red"
-                                onClick={handleDeleteNews}
-                                ml={3}
-                            >
-                                Удалить
-                            </Button>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialogOverlay>
-            </AlertDialog>
+                title="Удалить новость"
+                itemLabel="эту новость"
+                onSoftDelete={handleDeleteNews}
+                onHardDelete={handleHardDeleteNews}
+            />
         </Box>
     );
 };

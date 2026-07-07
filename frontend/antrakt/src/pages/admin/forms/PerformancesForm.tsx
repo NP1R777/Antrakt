@@ -46,6 +46,7 @@ import {
 import axios from 'axios';
 import { chakra, useToast } from '@chakra-ui/react';
 import ImageUpload from '../../../components/ImageUpload';
+import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
 
 const MotionButton = motion(Button);
 const MotionTag = motion(Tag);
@@ -198,7 +199,8 @@ export const PerformanceForm: React.FC<{
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     useEffect(() => {
-        axios.get('http://localhost:8000/actors/')
+        // active=1 — только действующие актёры (выбывшие в списке состава не нужны).
+        axios.get('http://localhost:8000/actors/?active=1')
             .then(res => setActorOptions(
                 (res.data || []).map((a: any) => ({ id: a.id, name: a.name }))
             ))
@@ -445,6 +447,7 @@ export const PerformanceForm: React.FC<{
 
     return (
         <>
+            <RequiredFieldsHint required={['Название спектакля', 'Автор', 'Жанр', 'Возрастное ограничение', 'Описание']} />
             <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={6}>
                 {/* Левая колонка */}
                 <VStack spacing={4} align="stretch">

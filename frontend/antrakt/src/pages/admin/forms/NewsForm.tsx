@@ -38,6 +38,7 @@ import {
 import axios from 'axios';
 import { chakra, useToast } from '@chakra-ui/react';
 import ImageUpload from '../../../components/ImageUpload';
+import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
 
 const MotionButton = motion(Button);
 const MotionBox = motion(Box);
@@ -177,6 +178,7 @@ export const NewsForm: React.FC<{
 
     return (
         <>
+            <RequiredFieldsHint required={['Заголовок', 'Описание']} />
             <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={6}>
                 {/* Левая колонка */}
                 <VStack spacing={4} align="stretch">

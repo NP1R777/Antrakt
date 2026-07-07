@@ -15,6 +15,7 @@ import {
 import { FaTimes, FaSave, FaTrophy, FaCalendarAlt } from 'react-icons/fa';
 import axios from 'axios';
 import ImageUpload from '../../../components/ImageUpload';
+import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
 import { chakra } from '@chakra-ui/react';
 
 const CFaTimes = chakra(FaTimes as any);
@@ -121,6 +122,7 @@ export const AchievementForm: React.FC<{
 
     return (
         <VStack spacing={6} align="stretch">
+            <RequiredFieldsHint required={['Текст достижения']} />
             <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={6}>
                 <VStack spacing={4}>
                     <FormControl>

@@ -40,6 +40,7 @@ import {
 } from 'react-icons/fa';
 import axios from 'axios';
 import { ArchiveForm } from './forms/ArchiveForm';
+import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -98,6 +99,21 @@ const ArchivePageAdmin: React.FC = () => {
                 isClosable: true,
             });
             setIsLoading(false);
+        }
+    };
+
+    const handleHardDelete = async () => {
+        if (!deleteId) return;
+        try {
+            await axios.delete(`http://localhost:8000/archive${deleteId}/?hard=1`);
+            setArchives(archives.filter(a => a.id !== deleteId));
+            toast({ title: 'Удалено навсегда', description: 'Запись архива полностью удалена из базы', status: 'info', duration: 2000, isClosable: true });
+        } catch (error) {
+            console.error('Ошибка при удалении записи архива:', error);
+            toast({ title: 'Ошибка', description: 'Не удалось удалить запись', status: 'error', duration: 3000, isClosable: true });
+        } finally {
+            onDeleteClose();
+            setDeleteId(null);
         }
     };
 
@@ -387,42 +403,14 @@ const ArchivePageAdmin: React.FC = () => {
             </Modal>
 
             {/* Диалог подтверждения удаления */}
-            <AlertDialog
+            <DeleteConfirmDialog
                 isOpen={isDeleteOpen}
-                leastDestructiveRef={cancelRef}
                 onClose={onDeleteClose}
-            >
-                <AlertDialogOverlay>
-                    <AlertDialogContent bg="#222222" color="white">
-                        <AlertDialogHeader fontSize="lg" fontWeight="bold" fontFamily="Playfair Display">
-                            Удаление записи архива
-                        </AlertDialogHeader>
-
-                        <AlertDialogBody>
-                            Вы уверены, что хотите удалить эту запись архива?
-                        </AlertDialogBody>
-
-                        <AlertDialogFooter>
-                            <Button
-                                ref={cancelRef}
-                                onClick={onDeleteClose}
-                                borderColor="#555555"
-                                _hover={{ bg: '#333333' }}
-                            >
-                                Отмена
-                            </Button>
-                            <Button
-                                bg="#E53E3E"
-                                _hover={{ bg: '#F56565' }}
-                                onClick={handleSoftDelete}
-                                ml={3}
-                            >
-                                Удалить
-                            </Button>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialogOverlay>
-            </AlertDialog>
+                title="Удаление записи архива"
+                itemLabel="эту запись архива"
+                onSoftDelete={handleSoftDelete}
+                onHardDelete={handleHardDelete}
+            />
         </Box>
     );
 };

@@ -38,6 +38,7 @@ import {
 } from 'react-icons/fa';
 import axios from 'axios';
 import { ActorForm } from './forms/ActorForm';
+import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -126,6 +127,33 @@ const ActorsPage: React.FC = () => {
                         : actor
                 )
             );
+        } catch (error) {
+            console.error('Ошибка при удалении актёра:', error);
+            toast({
+                title: 'Ошибка',
+                description: 'Не удалось удалить актёра',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        } finally {
+            onDeleteClose();
+            setDeleteId(null);
+        }
+    };
+
+    const handleHardDeleteActor = async (id: number) => {
+        if (!id) return;
+        try {
+            await axios.delete(`http://localhost:8000/actor${id}/?hard=1`);
+            toast({
+                title: 'Удалено навсегда',
+                description: 'Актёр полностью удалён из базы',
+                status: 'info',
+                duration: 2000,
+                isClosable: true,
+            });
+            setActors(prevActors => prevActors.filter(actor => actor.id !== id));
         } catch (error) {
             console.error('Ошибка при удалении актёра:', error);
             toast({
@@ -430,40 +458,14 @@ const ActorsPage: React.FC = () => {
             </Modal>
 
             {/* Диалог подтверждения удаления */}
-            <AlertDialog
+            <DeleteConfirmDialog
                 isOpen={isDeleteOpen}
-                leastDestructiveRef={cancelRef}
                 onClose={onDeleteClose}
-            >
-                <AlertDialogOverlay>
-                    <AlertDialogContent bg="#222222" color="white">
-                        <AlertDialogHeader fontSize="lg" fontWeight="bold" fontFamily="Playfair Display">
-                            Удаление актёра
-                        </AlertDialogHeader>
-                        <AlertDialogBody>
-                            Вы уверены, что хотите удалить этого актёра?
-                        </AlertDialogBody>
-                        <AlertDialogFooter>
-                            <Button
-                                ref={cancelRef}
-                                onClick={onDeleteClose}
-                                borderColor="#555555"
-                                _hover={{ bg: '#333333' }}
-                            >
-                                Отмена
-                            </Button>
-                            <Button
-                                bg="#E53E3E"
-                                _hover={{ bg: '#F56565' }}
-                                onClick={() => deleteId && handleDeleteActor(deleteId)}
-                                ml={3}
-                            >
-                                Удалить
-                            </Button>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialogOverlay>
-            </AlertDialog>
+                title="Удаление актёра"
+                itemLabel="этого актёра"
+                onSoftDelete={() => deleteId && handleDeleteActor(deleteId)}
+                onHardDelete={() => deleteId && handleHardDeleteActor(deleteId)}
+            />
         </Box>
     );
 };

@@ -37,6 +37,7 @@ import {
 import axios from 'axios';
 import { chakra, useToast } from '@chakra-ui/react';
 import ImageUpload from '../../../components/ImageUpload';
+import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
 
 const MotionButton = motion(Button);
 const MotionBox = motion(Box);
@@ -154,6 +155,7 @@ export const ArchiveForm: React.FC<{
 
     return (
         <Flex direction="column" w="full" maxW="100vw">
+            <RequiredFieldsHint required={['Название', 'Описание']} />
             {/* Основной контент формы */}
             <Flex
                 direction={{ base: 'column', md: 'row' }}

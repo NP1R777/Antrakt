@@ -40,6 +40,7 @@ import {
 } from 'react-icons/fa';
 import axios from 'axios';
 import { AchievementForm } from './forms/AchievementForm';
+import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -109,6 +110,21 @@ const AchievementsPageAdmin: React.FC = () => {
     const handleDelete = (id: number) => {
         setDeleteId(id);
         onDeleteOpen();
+    };
+
+    const handleHardDelete = async (id: number) => {
+        if (!id) return;
+        try {
+            await axios.delete(`http://localhost:8000/achievement${id}/?hard=1`);
+            setAchievements(prev => prev.filter(a => a.id !== id));
+            toast({ title: 'Удалено навсегда', description: 'Достижение полностью удалено из базы', status: 'info', duration: 2000, isClosable: true });
+        } catch (error) {
+            console.error('Ошибка при удалении достижения:', error);
+            toast({ title: 'Ошибка', description: 'Не удалось удалить достижение', status: 'error', duration: 3000, isClosable: true });
+        } finally {
+            onDeleteClose();
+            setDeleteId(null);
+        }
     };
 
     const handleSoftDelete = async (id: number) => {
@@ -401,40 +417,14 @@ const AchievementsPageAdmin: React.FC = () => {
                 </ModalContent>
             </Modal>
 
-            <AlertDialog
+            <DeleteConfirmDialog
                 isOpen={isDeleteOpen}
-                leastDestructiveRef={cancelRef}
                 onClose={onDeleteClose}
-            >
-                <AlertDialogOverlay>
-                    <AlertDialogContent bg="#222222" color="white">
-                        <AlertDialogHeader fontSize="lg" fontWeight="bold" fontFamily="Playfair Display">
-                            Удаление достижения
-                        </AlertDialogHeader>
-                        <AlertDialogBody>
-                            Вы уверены, что хотите удалить это достижение?
-                        </AlertDialogBody>
-                        <AlertDialogFooter>
-                            <Button
-                                ref={cancelRef}
-                                onClick={onDeleteClose}
-                                borderColor="#555555"
-                                _hover={{ bg: '#333333' }}
-                            >
-                                Отмена
-                            </Button>
-                            <Button
-                                bg="#E53E3E"
-                                _hover={{ bg: '#F56565' }}
-                                onClick={() => deleteId && handleSoftDelete(deleteId)}
-                                ml={3}
-                            >
-                                Удалить
-                            </Button>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialogOverlay>
-            </AlertDialog>
+                title="Удаление достижения"
+                itemLabel="это достижение"
+                onSoftDelete={() => deleteId && handleSoftDelete(deleteId)}
+                onHardDelete={() => deleteId && handleHardDelete(deleteId)}
+            />
         </Box>
     );
 };

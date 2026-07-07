@@ -27,6 +27,7 @@ import {
 import { motion } from 'framer-motion';
 import { FaTrash, FaExclamationTriangle } from 'react-icons/fa';
 import axios from 'axios';
+import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
 
 const API = 'http://localhost:8000';
 const primaryColor = '#800020';
@@ -66,6 +67,8 @@ const ReviewsPageAdmin: React.FC = () => {
     const toast = useToast();
 
     const { isOpen, onOpen, onClose } = useDisclosure();
+    const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+    const [deleteTarget, setDeleteTarget] = useState<AdminReview | null>(null);
     const [warnTarget, setWarnTarget] = useState<AdminReview | null>(null);
     const [warnMessage, setWarnMessage] = useState('');
     const [isWarning, setIsWarning] = useState(false);
@@ -84,14 +87,31 @@ const ReviewsPageAdmin: React.FC = () => {
 
     useEffect(() => { fetchReviews(); }, [fetchReviews]);
 
-    const handleDelete = async (review: AdminReview) => {
+    const handleSoftDelete = async () => {
+        if (!deleteTarget) return;
         try {
-            await axios.delete(`${API}/review${review.id}/`);
-            setReviews(prev => prev.filter(r => r.id !== review.id));
-            toast({ title: 'Отзыв удалён', status: 'info', duration: 2000, isClosable: true });
+            await axios.delete(`${API}/review${deleteTarget.id}/`);
+            setReviews(prev => prev.filter(r => r.id !== deleteTarget.id));
+            toast({ title: 'Отзыв удалён', description: 'Будет окончательно удалён через 60 дней', status: 'info', duration: 2500, isClosable: true });
         } catch (err) {
             toast({ title: 'Не удалось удалить отзыв', status: 'error', duration: 3000, isClosable: true });
         }
+    };
+
+    const handleHardDelete = async () => {
+        if (!deleteTarget) return;
+        try {
+            await axios.delete(`${API}/review${deleteTarget.id}/?hard=1`);
+            setReviews(prev => prev.filter(r => r.id !== deleteTarget.id));
+            toast({ title: 'Удалено навсегда', description: 'Отзыв полностью удалён из базы', status: 'info', duration: 2000, isClosable: true });
+        } catch (err) {
+            toast({ title: 'Не удалось удалить отзыв', status: 'error', duration: 3000, isClosable: true });
+        }
+    };
+
+    const openDelete = (review: AdminReview) => {
+        setDeleteTarget(review);
+        onDeleteOpen();
     };
 
     const openWarn = (review: AdminReview) => {
@@ -169,11 +189,12 @@ const ReviewsPageAdmin: React.FC = () => {
                                         <IconButton
                                             aria-label="Удалить"
                                             icon={<CFaTrash />}
+                                            data-testid="review-delete"
                                             size="sm"
                                             variant="ghost"
                                             color="red.300"
                                             _hover={{ bg: 'rgba(255,0,0,0.15)' }}
-                                            onClick={() => handleDelete(review)}
+                                            onClick={() => openDelete(review)}
                                         />
                                     </Tooltip>
                                 </HStack>
@@ -230,6 +251,15 @@ const ReviewsPageAdmin: React.FC = () => {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
+
+            <DeleteConfirmDialog
+                isOpen={isDeleteOpen}
+                onClose={onDeleteClose}
+                title="Удаление отзыва"
+                itemLabel="этот отзыв"
+                onSoftDelete={handleSoftDelete}
+                onHardDelete={handleHardDelete}
+            />
         </Container>
     );
 };

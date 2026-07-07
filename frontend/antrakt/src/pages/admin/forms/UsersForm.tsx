@@ -19,6 +19,7 @@ import {
 import { chakra } from '@chakra-ui/react';
 import { FaTimes, FaSave } from 'react-icons/fa';
 import axios from 'axios';
+import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
 
 const CFaTimes = chakra(FaTimes as any);
 const CFaSave = chakra(FaSave as any);
@@ -152,6 +153,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                 <ModalCloseButton />
                 <ModalBody py={6}>
                     <VStack spacing={4} align="stretch">
+                        <RequiredFieldsHint required={['Email', 'Пароль']} note="Телефон можно не указывать." />
                         <FormControl isInvalid={!!errors.email} isRequired>
                             <FormLabel display="flex" alignItems="center" gap={2}>
                                 <Text as="span" fontWeight="semibold">Email</Text>
