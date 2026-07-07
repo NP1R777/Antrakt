@@ -298,10 +298,10 @@ export default function Navigation() {
                                 color={lightText}
                                 py={2}
                                 px={{ base: 3, sm: 4 }}
-                                bg="rgba(90, 0, 23, 0.3)"
+                                bg="rgba(255, 255, 255, 0.1)"
                                 borderRadius="md"
                                 fontWeight={500}
-                                _hover={{ transform: "translateX(10px)", bg: "rgba(128, 0, 32, 0.5)" }}
+                                _hover={{ transform: "translateX(10px)", bg: "rgba(255, 255, 255, 0.25)" }}
                                 transition="all 0.2s"
                                 display="block"
                             >

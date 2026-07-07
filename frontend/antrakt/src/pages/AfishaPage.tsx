@@ -202,15 +202,15 @@ const AfishaPage: React.FC = () => {
                                 >
                                     <MotionBox
                                         as="div"
-                                        bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(64, 0, 16, 0.3))"
+                                        bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(255, 255, 255, 0.06))"
                                         borderRadius="xl"
                                         overflow="hidden"
                                         border="1px solid"
-                                        borderColor="rgba(64, 0, 16, 0.7)"
+                                        borderColor="rgba(255, 255, 255, 0.15)"
                                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                                         whileHover={{
                                             scale: 1.05,
-                                            boxShadow: "0 10px 25px rgba(128, 0, 32, 0.4)",
+                                            boxShadow: "0 10px 25px rgba(255, 255, 255, 0.22)",
                                             transition: { duration: 0.3 }
                                         }}
                                         onClick={() => navigate(`/${item.type}/${item.id}`, { state: { item, from: '/afisha' } })}

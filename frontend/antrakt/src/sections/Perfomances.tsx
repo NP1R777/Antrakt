@@ -160,10 +160,10 @@ function PerformanceCard({ performance }: { performance: Performance }) {
             overflow="hidden"
             border="1px solid"
             borderColor="brand.800"
-            boxShadow="0 10px 30px rgba(128, 0, 32, 0.1)"
+            boxShadow="0 10px 30px rgba(255, 255, 255, 0.07)"
             whileHover={{
                 y: -10,
-                boxShadow: "0 15px 40px rgba(128, 0, 32, 0.3)"
+                boxShadow: "0 15px 40px rgba(255, 255, 255, 0.18)"
             }}
             transition={{ duration: 0.3 }}
         >

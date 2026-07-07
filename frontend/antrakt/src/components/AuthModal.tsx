@@ -277,7 +277,7 @@ export default function AuthModal({
                                     </FormControl>
 
                                     <Button mt={4} bg="#2a2a2a" color="white"
-                                        _hover={{ bg: "#202020", transform: "translateY(-2px)", boxShadow: "0 4px 10px rgba(128, 0, 32, 0.3)" }}
+                                        _hover={{ bg: "#202020", transform: "translateY(-2px)", boxShadow: "0 4px 10px rgba(255, 255, 255, 0.18)" }}
                                         _active={{ bg: "#500014" }} isLoading={isSubmitting}
                                         loadingText={isRegister ? "Отправка кода..." : "Вход..."}
                                         onClick={handleSubmitCredentials} size={{ base: "md", md: "lg" }}

@@ -236,10 +236,10 @@ const DirectorDetail: React.FC = () => {
                     <Grid
                         templateColumns={{ base: "1fr", md: "280px 1fr" }}
                         gap={{ base: 4, md: 8 }}
-                        bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(64, 0, 16, 0.3))"
+                        bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(255, 255, 255, 0.06))"
                         borderRadius="xl"
                         border="1px solid"
-                        borderColor="rgba(64, 0, 16, 0.7)"
+                        borderColor="rgba(255, 255, 255, 0.15)"
                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                         p={{ base: 4, md: 8 }}
                     >
@@ -289,13 +289,13 @@ const DirectorDetail: React.FC = () => {
                                                     key={idx}
                                                     p={4}
                                                     border="1px solid"
-                                                    borderColor="rgba(64, 0, 16, 0.5)"
+                                                    borderColor="rgba(255, 255, 255, 0.12)"
                                                     borderRadius="md"
-                                                    bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(64, 0, 16, 0.2))"
+                                                    bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(255, 255, 255, 0.05))"
                                                     cursor="pointer"
                                                     whileHover={{
                                                         scale: 1.05,
-                                                        boxShadow: "0 10px 25px rgba(245, 101, 101, 0.4)",
+                                                        boxShadow: "0 10px 25px rgba(255, 255, 255, 0.12)",
                                                         transition: { duration: 0.3 }
                                                     }}
                                                     whileTap={{
@@ -340,7 +340,7 @@ const DirectorDetail: React.FC = () => {
                     color="white"
                     borderRadius="xl"
                     border="1px solid"
-                    borderColor="rgba(64, 0, 16, 0.7)"
+                    borderColor="rgba(255, 255, 255, 0.15)"
                 >
                     <ModalHeader>
                         <Flex align="center">

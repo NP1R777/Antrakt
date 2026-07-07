@@ -14,9 +14,9 @@ const RequiredFieldsHint: React.FC<RequiredFieldsHintProps> = ({ required, note 
     <Box
         mb={5}
         p={3}
-        bg="rgba(128,0,32,0.12)"
+        bg="rgba(255, 255, 255, 0.2)"
         border="1px solid"
-        borderColor="rgba(128,0,32,0.45)"
+        borderColor="rgba(255, 255, 255, 0.2)"
         borderRadius="md"
     >
         <Text fontSize="sm" color="gray.100">

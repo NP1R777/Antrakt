@@ -152,7 +152,7 @@ const ReviewsPageAdmin: React.FC = () => {
                             animate={{ opacity: 1, y: 0 }}
                             bg="rgba(30,30,30,0.6)"
                             border="1px solid"
-                            borderColor="rgba(128,0,32,0.5)"
+                            borderColor="rgba(255, 255, 255, 0.25)"
                             borderRadius="lg"
                             p={4}
                         >
@@ -218,7 +218,7 @@ const ReviewsPageAdmin: React.FC = () => {
 
             <Modal isOpen={isOpen} onClose={onClose} isCentered>
                 <ModalOverlay />
-                <ModalContent bg="#1a1a1a" color="white" border="1px solid" borderColor="rgba(128,0,32,0.6)">
+                <ModalContent bg="#1a1a1a" color="white" border="1px solid" borderColor="rgba(255, 255, 255, 0.2)">
                     <ModalHeader>Предупреждение пользователю</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>

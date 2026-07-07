@@ -173,10 +173,10 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
             <Heading as="h3" size="md" color="white" mb={4}>
                 Отзывы
             </Heading>
-            <Divider borderColor="rgba(128,0,32,0.5)" mb={6} />
+            <Divider borderColor="rgba(255, 255, 255, 0.25)" mb={6} />
 
             {isAuthenticated ? (
-                <Box mb={8} bg="rgba(30,30,30,0.6)" p={4} borderRadius="lg" border="1px solid" borderColor="rgba(128,0,32,0.4)">
+                <Box mb={8} bg="rgba(30,30,30,0.6)" p={4} borderRadius="lg" border="1px solid" borderColor="rgba(255, 255, 255, 0.22)">
                     <Textarea
                         value={text}
                         onChange={(e) => setText(e.target.value)}
@@ -223,7 +223,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
                                 p={4}
                                 borderRadius="lg"
                                 border="1px solid"
-                                borderColor="rgba(64,0,16,0.6)"
+                                borderColor="rgba(255, 255, 255, 0.1)"
                             >
                                 <Flex justify="space-between" align="flex-start">
                                     <HStack spacing={3} mb={2}>
@@ -277,8 +277,8 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
                                                     size="sm"
                                                     variant="outline"
                                                     borderColor={mine ? primaryColor : '#333'}
-                                                    bg={mine ? 'rgba(128,0,32,0.3)' : 'transparent'}
-                                                    _hover={{ bg: 'rgba(128,0,32,0.2)' }}
+                                                    bg={mine ? 'rgba(255, 255, 255, 0.18)' : 'transparent'}
+                                                    _hover={{ bg: 'rgba(255, 255, 255, 0.2)' }}
                                                     onClick={() => handleReact(review, key)}
                                                     px={2}
                                                 >
@@ -300,7 +300,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
             {/* Модалка предупреждения (для админа) */}
             <Modal isOpen={isWarnOpen} onClose={onWarnClose} isCentered>
                 <ModalOverlay />
-                <ModalContent bg="#1a1a1a" color="white" border="1px solid" borderColor="rgba(128,0,32,0.6)">
+                <ModalContent bg="#1a1a1a" color="white" border="1px solid" borderColor="rgba(255, 255, 255, 0.2)">
                     <ModalHeader>Предупреждение пользователю</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>

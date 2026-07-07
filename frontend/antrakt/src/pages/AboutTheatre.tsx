@@ -63,7 +63,7 @@ const AboutTheatre: React.FC = () => {
                         bg="rgba(15, 15, 15, 0.9)"
                         borderRadius="xl"
                         border="1px solid"
-                        borderColor="rgba(64, 0, 16, 0.5)"
+                        borderColor="rgba(255, 255, 255, 0.12)"
                         p={8}
                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                     >

@@ -204,12 +204,12 @@ const NewsPage: React.FC = () => {
                                         borderRadius="xl"
                                         overflow="hidden"
                                         border="1px solid"
-                                        borderColor="rgba(64, 0, 16, 0.7)"
+                                        borderColor="rgba(255, 255, 255, 0.15)"
                                         boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                                         whileHover={{
                                             scale: 1.03,
-                                            boxShadow: `0 10px 20px rgba(245, 101, 101, 0.3)`,
-                                            background: "linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(128, 0, 32, 0.2))",
+                                            boxShadow: `0 10px 20px rgba(255, 255, 255, 0.12)`,
+                                            background: "linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(255, 255, 255, 0.2))",
                                             transition: { duration: 0.3 }
                                         }}
                                         display="flex"
@@ -232,7 +232,7 @@ const NewsPage: React.FC = () => {
                                                 display="flex"
                                                 alignItems="center"
                                                 justifyContent="center"
-                                                bg="rgba(128, 0, 32, 0.1)"
+                                                bg="rgba(255, 255, 255, 0.07)"
                                             >
                                                 <Text color={grayText}>Изображение отсутствует</Text>
                                             </Box>
@@ -276,7 +276,7 @@ const NewsPage: React.FC = () => {
                                                 alignSelf="flex-start"
                                                 borderColor={primaryColor}
                                                 color={lightText}
-                                                _hover={{ bg: "rgba(128, 0, 32, 0.2)" }}
+                                                _hover={{ bg: "rgba(255, 255, 255, 0.2)" }}
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={() => handleNewsClick(item.id)}

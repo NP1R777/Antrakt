@@ -152,12 +152,12 @@ function TestimonialCard({ testimonial }: { testimonial: any }) {
             p={6}
             border="1px solid"
             borderColor="gray.800"
-            boxShadow="0 10px 30px rgba(128, 0, 32, 0.1)"
+            boxShadow="0 10px 30px rgba(255, 255, 255, 0.07)"
             position="relative"
             whileHover={{
                 y: -5,
                 borderColor: "#d9d9d9",
-                boxShadow: "0 15px 40px rgba(128, 0, 32, 0.3)"
+                boxShadow: "0 15px 40px rgba(255, 255, 255, 0.18)"
             }}
             transition={{ duration: 0.3 }}
             h="100%"

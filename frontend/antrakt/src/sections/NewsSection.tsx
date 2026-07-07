@@ -191,7 +191,7 @@ function NewsCard({ news, formatDate }: { news: NewsItem; formatDate: (date: str
             whileHover={{
                 y: -8,
                 borderColor: "#d9d9d9",
-                boxShadow: "0 15px 30px rgba(128, 0, 32, 0.3)"
+                boxShadow: "0 15px 30px rgba(255, 255, 255, 0.18)"
             }}
             transition={{ duration: 0.3 }}
             h="100%"

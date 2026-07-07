@@ -295,7 +295,7 @@ const ActorDetail: React.FC = () => {
                                                     borderRadius="md"
                                                     bg="rgba(25, 25, 25, 0.8)"
                                                     cursor="pointer"
-                                                    whileHover={{ y: -4, boxShadow: "0 8px 16px rgba(245, 101, 101, 0.3)", scale: 1.02, transition: { duration: 0.2 } }}
+                                                    whileHover={{ y: -4, boxShadow: "0 8px 16px rgba(255, 255, 255, 0.12)", scale: 1.02, transition: { duration: 0.2 } }}
                                                     whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
                                                     onClick={() => handlePerformanceClick(perfomance)}
                                                 >
