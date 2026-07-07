@@ -100,6 +100,18 @@ const PerformanceDetail: React.FC = () => {
         }
     }, [id]);
 
+    // Предзагрузка всех изображений галереи, чтобы в полноэкранном режиме
+    // перелистывание было мгновенным, без задержки на сетевую загрузку.
+    useEffect(() => {
+        const images = performance?.images_list;
+        if (!images?.length) return;
+        images.forEach((src) => {
+            if (!src) return;
+            const img = new window.Image();
+            img.src = src;
+        });
+    }, [performance?.images_list]);
+
     // Автоматическое перелистывание только когда нет ручной навигации и модальное окно закрыто
     useEffect(() => {
         if (!performance?.images_list?.length || isManualNavigation || isOpen) {
@@ -198,7 +210,7 @@ const PerformanceDetail: React.FC = () => {
             <Box>
                 <Navigation />
                 <Flex justify="center" align="center" minH="70vh" bg="black">
-                    <Spinner size="xl" color="#F56565" />
+                    <Spinner size="xl" color="#d9d9d9" />
                 </Flex>
                 <Footer />
             </Box>
@@ -233,8 +245,8 @@ const PerformanceDetail: React.FC = () => {
                     <Heading size="md" mb={4} color="white">Спектакль не найден</Heading>
                     <Button
                         variant="outline"
-                        color="#F56565"
-                        _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
+                        color="#d9d9d9"
+                        _hover={{ color: "#efefef", borderColor: "#efefef" }}
                         size="sm"
                         fontSize="sm"
                         onClick={() => navigate("/performances")}
@@ -257,7 +269,7 @@ const PerformanceDetail: React.FC = () => {
                     right="-10%"
                     w="400px"
                     h="400px"
-                    bg="linear-gradient(135deg, #F56565, #40001010)"
+                    bg="linear-gradient(135deg, #d9d9d9, #15151510)"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.2}
@@ -270,8 +282,8 @@ const PerformanceDetail: React.FC = () => {
                         leftIcon={<ChevronLeftIcon />}
                         mb={6}
                         variant="outline"
-                        color="#F56565"
-                        _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
+                        color="#d9d9d9"
+                        _hover={{ color: "#efefef", borderColor: "#efefef" }}
                         size="sm"
                         fontSize="sm"
                         onClick={() => navigate(-1)}
@@ -297,7 +309,7 @@ const PerformanceDetail: React.FC = () => {
                                 height="auto"
                                 objectFit="contain"
                                 border="4px solid"
-                                borderColor="#F56565"
+                                borderColor="#d9d9d9"
                                 borderRadius="md"
                                 boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                             />
@@ -309,11 +321,11 @@ const PerformanceDetail: React.FC = () => {
                                     <Heading as="h1" size="lg" color="#e0e0e0">
                                         {performance.title}
                                     </Heading>
-                                    {performance.ticket_url && (
+                                    {performance.afisha && performance.ticket_url && (
                                         <Button
                                             as="a"
                                             href={performance.ticket_url}
-                                            colorScheme="red"
+                                            colorScheme="gray"
                                             size="lg"
                                         >
                                             КУПИТЬ БИЛЕТ!
@@ -328,7 +340,7 @@ const PerformanceDetail: React.FC = () => {
                                 <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6} w="full">
                                     <VStack align="start">
                                         <Heading as="h3" size="sm" display="flex" alignItems="center" color="#e0e0e0">
-                                            <CFaTheaterMasks mr={2} color="#F56565" />
+                                            <CFaTheaterMasks mr={2} color="#d9d9d9" />
                                             Основная информация
                                         </Heading>
                                         <Text fontSize="md" color="#e0e0e0">
@@ -371,7 +383,7 @@ const PerformanceDetail: React.FC = () => {
 
                                     <VStack align="start">
                                         <Heading as="h3" size="sm" display="flex" alignItems="center" color="#e0e0e0">
-                                            <CFaUsers mr={2} color="#F56565" />
+                                            <CFaUsers mr={2} color="#d9d9d9" />
                                             Команда
                                         </Heading>
                                         <Text fontSize="md" color="#e0e0e0">
@@ -390,7 +402,7 @@ const PerformanceDetail: React.FC = () => {
 
                                 <Box w="full" mt={4}>
                                     <Heading as="h3" size="sm" mb={3} display="flex" alignItems="center" color="#e0e0e0">
-                                        <CFaFilm mr={2} color="#F56565" />
+                                        <CFaFilm mr={2} color="#d9d9d9" />
                                         Описание
                                     </Heading>
                                     <Text fontSize="md" color="#a0a0a0" w="full">
@@ -418,7 +430,7 @@ const PerformanceDetail: React.FC = () => {
                                     transform: "translateX(-50%)",
                                     width: "60px",
                                     height: "3px",
-                                    bg: "#F56565",
+                                    bg: "#d9d9d9",
                                     borderRadius: "full"
                                 }}
                             >
@@ -447,7 +459,7 @@ const PerformanceDetail: React.FC = () => {
                                     zIndex="1"
                                     bg="rgba(0, 0, 0, 0.5)"
                                     color="white"
-                                    _hover={{ bg: "#F56565" }}
+                                    _hover={{ bg: "#d9d9d9" }}
                                     onClick={handleGalleryPrev}
                                 />
 
@@ -459,7 +471,7 @@ const PerformanceDetail: React.FC = () => {
                                     zIndex="1"
                                     bg="rgba(0, 0, 0, 0.5)"
                                     color="white"
-                                    _hover={{ bg: "#F56565" }}
+                                    _hover={{ bg: "#d9d9d9" }}
                                     onClick={handleGalleryNext}
                                 />
 
@@ -497,7 +509,7 @@ const PerformanceDetail: React.FC = () => {
                                     zIndex="1"
                                     bg="rgba(0, 0, 0, 0.5)"
                                     color="white"
-                                    _hover={{ bg: "#F56565" }}
+                                    _hover={{ bg: "#d9d9d9" }}
                                     onClick={() => handleImageClick(galleryIndex)}
                                 />
 
@@ -515,10 +527,10 @@ const PerformanceDetail: React.FC = () => {
                                             w="10px"
                                             h="10px"
                                             borderRadius="full"
-                                            bg={index === galleryIndex ? "#F56565" : "gray.600"}
+                                            bg={index === galleryIndex ? "#d9d9d9" : "gray.600"}
                                             cursor="pointer"
                                             onClick={() => handleDotClick(index)}
-                                            _hover={{ bg: "#F56565" }}
+                                            _hover={{ bg: "#d9d9d9" }}
                                         />
                                     ))}
                                 </Flex>
@@ -539,7 +551,7 @@ const PerformanceDetail: React.FC = () => {
                     <ModalCloseButton
                         color="white"
                         bg="rgba(0, 0, 0, 0.5)"
-                        _hover={{ bg: "#F56565" }}
+                        _hover={{ bg: "#d9d9d9" }}
                         size="lg"
                         zIndex="overlay"
                         onClick={handleModalClose}
@@ -556,7 +568,7 @@ const PerformanceDetail: React.FC = () => {
                             color="white"
                             fontSize="xl"
                             size="lg"
-                            _hover={{ bg: "#F56565" }}
+                            _hover={{ bg: "#d9d9d9" }}
                             onClick={prevImage}
                         />
 
@@ -570,7 +582,7 @@ const PerformanceDetail: React.FC = () => {
                             color="white"
                             fontSize="xl"
                             size="lg"
-                            _hover={{ bg: "#F56565" }}
+                            _hover={{ bg: "#d9d9d9" }}
                             onClick={nextImage}
                         />
 
@@ -583,8 +595,8 @@ const PerformanceDetail: React.FC = () => {
                                 animate="center"
                                 exit="exit"
                                 transition={{
-                                    x: { type: "spring", stiffness: 500, damping: 50 },
-                                    opacity: { duration: 0.1 }
+                                    x: { type: "spring", stiffness: 900, damping: 60 },
+                                    opacity: { duration: 0.15 }
                                 }}
                                 src={performance?.images_list?.[currentImageIndex] || ""}
                                 alt={`Фото спектакля ${currentImageIndex + 1}`}

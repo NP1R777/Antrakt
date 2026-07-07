@@ -81,6 +81,17 @@ const NewsDetail: React.FC = () => {
         }
     }, [id]);
 
+    // Предзагрузка изображений галереи для мгновенного перелистывания в полноэкранном режиме.
+    useEffect(() => {
+        const images = news?.images_list;
+        if (!images?.length) return;
+        images.forEach((src) => {
+            if (!src) return;
+            const img = new window.Image();
+            img.src = src;
+        });
+    }, [news?.images_list]);
+
     useEffect(() => {
         if (!news?.images_list?.length) return;
 
@@ -129,7 +140,7 @@ const NewsDetail: React.FC = () => {
             <Box>
                 <Navigation />
                 <Flex justify="center" align="center" minH="70vh" bg="black">
-                    <Spinner size="xl" color="#F56565" />
+                    <Spinner size="xl" color="#d9d9d9" />
                 </Flex>
                 <Footer />
             </Box>
@@ -164,8 +175,8 @@ const NewsDetail: React.FC = () => {
                     <Heading size="md" mb={4} color="#e0e0e0">Новость не найдена</Heading>
                     <Button
                         variant="outline"
-                        color="#FC8181"
-                        _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
+                        color="#e2e2e2"
+                        _hover={{ color: "#efefef", borderColor: "#efefef" }}
                         size="sm"
                         fontSize="sm"
                         onClick={() => navigate("/news")}
@@ -188,7 +199,7 @@ const NewsDetail: React.FC = () => {
                     right="-10%"
                     w="400px"
                     h="400px"
-                    bg="linear-gradient(135deg, #800020, #40001010)"
+                    bg="linear-gradient(135deg, #2a2a2a, #15151510)"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.2}
@@ -201,8 +212,8 @@ const NewsDetail: React.FC = () => {
                         leftIcon={<ChevronLeftIcon />}
                         mb={6}
                         variant="outline"
-                        color="#FC8181"
-                        _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
+                        color="#e2e2e2"
+                        _hover={{ color: "#efefef", borderColor: "#efefef" }}
                         size="sm"
                         fontSize="sm"
                         onClick={() => navigate(-1)}
@@ -229,7 +240,7 @@ const NewsDetail: React.FC = () => {
                                 height="auto"
                                 objectFit="contain"
                                 border="4px solid"
-                                borderColor="#800020"
+                                borderColor="#f2f2f2"
                                 borderRadius="md"
                                 boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                             />
@@ -248,7 +259,7 @@ const NewsDetail: React.FC = () => {
                                 <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6} w="full">
                                     <VStack align="start">
                                         <Heading as="h3" size="sm" display="flex" alignItems="center" color="#e0e0e0">
-                                            <CFaCalendarAlt mr={2} color="#800020" />
+                                            <CFaCalendarAlt mr={2} color="#f2f2f2" />
                                             История
                                         </Heading>
                                         {news.created_at && (
@@ -271,7 +282,7 @@ const NewsDetail: React.FC = () => {
 
                                 <Box w="full" mt={4}>
                                     <Heading as="h3" size="sm" mb={3} display="flex" alignItems="center" color="#e0e0e0">
-                                        <CFaNewspaper mr={2} color="#800020" />
+                                        <CFaNewspaper mr={2} color="#f2f2f2" />
                                         Описание
                                     </Heading>
                                     <Text fontSize="md" color="#a0a0a0" w="full">
@@ -299,7 +310,7 @@ const NewsDetail: React.FC = () => {
                                     transform: "translateX(-50%)",
                                     width: "60px",
                                     height: "3px",
-                                    bg: "#800020",
+                                    bg: "#2a2a2a",
                                     borderRadius: "full"
                                 }}
                             >
@@ -328,7 +339,7 @@ const NewsDetail: React.FC = () => {
                                     zIndex="1"
                                     bg="rgba(0, 0, 0, 0.5)"
                                     color="white"
-                                    _hover={{ bg: "#800020" }}
+                                    _hover={{ bg: "#2a2a2a" }}
                                     onClick={() => {
                                         setDirection(-1);
                                         setGalleryIndex(prev =>
@@ -345,7 +356,7 @@ const NewsDetail: React.FC = () => {
                                     zIndex="1"
                                     bg="rgba(0, 0, 0, 0.5)"
                                     color="white"
-                                    _hover={{ bg: "#800020" }}
+                                    _hover={{ bg: "#2a2a2a" }}
                                     onClick={() => {
                                         setDirection(1);
                                         setGalleryIndex(prev =>
@@ -388,7 +399,7 @@ const NewsDetail: React.FC = () => {
                                     zIndex="1"
                                     bg="rgba(0, 0, 0, 0.5)"
                                     color="white"
-                                    _hover={{ bg: "#800020" }}
+                                    _hover={{ bg: "#2a2a2a" }}
                                     onClick={() => handleImageClick(galleryIndex)}
                                 />
 
@@ -406,10 +417,10 @@ const NewsDetail: React.FC = () => {
                                             w="10px"
                                             h="10px"
                                             borderRadius="full"
-                                            bg={index === galleryIndex ? "#800020" : "gray.600"}
+                                            bg={index === galleryIndex ? "#2a2a2a" : "gray.600"}
                                             cursor="pointer"
                                             onClick={() => setGalleryIndex(index)}
-                                            _hover={{ bg: "#800020" }}
+                                            _hover={{ bg: "#2a2a2a" }}
                                         />
                                     ))}
                                 </Flex>
@@ -428,7 +439,7 @@ const NewsDetail: React.FC = () => {
                     <ModalCloseButton
                         color="white"
                         bg="rgba(0, 0, 0, 0.5)"
-                        _hover={{ bg: "#800020" }}
+                        _hover={{ bg: "#2a2a2a" }}
                         size="lg"
                         zIndex="overlay"
                         onClick={onClose}
@@ -445,7 +456,7 @@ const NewsDetail: React.FC = () => {
                             color="white"
                             fontSize="xl"
                             size="lg"
-                            _hover={{ bg: "#800020" }}
+                            _hover={{ bg: "#2a2a2a" }}
                             onClick={prevImage}
                         />
 
@@ -459,7 +470,7 @@ const NewsDetail: React.FC = () => {
                             color="white"
                             fontSize="xl"
                             size="lg"
-                            _hover={{ bg: "#800020" }}
+                            _hover={{ bg: "#2a2a2a" }}
                             onClick={nextImage}
                         />
 
@@ -472,8 +483,8 @@ const NewsDetail: React.FC = () => {
                                 animate="center"
                                 exit="exit"
                                 transition={{
-                                    x: { type: "spring", stiffness: 300, damping: 30 },
-                                    opacity: { duration: 0.2 }
+                                    x: { type: "spring", stiffness: 900, damping: 60 },
+                                    opacity: { duration: 0.15 }
                                 }}
                                 src={news?.images_list?.[currentImageIndex] || ""}
                                 alt={`Фото новости ${currentImageIndex + 1}`}
