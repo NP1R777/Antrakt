@@ -167,8 +167,6 @@ export default function Navigation() {
             zIndex="modal"
             bg="rgba(0, 0, 0, 0.8)"
             backdropFilter="blur(10px)"
-            borderBottom="1px solid"
-            borderColor={primaryColor}
         >
             <Flex
                 maxW="container.xl"

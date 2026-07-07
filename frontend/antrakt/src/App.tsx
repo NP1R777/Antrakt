@@ -1,7 +1,6 @@
 import React from "react";
 import theme from "./styles/theme";
 import Hero from "./sections/Hero";
-import Header from "./components/Header";
 import Footer from "./components/Footer";
 import UsersPage from "./pages/admin/UsersPage";
 import ReviewsPageAdmin from "./pages/admin/ReviewsPageAdmin";
@@ -43,7 +42,6 @@ import PerformanceDetail from "./pages/cards/PerfomancesDetail";
 const MainPage = () => (
   <Box bg="black" color="white" minH="100vh">
     <Navigation />
-    <Header />
     <Hero />
     <Performances />
     <NewsSection />
