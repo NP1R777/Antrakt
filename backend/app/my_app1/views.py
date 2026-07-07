@@ -785,6 +785,20 @@ class AfishaList(APIView):
         return Response(all_perf_afisha)
 
 
+def _minio_client():
+    """S3-клиент для MinIO. Единый источник настроек — Django settings
+    (endpoint/креды/бакет берутся из переменных окружения MINIO_*), чтобы не
+    было рассинхрона между кодом и docker-compose."""
+    return boto3.client(
+        's3',
+        endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        region_name=settings.AWS_S3_REGION_NAME,
+        config=BotoConfig(signature_version='s3v4', proxies={})
+    )
+
+
 class ImageUploadView(APIView):
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = [permissions.AllowAny]
@@ -795,15 +809,8 @@ class ImageUploadView(APIView):
         image = request.FILES['image']
         folder = request.data.get('folder', 'images')
 
-        # Build S3 client
-        s3_client = boto3.client(
-            's3',
-            endpoint_url="http://localhost:9000",
-            aws_access_key_id="minioadmin",
-            aws_secret_access_key="minioadmin123",
-            config=BotoConfig(signature_version='s3v4', proxies={})
-        )
-        bucket = "antrakt-images"
+        s3_client = _minio_client()
+        bucket = settings.AWS_STORAGE_BUCKET_NAME
         extension = image.name.split('.')[-1].lower()
         object_key = f"{folder}/{uuid.uuid4().hex}.{extension}"
 
@@ -817,8 +824,8 @@ class ImageUploadView(APIView):
             }
         )
 
-        # Build public URL
-        public_url = f"http://localhost:9000/{bucket}/{object_key}"
+        # Публичный URL строим из настроенного endpoint MinIO.
+        public_url = f"{settings.AWS_S3_ENDPOINT_URL.rstrip('/')}/{bucket}/{object_key}"
         return Response({"success": True, "image_url": public_url, "message": "Изображение загружено"})
 
 
@@ -833,20 +840,14 @@ class ImageDeleteView(APIView):
         # Expected format: http(s)://<endpoint>/<bucket>/<key>
         path = parsed.path.lstrip('/')
         # If custom domain used as <endpoint>/<bucket>, first segment is bucket
-        bucket = "antrakt-images"
+        bucket = settings.AWS_STORAGE_BUCKET_NAME
         if path.startswith(bucket + '/'):
             object_key = path[len(bucket) + 1:]
         else:
             # fallback: whole path is key
             object_key = path
 
-        s3_client = boto3.client(
-            's3',
-            endpoint_url="http://localhost:9000",
-            aws_access_key_id="minioadmin",
-            aws_secret_access_key="minioadmin123",
-            config=BotoConfig(signature_version='s3v4', proxies={})
-        )
+        s3_client = _minio_client()
 
         try:
             s3_client.delete_object(Bucket=bucket, Key=object_key)
