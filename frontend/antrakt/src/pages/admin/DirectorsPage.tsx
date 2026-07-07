@@ -40,6 +40,7 @@ import {
 } from 'react-icons/fa';
 import axios from 'axios';
 import { DirectorForm } from './forms/DirectorForm';
+import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -94,6 +95,21 @@ const DirectorsPage: React.FC = () => {
                 isClosable: true,
             });
             setIsLoading(false);
+        }
+    };
+
+    const handleHardDeleteDirector = async (id: number) => {
+        if (!id) return;
+        try {
+            await axios.delete(`http://localhost:8000/director${id}/?hard=1`);
+            setDirectors(prev => prev.filter(d => d.id !== id));
+            toast({ title: 'Удалено навсегда', description: 'Режиссёр полностью удалён из базы', status: 'info', duration: 2000, isClosable: true });
+        } catch (error) {
+            console.error('Ошибка при удалении режиссёра:', error);
+            toast({ title: 'Ошибка', description: 'Не удалось удалить режиссёра', status: 'error', duration: 3000, isClosable: true });
+        } finally {
+            onDeleteClose();
+            setDeleteId(null);
         }
     };
 
@@ -422,42 +438,14 @@ const DirectorsPage: React.FC = () => {
             </Modal>
 
             {/* Диалог подтверждения удаления */}
-            <AlertDialog
+            <DeleteConfirmDialog
                 isOpen={isDeleteOpen}
-                leastDestructiveRef={cancelRef}
                 onClose={onDeleteClose}
-            >
-                <AlertDialogOverlay>
-                    <AlertDialogContent bg="#222222" color="white">
-                        <AlertDialogHeader fontSize="lg" fontWeight="bold" fontFamily="Playfair Display">
-                            Удаление режиссёра
-                        </AlertDialogHeader>
-
-                        <AlertDialogBody>
-                            Вы уверены, что хотите удалить этого режиссёра?
-                        </AlertDialogBody>
-
-                        <AlertDialogFooter>
-                            <Button
-                                ref={cancelRef}
-                                onClick={onDeleteClose}
-                                borderColor="#555555"
-                                _hover={{ bg: '#333333' }}
-                            >
-                                Отмена
-                            </Button>
-                            <Button
-                                bg="#E53E3E"
-                                _hover={{ bg: '#F56565' }}
-                                onClick={() => handleDeleteDirector(deleteId!)}
-                                ml={3}
-                            >
-                                Удалить
-                            </Button>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialogOverlay>
-            </AlertDialog>
+                title="Удаление режиссёра"
+                itemLabel="этого режиссёра"
+                onSoftDelete={() => handleDeleteDirector(deleteId!)}
+                onHardDelete={() => handleHardDeleteDirector(deleteId!)}
+            />
         </Box>
     );
 };

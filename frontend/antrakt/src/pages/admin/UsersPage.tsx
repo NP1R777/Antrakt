@@ -33,6 +33,7 @@ import {
 } from 'react-icons/fa';
 import axios from 'axios';
 import { UserForm } from './forms/UsersForm';
+import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -86,6 +87,21 @@ const UsersPage: React.FC = () => {
                 isClosable: true,
             });
             setIsLoading(false);
+        }
+    };
+
+    const handleHardDeleteUser = async (id: number) => {
+        if (!id) return;
+        try {
+            await axios.delete(`http://localhost:8000/user${id}/?hard=1`);
+            setUsers(prev => prev.filter(u => u.id !== id));
+            toast({ title: 'Удалено навсегда', description: 'Пользователь полностью удалён из базы', status: 'info', duration: 2000, isClosable: true });
+        } catch (error) {
+            console.error('Ошибка при удалении пользователя:', error);
+            toast({ title: 'Ошибка', description: 'Не удалось удалить пользователя', status: 'error', duration: 3000, isClosable: true });
+        } finally {
+            onDeleteClose();
+            setDeleteId(null);
         }
     };
 
@@ -372,42 +388,14 @@ const UsersPage: React.FC = () => {
                 }}
             />
 
-            <AlertDialog
+            <DeleteConfirmDialog
                 isOpen={isDeleteOpen}
-                leastDestructiveRef={cancelRef}
                 onClose={onDeleteClose}
-            >
-                <AlertDialogOverlay>
-                    <AlertDialogContent bg="#222222" color="white">
-                        <AlertDialogHeader fontSize="lg" fontWeight="bold" fontFamily="Playfair Display">
-                            Удаление пользователя
-                        </AlertDialogHeader>
-
-                        <AlertDialogBody>
-                            Вы уверены, что хотите удалить этого пользователя?
-                        </AlertDialogBody>
-
-                        <AlertDialogFooter>
-                            <Button
-                                ref={cancelRef}
-                                onClick={onDeleteClose}
-                                borderColor="#555555"
-                                _hover={{ bg: '#333333' }}
-                            >
-                                Отмена
-                            </Button>
-                            <Button
-                                bg="#E53E3E"
-                                _hover={{ bg: '#F56565' }}
-                                onClick={() => handleDeleteUser(deleteId!)}
-                                ml={3}
-                            >
-                                Удалить
-                            </Button>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialogOverlay>
-            </AlertDialog>
+                title="Удаление пользователя"
+                itemLabel="этого пользователя"
+                onSoftDelete={() => handleDeleteUser(deleteId!)}
+                onHardDelete={() => handleHardDeleteUser(deleteId!)}
+            />
         </Box>
     );
 };

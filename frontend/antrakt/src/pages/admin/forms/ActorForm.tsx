@@ -33,6 +33,7 @@ import {
 } from 'react-icons/fa';
 import axios from 'axios';
 import ImageUpload from '../../../components/ImageUpload';
+import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
 import { chakra } from '@chakra-ui/react';
 
 const MotionTag = motion(Tag);
@@ -264,6 +265,7 @@ export const ActorForm: React.FC<{
 
     return (
         <>
+            <RequiredFieldsHint required={['Имя и фамилия', 'Любимая цитата о театре', 'Автор цитаты']} />
             <Grid templateColumns={{ base: '1fr', md: '1fr 1fr' }} gap={6}>
                 {/* Левая колонка */}
                 <VStack spacing={4} align="stretch">
