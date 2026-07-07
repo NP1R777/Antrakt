@@ -148,7 +148,7 @@ const AchievementsPage: React.FC = () => {
                                         boxShadow="0 10px 30px rgba(0, 0, 0, 0.5)"
                                         whileHover={{
                                             scale: 1.05,
-                                            boxShadow: "0 15px 40px rgba(212, 160, 23, 0.5)",
+                                            boxShadow: "0 15px 40px rgba(255, 255, 255, 0.25)",
                                             borderColor: "#FFC107",
                                             transition: { duration: 0.5, ease: "easeOut" }
                                         }}

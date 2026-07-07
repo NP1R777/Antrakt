@@ -214,7 +214,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     justifyContent="flex-start"
                     w="full"
                     color="white"
-                    _hover={{ bg: "rgba(255,0,0,0.2)", color: "red.300" }}
+                    _hover={{ bg: "rgba(255,255,255,0.12)", color: "white" }}
                     onClick={() => {
                         handleLogout();
                         onClose(); // Закрываем мобильное меню при выходе

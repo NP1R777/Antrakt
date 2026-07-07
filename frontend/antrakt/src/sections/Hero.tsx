@@ -23,9 +23,9 @@ export default function Hero() {
                     left: 0,
                     width: "100%",
                     height: "100%",
-                    backgroundImage: "url('/images/stage-bg.jpg')",
+                    backgroundImage: "url('/images/hero-bg.jpg')",
                     backgroundSize: "cover",
-                    backgroundPosition: "center bottom",
+                    backgroundPosition: "center top",
                     backgroundRepeat: "no-repeat",
                     backgroundColor: "black",
                     filter: "grayscale(100%) contrast(1.05)",
@@ -43,7 +43,7 @@ export default function Hero() {
                     width: "100%",
                     height: "100%",
                     background:
-                        "linear-gradient(to bottom, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.9) 100%)",
+                        "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.88) 100%)",
                     zIndex: 1,
                 }}
             />

@@ -369,7 +369,7 @@ const TeamPage: React.FC = () => {
                                     }}
                                 >
                                     <MotionBox
-                                        bg="linear-gradient(135deg, rgba(97, 0, 24, 0.31), rgba(255, 255, 255, 0.12))" // Градиентный фон
+                                        bg="linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.12))" // Монохромный градиент
                                         borderRadius="xl"
                                         overflow="hidden"
                                         border="1px solid"

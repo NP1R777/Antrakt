@@ -78,7 +78,7 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
                             variant="outline"
                             borderColor="red.500"
                             color="red.300"
-                            _hover={{ bg: 'rgba(255,0,0,0.15)' }}
+                            _hover={{ bg: 'rgba(255,255,255,0.1)' }}
                             isLoading={busy === 'hard'}
                             onClick={() => run('hard', onHardDelete)}
                         >

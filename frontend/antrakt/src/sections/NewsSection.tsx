@@ -165,7 +165,7 @@ export default function NewsSection() {
                                 rightIcon={<span>→</span>}
                                 _hover={{
                                     transform: "translateX(5px)",
-                                    boxShadow: "0 0 20px rgba(255, 0, 0, 0.5)"
+                                    boxShadow: "0 0 20px rgba(255, 255, 255, 0.35)"
                                 }}
                                 transition="all 0.3s"
                             >

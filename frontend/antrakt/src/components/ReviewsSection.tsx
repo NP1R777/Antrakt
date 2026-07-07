@@ -244,7 +244,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
                                                     size="sm"
                                                     variant="ghost"
                                                     color="orange.300"
-                                                    _hover={{ bg: 'rgba(255,165,0,0.15)' }}
+                                                    _hover={{ bg: 'rgba(255,255,255,0.12)' }}
                                                     onClick={() => openWarn(review)}
                                                 />
                                             </Tooltip>
@@ -257,7 +257,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
                                                     size="sm"
                                                     variant="ghost"
                                                     color="red.300"
-                                                    _hover={{ bg: 'rgba(255,0,0,0.15)' }}
+                                                    _hover={{ bg: 'rgba(255,255,255,0.1)' }}
                                                     onClick={() => handleDelete(review)}
                                                 />
                                             </Tooltip>
