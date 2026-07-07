@@ -411,6 +411,26 @@ class DirectorPromotionTests(TestCase):
         # Год по умолчанию — из премьеры.
         self.assertEqual(self.director.years[idx], perf.premiere_date.year)
 
+    def test_director_catch_up_after_promotion(self):
+        # Спектакль переведён в "Спектакли" БЕЗ режиссёра, режиссёра назначили позже.
+        perf = self._perf(afisha=True)
+        perf.director = None
+        perf.save()
+        PerformanceShow.objects.create(performance=perf, show_datetime=self.now - timedelta(days=1))
+        promote_performance(perf)
+        perf.refresh_from_db()
+        self.assertFalse(perf.afisha)
+        self.assertTrue(perf.roles_propagated)
+        self.assertFalse(perf.director_propagated)
+        # Назначаем режиссёра и повторно промоутим (как повторное сохранение в админке).
+        perf.director = self.director
+        perf.save()
+        promote_performance(perf)
+        self.director.refresh_from_db()
+        perf.refresh_from_db()
+        self.assertTrue(perf.director_propagated)
+        self.assertIn(perf.title, self.director.perfomances)
+
     def test_custom_production_fields_used(self):
         perf = self._perf(afisha=True)
         perf.production_title = 'Гроза (особое название)'
@@ -436,3 +456,61 @@ class DirectorPromotionTests(TestCase):
         data = PerfomanceSerializer(perf, context={'request': request}).data
         self.assertEqual(data['director_name'], 'Режиссёр')  # имя видно
         self.assertEqual(data['cast'], [])  # состав скрыт
+
+
+class SoftHardDeleteTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(password='p', email='d@test.com', phone_number='+7-000-000-55-01')
+        self.perf = Perfomances.objects.create(
+            title='Спектакль', author='А', genre='Драма', age_limit='12+', description='о', afisha=False)
+        self.review = Review.objects.create(author=self.user, performance=self.perf, text='t')
+
+    def test_review_soft_delete_hides_but_keeps(self):
+        self.client.force_authenticate(self.user)
+        resp = self.client.delete(f'/review{self.review.id}/')
+        self.assertEqual(resp.status_code, 204)
+        self.review.refresh_from_db()
+        self.assertIsNotNone(self.review.deleted_at)  # запись осталась
+        listing = self.client.get(f'/perfomance{self.perf.id}/reviews/')
+        self.assertEqual(len(listing.data), 0)  # скрыта из публичного списка
+
+    def test_review_hard_delete_removes(self):
+        self.client.force_authenticate(self.user)
+        resp = self.client.delete(f'/review{self.review.id}/?hard=1')
+        self.assertEqual(resp.status_code, 204)
+        self.assertFalse(Review.objects.filter(id=self.review.id).exists())
+
+    def test_actor_soft_then_hard(self):
+        actor = make_actor('Удаляемый')
+        self.client.delete(f'/actor{actor.id}/')  # мягко
+        actor.refresh_from_db()
+        self.assertIsNotNone(actor.deleted_at)
+        self.assertTrue(Actors.objects.filter(id=actor.id).exists())
+        self.client.delete(f'/actor{actor.id}/?hard=1')  # жёстко
+        self.assertFalse(Actors.objects.filter(id=actor.id).exists())
+
+    def test_purge_command_removes_old_soft_deleted(self):
+        old = make_actor('Старый')
+        old.deleted_at = timezone.now() - timedelta(days=61)
+        old.save()
+        recent = make_actor('Недавний')
+        recent.deleted_at = timezone.now() - timedelta(days=10)
+        recent.save()
+        call_command('purge_soft_deleted')
+        self.assertFalse(Actors.objects.filter(id=old.id).exists())
+        self.assertTrue(Actors.objects.filter(id=recent.id).exists())
+
+
+class ActorActiveFilterTests(TestCase):
+    def test_active_filter_excludes_departed(self):
+        client = APIClient()
+        active = make_actor('Действующий')
+        departed = make_actor('Выбывший')
+        departed.left_at = date(2025, 1, 1)
+        departed.save()
+        ids_all = {a['id'] for a in client.get('/actors/').data}
+        ids_active = {a['id'] for a in client.get('/actors/?active=1').data}
+        self.assertIn(departed.id, ids_all)
+        self.assertNotIn(departed.id, ids_active)
+        self.assertIn(active.id, ids_active)

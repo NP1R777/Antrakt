@@ -21,6 +21,15 @@ from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
+def is_hard_delete(request):
+    """True, если запрошено жёсткое (полное) удаление через ?hard=1.
+
+    По умолчанию удаление мягкое (проставляется deleted_at); полностью запись
+    удаляется фоновой командой спустя 60 дней либо сразу при ?hard=1.
+    """
+    return str(request.query_params.get('hard', '')).lower() in ('1', 'true', 'yes')
+
+
 class IsSuperUser(permissions.BasePermission):
     """Доступ только суперпользователям (админам сайта).
 
@@ -92,8 +101,11 @@ class UserDetail(APIView):
         if not self._ensure_can_access(request, id):
             return Response({"error": "Недостаточно прав"}, status=status.HTTP_403_FORBIDDEN)
         user = get_object_or_404(self.model_class, id=id)
-        user.deleted_at = timezone.now()
-        user.save()
+        if is_hard_delete(request):
+            user.delete()
+        else:
+            user.deleted_at = timezone.now()
+            user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -418,7 +430,10 @@ class PerfomanceDetail(APIView):
         if serializer.is_valid():
             instance = serializer.save()
             # Ручной перевод в "Спектакли" из админки тоже раздаёт роли актёрам.
-            if not instance.afisha and not instance.roles_propagated:
+            # promote_performance идемпотентна: вызываем при любом сохранении
+            # в статусе "Спектакли", чтобы догналось добавление режиссёру,
+            # если его назначили уже после перевода спектакля.
+            if not instance.afisha:
                 instance = promote_performance(instance)
             serializer = self.serializer_class(instance, context={'request': request})
             return Response(serializer.data)
@@ -427,8 +442,11 @@ class PerfomanceDetail(APIView):
 
     def delete(self, request, id, format=None):
         perfomance = get_object_or_404(self.model_class, id=id)
-        perfomance.deleted_at = timezone.now()
-        perfomance.save()
+        if is_hard_delete(request):
+            perfomance.delete()
+        else:
+            perfomance.deleted_at = timezone.now()
+            perfomance.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -439,6 +457,10 @@ class ActorsList(APIView):
 
     def get(self, request, format=None):
         actors = self.model_class.objects.filter(deleted_at=None).order_by('id')
+        # ?active=1 — только действующие актёры (без выбывших): используется,
+        # например, в выпадающем списке состава при выборе ролей в админке.
+        if str(request.query_params.get('active', '')).lower() in ('1', 'true', 'yes'):
+            actors = actors.filter(left_at__isnull=True)
         serializer = self.serializer_class(actors, many=True)
         return Response(serializer.data)
     
@@ -486,8 +508,11 @@ class ActorDetail(APIView):
 
     def delete(self, request, id, format=None):
         actor = get_object_or_404(self.model_class, id=id)
-        actor.deleted_at = datetime.now()
-        actor.save()
+        if is_hard_delete(request):
+            actor.delete()
+        else:
+            actor.deleted_at = timezone.now()
+            actor.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -545,8 +570,11 @@ class DirectorDetail(APIView):
 
     def delete(self, request, id, format=None):
         director = get_object_or_404(self.model_class, id=id)
-        director.deleted_at = datetime.now()
-        director.save()
+        if is_hard_delete(request):
+            director.delete()
+        else:
+            director.deleted_at = timezone.now()
+            director.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -605,8 +633,11 @@ class NewsDetail(APIView):
 
     def delete(self, request, id, format=None):
         news = get_object_or_404(self.model_class, id=id)
-        news.deleted_at = datetime.now()
-        news.save()
+        if is_hard_delete(request):
+            news.delete()
+        else:
+            news.deleted_at = timezone.now()
+            news.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -664,8 +695,11 @@ class ArchiveDetail(APIView):
 
     def delete(self, request, id, format=None):
         perfomance = get_object_or_404(self.model_class, id=id)
-        perfomance.deleted_at = datetime.now()
-        perfomance.save()
+        if is_hard_delete(request):
+            perfomance.delete()
+        else:
+            perfomance.deleted_at = timezone.now()
+            perfomance.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -723,8 +757,11 @@ class AchievementDetail(APIView):
 
     def delete(self, request, id, format=None):
         achievement = get_object_or_404(self.model_class, id=id)
-        achievement.deleted_at = datetime.now()
-        achievement.save()
+        if is_hard_delete(request):
+            achievement.delete()
+        else:
+            achievement.deleted_at = timezone.now()
+            achievement.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -873,6 +910,7 @@ class PerformanceReviewList(APIView):
     def get(self, request, id, format=None):
         performance = get_object_or_404(Perfomances, id=id)
         reviews = (performance.reviews
+                   .filter(deleted_at__isnull=True)
                    .select_related('author')
                    .prefetch_related('reactions')
                    .order_by('-created_at'))
@@ -902,6 +940,7 @@ class ActorReviewList(APIView):
     def get(self, request, id, format=None):
         actor = get_object_or_404(Actors, id=id)
         reviews = (actor.reviews
+                   .filter(deleted_at__isnull=True)
                    .select_related('author')
                    .prefetch_related('reactions')
                    .order_by('-created_at'))
@@ -931,6 +970,7 @@ class DirectorReviewList(APIView):
     def get(self, request, id, format=None):
         director = get_object_or_404(DirectorsTheatre, id=id)
         reviews = (director.reviews
+                   .filter(deleted_at__isnull=True)
                    .select_related('author')
                    .prefetch_related('reactions')
                    .order_by('-created_at'))
@@ -960,6 +1000,7 @@ class ArchiveReviewList(APIView):
     def get(self, request, id, format=None):
         archive = get_object_or_404(Archive, id=id)
         reviews = (archive.reviews
+                   .filter(deleted_at__isnull=True)
                    .select_related('author')
                    .prefetch_related('reactions')
                    .order_by('-created_at'))
@@ -994,6 +1035,7 @@ class NewsReviewList(APIView):
     def get(self, request, id, format=None):
         news = get_object_or_404(News, id=id)
         reviews = (news.reviews
+                   .filter(deleted_at__isnull=True)
                    .select_related('author')
                    .prefetch_related('reactions')
                    .order_by('-created_at'))
@@ -1013,7 +1055,11 @@ class NewsReviewList(APIView):
 
 
 class ReviewDetail(APIView):
-    """Удаление отзыва: автором или администратором."""
+    """Удаление отзыва: автором или администратором.
+
+    По умолчанию — мягкое удаление (deleted_at); при ?hard=1 — жёсткое
+    (полное удаление из БД сразу, без ожидания 60 дней).
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     def delete(self, request, id, format=None):
@@ -1021,7 +1067,11 @@ class ReviewDetail(APIView):
         if review.author_id != request.user.id and not request.user.is_superuser:
             return Response({"error": "Недостаточно прав"},
                             status=status.HTTP_403_FORBIDDEN)
-        review.delete()
+        if is_hard_delete(request):
+            review.delete()
+        else:
+            review.deleted_at = timezone.now()
+            review.save(update_fields=['deleted_at'])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -1095,7 +1145,7 @@ class MyReviewsList(APIView):
 
     def get(self, request, format=None):
         reviews = (Review.objects
-                   .filter(author=request.user)
+                   .filter(author=request.user, deleted_at__isnull=True)
                    .select_related('author', 'performance', 'actor',
                                    'director', 'archive', 'news')
                    .prefetch_related('reactions')
@@ -1109,6 +1159,7 @@ class ReviewListAdmin(APIView):
 
     def get(self, request, format=None):
         reviews = (Review.objects
+                   .filter(deleted_at__isnull=True)
                    .select_related('author', 'performance', 'actor',
                                    'director', 'archive', 'news')
                    .prefetch_related('reactions')
