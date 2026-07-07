@@ -181,18 +181,14 @@ export default function Navigation() {
                 <Box>
                     <Link as={RouterLink} to="/" _hover={{ textDecoration: "none" }}>
                         <Text
-                            fontSize={{ base: "md", md: "xl" }}
+                            fontSize={{ base: "xl", md: "2xl" }}
                             fontWeight="bold"
                             color={lightText}
-                            letterSpacing="wide"
+                            letterSpacing="widest"
                             whiteSpace="nowrap"
+                            title="Норильский народный театр"
                         >
-                            <Text as="span" display={{ base: "inline", md: "none" }}>
-                                ННТ
-                            </Text>
-                            <Text as="span" display={{ base: "none", md: "inline" }}>
-                                НОРИЛЬСКИЙ НАРОДНЫЙ <Text as="span" color={primaryColor}>ТЕАТР</Text>
-                            </Text>
+                            ННТ
                         </Text>
                     </Link>
                 </Box>
