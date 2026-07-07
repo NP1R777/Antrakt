@@ -23,7 +23,7 @@ export default function Hero() {
                     left: 0,
                     width: "100%",
                     height: "100%",
-                    backgroundImage: "url('/images/hero-bg.jpg')",
+                    backgroundImage: "url('http://localhost:9000/antrakt-images/Общая.png')",
                     backgroundSize: "contain",
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",
@@ -54,7 +54,7 @@ export default function Hero() {
                 mx="auto"
                 px={{ base: 4, md: 8 }}
                 h="full"
-                justify="center"
+                marginBlockStart={30}
                 align="center"
                 textAlign="center"
                 zIndex={2}
@@ -68,7 +68,6 @@ export default function Hero() {
                     <Heading
                         as="h1"
                         fontSize={{ base: "3xl", sm: "4xl", md: "6xl" }}
-                        mb={6}
                         textShadow="0 0 10px rgba(255, 255, 255, 0.5)"
                         color="white"
                     >
