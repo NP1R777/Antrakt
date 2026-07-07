@@ -110,8 +110,8 @@ const ArchiveDetail: React.FC = () => {
                         leftIcon={<ChevronLeftIcon />}
                         mb={6}
                         variant="outline"
-                        color="#FC8181"
-                        _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
+                        color="#e2e2e2"
+                        _hover={{ color: "#efefef", borderColor: "#efefef" }}
                         size="sm"
                         fontSize="sm"
                         onClick={() => navigate(-1)}
@@ -141,7 +141,7 @@ const ArchiveDetail: React.FC = () => {
                                 height="auto"
                                 objectFit="contain"
                                 border="4px solid"
-                                borderColor="#F56565"
+                                borderColor="#d9d9d9"
                                 borderRadius="md"
                                 boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                             />
@@ -152,7 +152,7 @@ const ArchiveDetail: React.FC = () => {
                                 <Heading as="h1" size="lg" color="#e0e0e0">{project.title}</Heading>
                                 <Box w="full" mt={4}>
                                     <Heading as="h3" size="sm" mb={3} display="flex" alignItems="center" color="#e0e0e0">
-                                        <CFaProject mr={2} color="#800020" />
+                                        <CFaProject mr={2} color="#f2f2f2" />
                                         Описание
                                     </Heading>
                                     <Text fontSize="md" color="#a0a0a0" w="full">

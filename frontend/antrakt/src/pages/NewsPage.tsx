@@ -43,7 +43,7 @@ const NewsPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
 
-    const primaryColor = "#800020";
+    const primaryColor = "#f2f2f2";
     const darkBg = "#0a0a0a";
     const lightText = "#e0e0e0";
     const grayText = "#a0a0a0";
@@ -93,7 +93,7 @@ const NewsPage: React.FC = () => {
                     left="-10%"
                     w="400px"
                     h="400px"
-                    bg="linear-gradient(135deg, #800020, #40001010)"
+                    bg="linear-gradient(135deg, #2a2a2a, #15151510)"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.2}
@@ -107,7 +107,7 @@ const NewsPage: React.FC = () => {
                     right="-10%"
                     w="300px"
                     h="300px"
-                    bg="linear-gradient(135deg, #800020, #40001010)"
+                    bg="linear-gradient(135deg, #2a2a2a, #15151510)"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.15}
@@ -227,7 +227,7 @@ const NewsPage: React.FC = () => {
                                             />
                                         ) : (
                                             <Box
-                                                bgGradient="linear(to-r, gray.700, #80002010)"
+                                                bgGradient="linear(to-r, gray.700, #2a2a2a10)"
                                                 h="200px"
                                                 display="flex"
                                                 alignItems="center"

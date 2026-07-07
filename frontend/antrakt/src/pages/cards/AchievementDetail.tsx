@@ -67,7 +67,7 @@ const AchievementDetail: React.FC = () => {
     if (loading) {
         return (
             <Flex justify="center" align="center" minH="100vh" bg="black">
-                <Spinner size="xl" color="#F56565" />
+                <Spinner size="xl" color="#d9d9d9" />
             </Flex>
         );
     }
@@ -97,8 +97,8 @@ const AchievementDetail: React.FC = () => {
                 <Heading size="md" mb={4} color="white">Достижение не найдено</Heading>
                 <Button
                     variant="outline"
-                    color="#FC8181"
-                    _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
+                    color="#e2e2e2"
+                    _hover={{ color: "#efefef", borderColor: "#efefef" }}
                     size="sm"
                     fontSize="sm"
                     onClick={() => navigate("/achievements")}
@@ -119,7 +119,7 @@ const AchievementDetail: React.FC = () => {
                     right="-10%"
                     w="400px"
                     h="400px"
-                    bg="linear-gradient(135deg, #800020, #400010)"
+                    bg="linear-gradient(135deg, #2a2a2a, #151515)"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.2}
@@ -132,8 +132,8 @@ const AchievementDetail: React.FC = () => {
                         leftIcon={<ChevronLeftIcon />}
                         mb={6}
                         variant="outline"
-                        color="#FC8181"
-                        _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
+                        color="#e2e2e2"
+                        _hover={{ color: "#efefef", borderColor: "#efefef" }}
                         size="sm"
                         fontSize="sm"
                         onClick={() => navigate(-1)}
@@ -160,7 +160,7 @@ const AchievementDetail: React.FC = () => {
                                 maxH={{ base: "260px", md: "400px" }}
                                 objectFit="contain"
                                 border="4px solid"
-                                borderColor="#800020"
+                                borderColor="#f2f2f2"
                                 borderRadius="lg"
                                 boxShadow="0 8px 20px rgba(0, 0, 0, 0.5)"
                             />
@@ -174,7 +174,7 @@ const AchievementDetail: React.FC = () => {
 
                                 <Box w="full">
                                     <Heading as="h3" size="md" mb={4} display="flex" alignItems="center" color="white">
-                                        <CFaTrophy mr={2} color="#F56565" />
+                                        <CFaTrophy mr={2} color="#d9d9d9" />
                                         Описание
                                     </Heading>
                                     <Text fontSize="lg" color="gray.300" lineHeight="tall">
@@ -185,7 +185,7 @@ const AchievementDetail: React.FC = () => {
                                 <Grid templateColumns="repeat(2, 1fr)" gap={6} w="full">
                                     <VStack align="start">
                                         <Heading as="h3" size="sm" display="flex" alignItems="center" color="white">
-                                            <CFaCalendarAlt mr={2} color="#F56565" />
+                                            <CFaCalendarAlt mr={2} color="#d9d9d9" />
                                             История
                                         </Heading>
                                         {achievement.assigned && (

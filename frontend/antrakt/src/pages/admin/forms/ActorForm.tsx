@@ -48,8 +48,8 @@ const CFaHistory = chakra(FaHistory as any);
 const CFaTimes = chakra(FaTimes as any);
 const CFaSave = chakra(FaSave as any);
 
-const primaryColor = '#800020';
-const accentColor = '#4ECDC4';
+const primaryColor = '#f2f2f2';
+const accentColor = '#c9c9c9';
 
 interface Actor {
     id: number;
@@ -235,7 +235,7 @@ export const ActorForm: React.FC<{
                     icon={<CFaPlus />}
                     onClick={() => handleAddToList(field)}
                     bg={accentColor}
-                    _hover={{ bg: '#5EDDD5' }}
+                    _hover={{ bg: '#dedede' }}
                 />
             </HStack>
 
@@ -466,7 +466,7 @@ export const ActorForm: React.FC<{
                                 alignSelf="flex-end"
                                 mt={7}
                                 bg={accentColor}
-                                _hover={{ bg: '#5EDDD5' }}
+                                _hover={{ bg: '#dedede' }}
                             />
                         </Tooltip>
                     </HStack>
@@ -562,7 +562,7 @@ export const ActorForm: React.FC<{
                                 alignSelf="flex-end"
                                 mt={7}
                                 bg={accentColor}
-                                _hover={{ bg: '#5EDDD5' }}
+                                _hover={{ bg: '#dedede' }}
                             />
                         </Tooltip>
                     </HStack>
@@ -612,8 +612,8 @@ export const ActorForm: React.FC<{
                     mr={3}
                     onClick={onCancel}
                     leftIcon={<CFaTimes />}
-                    bg="#B00040"
-                    borderColor="#B00040"
+                    bg="#3a3a3a"
+                    borderColor="#3a3a3a"
                     _hover={{ bg: 'red' }}
                 >
                     Отмена

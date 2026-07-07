@@ -174,7 +174,7 @@ export default function AuthModal({
     const inputStyles = {
         bg: "#1a1a1a", borderColor: "#333", color: "white",
         _placeholder: { color: "#555" },
-        _focus: { borderColor: "#800020", boxShadow: "0 0 0 1px #800020" },
+        _focus: { borderColor: "#f2f2f2", boxShadow: "0 0 0 1px #2a2a2a" },
         _hover: { borderColor: "#444" },
     };
 
@@ -186,8 +186,8 @@ export default function AuthModal({
         <Modal isOpen={isOpen} onClose={handleClose} isCentered size={{ base: "sm", md: "lg" }}
             motionPreset="scale" closeOnOverlayClick={!isSubmitting}>
             <ModalOverlay bg="rgba(0, 0, 0, 0.8)" backdropFilter="blur(5px)" />
-            <ModalContent bg="#0a0a0a" border="1px solid" borderColor="#800020" borderRadius="xl" overflow="hidden" position="relative">
-                <ModalCloseButton color="white" _hover={{ color: "#800020", bg: "rgba(255,255,255,0.1)" }}
+            <ModalContent bg="#0a0a0a" border="1px solid" borderColor="#f2f2f2" borderRadius="xl" overflow="hidden" position="relative">
+                <ModalCloseButton color="white" _hover={{ color: "#f2f2f2", bg: "rgba(255,255,255,0.1)" }}
                     size="lg" zIndex={10} top={3} right={3} isDisabled={isSubmitting} />
 
                 <Box p={{ base: 4, md: 8 }}>
@@ -217,7 +217,7 @@ export default function AuthModal({
                                             {...inputStyles}
                                         />
                                     </FormControl>
-                                    <Button bg="#800020" color="white" _hover={{ bg: "#600018" }}
+                                    <Button bg="#2a2a2a" color="white" _hover={{ bg: "#d9d9d9" }}
                                         isLoading={isSubmitting} loadingText="Проверка..."
                                         onClick={handleVerify} size={{ base: "md", md: "lg" }} fontWeight="bold"
                                         isDisabled={code.length !== 6}>
@@ -227,7 +227,7 @@ export default function AuthModal({
                                         <Link color="#888" fontSize="sm" onClick={() => setStep("credentials")}>
                                             ← Изменить данные
                                         </Link>
-                                        <Link color={cooldown > 0 ? "#555" : "#FFD700"} fontSize="sm"
+                                        <Link color={cooldown > 0 ? "#555" : "#e8e8e8"} fontSize="sm"
                                             onClick={handleResend} pointerEvents={cooldown > 0 ? "none" : "auto"}>
                                             {cooldown > 0 ? `Отправить повторно (${cooldown})` : "Отправить код повторно"}
                                         </Link>
@@ -269,15 +269,15 @@ export default function AuthModal({
                                             <InputRightElement height="full">
                                                 <IconButton aria-label={isPasswordVisible ? "Скрыть пароль" : "Показать пароль"}
                                                     icon={isPasswordVisible ? <ViewOffIcon /> : <ViewIcon />} variant="ghost" size="sm"
-                                                    color="white" _hover={{ bg: "rgba(255,255,255,0.08)", color: "#FFD700" }}
+                                                    color="white" _hover={{ bg: "rgba(255,255,255,0.08)", color: "#e8e8e8" }}
                                                     onClick={() => setIsPasswordVisible((v) => !v)} tabIndex={0} />
                                             </InputRightElement>
                                         </InputGroup>
                                         <FormErrorMessage>{errors.password}</FormErrorMessage>
                                     </FormControl>
 
-                                    <Button mt={4} bg="#800020" color="white"
-                                        _hover={{ bg: "#600018", transform: "translateY(-2px)", boxShadow: "0 4px 10px rgba(128, 0, 32, 0.3)" }}
+                                    <Button mt={4} bg="#2a2a2a" color="white"
+                                        _hover={{ bg: "#202020", transform: "translateY(-2px)", boxShadow: "0 4px 10px rgba(128, 0, 32, 0.3)" }}
                                         _active={{ bg: "#500014" }} isLoading={isSubmitting}
                                         loadingText={isRegister ? "Отправка кода..." : "Вход..."}
                                         onClick={handleSubmitCredentials} size={{ base: "md", md: "lg" }}
@@ -287,7 +287,7 @@ export default function AuthModal({
 
                                     <Text color="#888" textAlign="center" fontSize="sm">
                                         {isRegister ? "Уже есть аккаунт? " : "Нет аккаунта? "}
-                                        <Link color="#FFD700" fontWeight="bold"
+                                        <Link color="#e8e8e8" fontWeight="bold"
                                             onClick={() => { setErrors({ emailOrPhone: "", email: "", password: "" }); isRegister ? switchToLogin() : switchToRegister(); }}>
                                             {isRegister ? "Войти" : "Зарегистрироваться"}
                                         </Link>
@@ -298,7 +298,7 @@ export default function AuthModal({
                     </AnimatePresence>
 
                     <MotionBox position="absolute" bottom={0} left={0} w="100%" h="4px"
-                        bg="linear-gradient(90deg, #800020, #FFD700, #800020)" initial={{ width: 0 }}
+                        bg="linear-gradient(90deg, #2a2a2a, #e8e8e8, #2a2a2a)" initial={{ width: 0 }}
                         animate={{ width: "100%" }} transition={{ duration: 0.8, delay: 0.1 }} />
                 </Box>
             </ModalContent>

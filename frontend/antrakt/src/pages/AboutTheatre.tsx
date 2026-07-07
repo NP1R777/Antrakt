@@ -7,7 +7,7 @@ import { Box, Flex, Heading, Text, VStack, Grid, GridItem, Image, Center } from 
 const MotionBox = motion(Box);
 
 const AboutTheatre: React.FC = () => {
-    const primaryColor = "#800020";
+    const primaryColor = "#f2f2f2";
 
     return (
         <Box bg="#0a0a0a" minH="100vh" display="flex" flexDirection="column" color="#ffffff">
@@ -19,7 +19,7 @@ const AboutTheatre: React.FC = () => {
                     left="-10%"
                     w="500px"
                     h="500px"
-                    bg="linear-gradient(135deg, #800020, #400010)"
+                    bg="linear-gradient(135deg, #2a2a2a, #151515)"
                     borderRadius="full"
                     filter="blur(100px)"
                     opacity={0.2}
@@ -71,7 +71,7 @@ const AboutTheatre: React.FC = () => {
                             <VStack align="center" justify="center" spacing={6}>
                                 <Text color="gray.300" lineHeight="tall"
                                     fontSize={20} textAlign="center">
-                                    Театр-студия "Антракт" была основана в 2021 году под руководством художественного руководителя Андрея Аидмазоновича Дустимова.
+                                    Норильский народный театр была основана в 2021 году под руководством художественного руководителя Андрея Аидмазоновича Дустимова.
                                 </Text>
                             </VStack>
                         </GridItem>
@@ -79,24 +79,24 @@ const AboutTheatre: React.FC = () => {
                         <GridItem>
                             <Image
                                 src="http://localhost:9000/antrakt-images/Общая.jpg"
-                                alt="Театр-студия Антракт"
+                                alt="Норильский народный театр"
                                 w="100%"
                                 h="auto"
                                 objectFit="contain"
                                 borderRadius="lg"
                                 border="2px solid"
-                                borderColor="#800020"
+                                borderColor="#f2f2f2"
                                 mb={8}
                             />
                         </GridItem>
 
                         <GridItem>
                             <VStack align="center" spacing={6}>
-                                <Heading fontSize={40} textAlign="center" color="#F56565" mb={4}>
+                                <Heading fontSize={40} textAlign="center" color="#d9d9d9" mb={4}>
                                     Наша миссия
                                 </Heading>
                                 <Text color="gray.300" lineHeight="tall" textAlign="center" fontSize={20}>
-                                    Театр-студия "Антракт" – это творческая площадка, где каждый может раскрыть свой потенциал и стать частью большого театрального сообщества.
+                                    Норильский народный театр – это творческая площадка, где каждый может раскрыть свой потенциал и стать частью большого театрального сообщества.
                                     Мы верим в силу искусства объединять людей и вдохновлять на создание лучшего будущего.
                                     Наша миссия – создавать качественные спектакли, которые будут затрагивать сердца зрителей и поднимать важные социальные вопросы.
                                     Мы создаем пространство для самовыражения, где каждый может раскрыть свой творческий потенциал.

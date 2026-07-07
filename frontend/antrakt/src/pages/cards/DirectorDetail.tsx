@@ -158,7 +158,7 @@ const DirectorDetail: React.FC = () => {
     if (loading) {
         return (
             <Flex justify="center" align="center" minH="100vh" bg="black">
-                <Spinner size="xl" color="#F56565" />
+                <Spinner size="xl" color="#d9d9d9" />
             </Flex>
         );
     }
@@ -188,8 +188,8 @@ const DirectorDetail: React.FC = () => {
                 <Heading size="md" mb={4} color="white">Режиссёр не найден</Heading>
                 <Button
                     variant="outline"
-                    color="#FC8181"
-                    _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
+                    color="#e2e2e2"
+                    _hover={{ color: "#efefef", borderColor: "#efefef" }}
                     size="sm"
                     fontSize="sm"
                     onClick={() => navigate("/team")}
@@ -211,7 +211,7 @@ const DirectorDetail: React.FC = () => {
                     left="-10%"
                     w="500px"
                     h="500px"
-                    bg="#800020"
+                    bg="#2a2a2a"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.15}
@@ -224,8 +224,8 @@ const DirectorDetail: React.FC = () => {
                         leftIcon={<ChevronLeftIcon />}
                         mb={6}
                         variant="outline"
-                        color="#FC8181"
-                        _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
+                        color="#e2e2e2"
+                        _hover={{ color: "#efefef", borderColor: "#efefef" }}
                         size="sm"
                         fontSize="sm"
                         onClick={() => navigate(-1)}
@@ -251,7 +251,7 @@ const DirectorDetail: React.FC = () => {
                                 height="auto"
                                 objectFit="contain"
                                 border="4px solid"
-                                borderColor="#F56565"
+                                borderColor="#d9d9d9"
                                 borderRadius="md"
                                 boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                             />
@@ -269,7 +269,7 @@ const DirectorDetail: React.FC = () => {
 
                                 <Box w="full">
                                     <Heading as="h3" size="sm" display="flex" alignItems="center" color="white" mb={3}>
-                                        <CFaUserTie mr={2} color="#F56565" />
+                                        <CFaUserTie mr={2} color="#d9d9d9" />
                                         О себе
                                     </Heading>
                                     <Text fontSize="md" color="gray.400" w="full">
@@ -280,7 +280,7 @@ const DirectorDetail: React.FC = () => {
                                 {director.perfomances?.length > 0 && (
                                     <Box w="full" mt={6}>
                                         <Heading as="h3" size="sm" mb={3} display="flex" alignItems="center" color="white">
-                                            <CFaTheaterMasks mr={2} color="#F56565" />
+                                            <CFaTheaterMasks mr={2} color="#d9d9d9" />
                                             Поставленные спектакли
                                         </Heading>
                                         <Grid templateColumns="repeat(auto-fill, minmax(220px, 1fr))" gap={4}>
@@ -344,14 +344,14 @@ const DirectorDetail: React.FC = () => {
                 >
                     <ModalHeader>
                         <Flex align="center">
-                            <CFaTheaterMasks mr={2} color="#F56565" />
+                            <CFaTheaterMasks mr={2} color="#d9d9d9" />
                             Спектакль не найден
                         </Flex>
                     </ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
                         <Text mb={4}>
-                            К сожалению, спектакль <Text as="span" fontWeight="bold" color="#F56565">"{notFoundPerformance}"</Text> не найден в нашей базе данных.
+                            К сожалению, спектакль <Text as="span" fontWeight="bold" color="#d9d9d9">"{notFoundPerformance}"</Text> не найден в нашей базе данных.
                         </Text>
 
                         <Text fontSize="sm" color="gray.400">

@@ -71,7 +71,7 @@ const AfishaPage: React.FC = () => {
             <Box>
                 <Navigation />
                 <Flex justify="center" align="center" minH="70vh" bg="black">
-                    <Spinner size="xl" color="#800020" />
+                    <Spinner size="xl" color="#f2f2f2" />
                 </Flex>
                 <Footer />
             </Box>
@@ -109,7 +109,7 @@ const AfishaPage: React.FC = () => {
                     left="-10%"
                     w="400px"
                     h="400px"
-                    bg="linear-gradient(135deg, #800020, #400010)"
+                    bg="linear-gradient(135deg, #2a2a2a, #151515)"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.2}
@@ -123,7 +123,7 @@ const AfishaPage: React.FC = () => {
                     right="-10%"
                     w="300px"
                     h="300px"
-                    bg="linear-gradient(135deg, #800020, #400010)"
+                    bg="linear-gradient(135deg, #2a2a2a, #151515)"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.15}
@@ -161,7 +161,7 @@ const AfishaPage: React.FC = () => {
                                 transform: "translateX(-50%)",
                                 width: "80px",
                                 height: "4px",
-                                bg: "#800020",
+                                bg: "#2a2a2a",
                                 borderRadius: "full"
                             }}
                         >

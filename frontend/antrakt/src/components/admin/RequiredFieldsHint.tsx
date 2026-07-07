@@ -20,7 +20,7 @@ const RequiredFieldsHint: React.FC<RequiredFieldsHintProps> = ({ required, note 
         borderRadius="md"
     >
         <Text fontSize="sm" color="gray.100">
-            <Text as="span" color="#F56565" fontWeight="bold">*</Text>{' '}
+            <Text as="span" color="#d9d9d9" fontWeight="bold">*</Text>{' '}
             <b>Обязательные поля:</b> {required.join(', ')}.
         </Text>
         <Text fontSize="xs" color="gray.400" mt={1}>

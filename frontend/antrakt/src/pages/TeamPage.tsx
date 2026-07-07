@@ -79,16 +79,16 @@ const TeamPage: React.FC = () => {
     const [error, setError] = useState("");
 
     // Цветовые схемы, унифицированные с Navigation и Footer
-    const primaryColor = "#800020";
+    const primaryColor = "#f2f2f2";
     const directorColors = [
-        { color: primaryColor, accentColor: "#F56565" },
-        { color: "#E53E3E", accentColor: "#FC8181" }
+        { color: primaryColor, accentColor: "#d9d9d9" },
+        { color: "#cfcfcf", accentColor: "#e2e2e2" }
     ];
     const actorColors = [
-        { color: primaryColor, accentColor: "#F56565" },
-        { color: "#E53E3E", accentColor: "#FC8181" },
-        { color: "#9B2C2C", accentColor: "#FEB2B2" },
-        { color: "#742A2A", accentColor: "#F56565" }
+        { color: primaryColor, accentColor: "#d9d9d9" },
+        { color: "#cfcfcf", accentColor: "#e2e2e2" },
+        { color: "#8a8a8a", accentColor: "#efefef" },
+        { color: "#6f6f6f", accentColor: "#d9d9d9" }
     ];
 
     // Загрузка данных
@@ -244,7 +244,7 @@ const TeamPage: React.FC = () => {
                     <Button
                         variant="outline"
                         color={primaryColor}
-                        _hover={{ color: "#FC8181", borderColor: "#FC8181" }}
+                        _hover={{ color: "#e2e2e2", borderColor: "#e2e2e2" }}
                         size="sm"
                         rightIcon={<ChevronRightIcon />}
                         w="full"
@@ -426,7 +426,7 @@ const TeamPage: React.FC = () => {
                                             <Button
                                                 variant="outline"
                                                 color={primaryColor}
-                                                _hover={{ color: "#FC8181", borderColor: "#FC8181" }}
+                                                _hover={{ color: "#e2e2e2", borderColor: "#e2e2e2" }}
                                                 size="sm"
                                                 rightIcon={<ChevronRightIcon />}
                                                 w="full"

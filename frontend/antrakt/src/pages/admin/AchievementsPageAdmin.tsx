@@ -46,8 +46,8 @@ const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
 const MotionButton = motion(Button);
 
-const primaryColor = '#800020';
-const secondaryColor = '#A00030';
+const primaryColor = '#f2f2f2';
+const secondaryColor = '#8a8a8a';
 
 const CFaTrophy = chakra(FaTrophy as any);
 const CFaPlus = chakra(FaPlus as any);
@@ -352,7 +352,7 @@ const AchievementsPageAdmin: React.FC = () => {
                                                 size="sm"
                                                 iconSpacing={0}
                                                 bg="transparent"
-                                                color="#E53E3E"
+                                                color="#cfcfcf"
                                                 onClick={() => handleDelete(achievement.id)}
                                                 whileHover={{ scale: 1.1 }}
                                                 whileTap={{ scale: 0.9 }}
@@ -386,7 +386,8 @@ const AchievementsPageAdmin: React.FC = () => {
                     <MotionButton
                         leftIcon={<CFaPlus />}
                         bg={primaryColor}
-                        _hover={{ bg: '#900030' }}
+                        color="#0a0a0a"
+                        _hover={{ bg: "#d9d9d9" }}
                         onClick={handleCreate}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}

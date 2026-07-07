@@ -46,8 +46,8 @@ const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
 const MotionButton = motion(Button);
 
-const primaryColor = '#800020';
-const secondaryColor = '#A00030';
+const primaryColor = '#f2f2f2';
+const secondaryColor = '#8a8a8a';
 
 const CFaPlus = chakra(FaPlus as any);
 const CFaTrash = chakra(FaTrash as any);
@@ -310,7 +310,7 @@ const PerformancesPage: React.FC = () => {
                                         wordBreak="break-word"
                                         maxW="100%"
                                         textShadow="0 1px 2px rgba(0, 0, 0, 0.3)"
-                                        _hover={{ bg: '#B00040' }}
+                                        _hover={{ bg: '#3a3a3a' }}
                                         noOfLines={2}
                                     >
                                         {performance.production_team[0]} • {performance.age_limit}
@@ -386,14 +386,15 @@ const PerformancesPage: React.FC = () => {
                             Управление спектаклями
                         </Heading>
                         <Text color="#AAAAAA">
-                            Здесь вы можете управлять спектаклями театральной студии "Антракт"
+                            Здесь вы можете управлять спектаклями Норильского народного театра
                         </Text>
                     </VStack>
 
                     <MotionButton
                         leftIcon={<CFaPlus />}
                         bg={primaryColor}
-                        _hover={{ bg: '#900030' }}
+                        color="#0a0a0a"
+                        _hover={{ bg: "#d9d9d9" }}
                         onClick={openCreateForm}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}

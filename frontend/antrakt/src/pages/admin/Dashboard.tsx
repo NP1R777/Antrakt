@@ -75,7 +75,7 @@ interface RecentItem {
     type: 'performance' | 'news' | 'achievement' | 'actor' | 'director';
 }
 
-const primaryColor = '#800020';
+const primaryColor = '#f2f2f2';
 
 const Dashboard: React.FC = () => {
     const navigate = useNavigate();
@@ -157,8 +157,8 @@ const Dashboard: React.FC = () => {
     const statCards = [
         { label: 'Спектакли', value: stats.performances, icon: CFaTheaterMasks, color: primaryColor, helpText: 'Сыгранные постановки' },
         { label: 'Актёры', value: stats.actors, icon: CFaUsers, color: '#FF6B35', helpText: 'В труппе театра' },
-        { label: 'Новости', value: stats.news, icon: CFaNewspaper, color: '#4ECDC4', helpText: 'Опубликованных статей' },
-        { label: 'Достижения', value: stats.achievements, icon: CFaTrophy, color: '#FFD700', helpText: 'Наград и призов' },
+        { label: 'Новости', value: stats.news, icon: CFaNewspaper, color: '#c9c9c9', helpText: 'Опубликованных статей' },
+        { label: 'Достижения', value: stats.achievements, icon: CFaTrophy, color: '#e8e8e8', helpText: 'Наград и призов' },
         { label: 'Режиссёры', value: stats.directors, icon: CFaEye, color: '#9B59B6', helpText: 'Творческих руководителей' },
         { label: 'Пользователи', value: stats.users, icon: CFaUsers, color: '#E74C3C', helpText: 'Зарегистрированных' },
     ];
@@ -176,7 +176,7 @@ const Dashboard: React.FC = () => {
         {
             label: 'Новая новость',
             icon: CFaNewspaper,
-            color: '#4ECDC4',
+            color: '#c9c9c9',
             action: () => {
                 setActiveForm('news');
                 onOpen();
@@ -203,7 +203,7 @@ const Dashboard: React.FC = () => {
         {
             label: 'Новое достижение',
             icon: CFaTrophy,
-            color: '#FFD700',
+            color: '#e8e8e8',
             action: () => {
                 setActiveForm('achievement');
                 onOpen();
@@ -265,7 +265,7 @@ const Dashboard: React.FC = () => {
                             </Heading>
                         </HStack>
                         <Text fontSize="lg" color="gray.300">
-                            Добро пожаловать в админ-панель театральной студии "Антракт"
+                            Добро пожаловать в админ-панель Норильского народного театра
                         </Text>
                     </VStack>
                 </MotionBox>

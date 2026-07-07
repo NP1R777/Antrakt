@@ -46,8 +46,8 @@ const CFaTimes = chakra(FaTimes as any);
 const CFaSave = chakra(FaSave as any);
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
 
-const primaryColor = '#800020';
-const accentColor = '#4ECDC4';
+const primaryColor = '#f2f2f2';
+const accentColor = '#c9c9c9';
 
 interface Director {
     id: number;
@@ -296,7 +296,7 @@ export const DirectorForm: React.FC<{
                             leftIcon={<CFaPlus />}
                             onClick={openPerfomanceModal}
                             bg={accentColor}
-                            _hover={{ bg: '#5EDDD5' }}
+                            _hover={{ bg: '#dedede' }}
                             mb={4}
                         >
                             Добавить спектакль
@@ -337,8 +337,8 @@ export const DirectorForm: React.FC<{
                     mr={3}
                     onClick={onCancel}
                     leftIcon={<CFaTimes />}
-                    bg="#B00040"
-                    borderColor="#B00040"
+                    bg="#3a3a3a"
+                    borderColor="#3a3a3a"
                     _hover={{ bg: 'red' }}
                 >
                     Отмена
@@ -417,15 +417,15 @@ export const DirectorForm: React.FC<{
                             variant="outline"
                             mr={3}
                             onClick={() => setPerfomanceModalOpen(false)}
-                            bg="#B00040"
-                            borderColor="#B00040"
+                            bg="#3a3a3a"
+                            borderColor="#3a3a3a"
                             _hover={{ bg: 'red' }}
                         >
                             Отмена
                         </Button>
                         <Button
                             bg={accentColor}
-                            _hover={{ bg: '#5EDDD5' }}
+                            _hover={{ bg: '#dedede' }}
                             onClick={addPerfomanceEntry}
                         >
                             Добавить

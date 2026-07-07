@@ -44,8 +44,8 @@ const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
 const MotionButton = motion(Button);
 
-const primaryColor = '#800020';
-const secondaryColor = '#A00030';
+const primaryColor = '#f2f2f2';
+const secondaryColor = '#8a8a8a';
 
 const CFaUserPlus = chakra(FaUserPlus as any);
 const CFaTrash = chakra(FaTrash as any);
@@ -333,7 +333,7 @@ const ActorsPage: React.FC = () => {
                                         wordBreak="break-word"
                                         maxW="100%"
                                         textShadow="0 1px 2px rgba(0, 0, 0, 0.3)"
-                                        _hover={{ bg: '#B00040' }}
+                                        _hover={{ bg: '#3a3a3a' }}
                                         noOfLines={2}
                                         opacity={actor.deleted_at ? 0.6 : 1}
                                     >
@@ -389,7 +389,7 @@ const ActorsPage: React.FC = () => {
                                             size="sm"
                                             iconSpacing={0}
                                             bg="transparent"
-                                            color="#E53E3E"
+                                            color="#cfcfcf"
                                             onClick={() => confirmDelete(actor.id)}
                                             whileHover={{ scale: 1.1 }}
                                             whileTap={{ scale: 0.9 }}
@@ -415,14 +415,15 @@ const ActorsPage: React.FC = () => {
                             Управление актёрами
                         </Heading>
                         <Text color="#AAAAAA">
-                            Здесь вы можете управлять данными актёров театральной студии "Антракт"
+                            Здесь вы можете управлять данными актёров Норильского народного театра
                         </Text>
                     </VStack>
 
                     <MotionButton
                         leftIcon={<CFaUserPlus />}
                         bg={primaryColor}
-                        _hover={{ bg: '#900030' }}
+                        color="#0a0a0a"
+                        _hover={{ bg: "#d9d9d9" }}
                         onClick={openCreateForm}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}

@@ -29,7 +29,7 @@ import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 
 const API = 'http://localhost:8000';
-const primaryColor = '#800020';
+const primaryColor = '#f2f2f2';
 
 const CFaTrash = chakra(FaTrash as any);
 const CFaExclamationTriangle = chakra(FaExclamationTriangle as any);
@@ -192,8 +192,8 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
                     <Flex justify="flex-end" mt={3}>
                         <Button
                             bg={primaryColor}
-                            color="white"
-                            _hover={{ bg: '#600018' }}
+                            color="#0a0a0a"
+                            _hover={{ bg: "#d9d9d9" }}
                             onClick={handleSubmit}
                             isLoading={isSubmitting}
                             isDisabled={!text.trim()}
@@ -227,7 +227,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
                             >
                                 <Flex justify="space-between" align="flex-start">
                                     <HStack spacing={3} mb={2}>
-                                        <Avatar size="sm" name={review.author_name} src={review.author_photo || undefined} bg={primaryColor} />
+                                        <Avatar size="sm" name={review.author_name} src={review.author_photo || undefined} bg={primaryColor} color="#0a0a0a" />
                                         <Box>
                                             <Text color="white" fontWeight="bold">{review.author_name}</Text>
                                             <Text color="gray.500" fontSize="xs">
@@ -322,8 +322,8 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
                         </Button>
                         <Button
                             bg={primaryColor}
-                            color="white"
-                            _hover={{ bg: '#600018' }}
+                            color="#0a0a0a"
+                            _hover={{ bg: "#d9d9d9" }}
                             onClick={sendWarn}
                             isLoading={isWarning}
                             isDisabled={!warnMessage.trim()}

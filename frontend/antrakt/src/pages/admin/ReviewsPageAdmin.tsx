@@ -30,7 +30,7 @@ import axios from 'axios';
 import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
 
 const API = 'http://localhost:8000';
-const primaryColor = '#800020';
+const primaryColor = '#f2f2f2';
 
 const MotionBox = motion(Box);
 const CFaTrash = chakra(FaTrash as any);
@@ -240,8 +240,8 @@ const ReviewsPageAdmin: React.FC = () => {
                         </Button>
                         <Button
                             bg={primaryColor}
-                            color="white"
-                            _hover={{ bg: '#600018' }}
+                            color="#0a0a0a"
+                            _hover={{ bg: "#d9d9d9" }}
                             onClick={sendWarn}
                             isLoading={isWarning}
                             isDisabled={!warnMessage.trim()}

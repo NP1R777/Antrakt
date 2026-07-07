@@ -67,8 +67,8 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
                             Отмена
                         </Button>
                         <Button
-                            bg="#E53E3E"
-                            _hover={{ bg: '#F56565' }}
+                            bg="#cfcfcf"
+                            _hover={{ bg: '#d9d9d9' }}
                             isLoading={busy === 'soft'}
                             onClick={() => run('soft', onSoftDelete)}
                         >

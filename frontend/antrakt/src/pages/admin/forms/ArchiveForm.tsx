@@ -49,7 +49,7 @@ const CFaPlus = chakra(FaPlus as any);
 const CFaTrash = chakra(FaTrash as any);
 const CFaCalendar = chakra(FaCalendarAlt as any);
 
-const primaryColor = '#800020';
+const primaryColor = '#f2f2f2';
 
 const ageLimits = [
     '0+',
@@ -376,8 +376,8 @@ export const ArchiveForm: React.FC<{
                     mr={3}
                     onClick={onCancel}
                     leftIcon={<CFaTimes />}
-                    bg="#B00040"
-                    borderColor="#B00040"
+                    bg="#3a3a3a"
+                    borderColor="#3a3a3a"
                     _hover={{ bg: 'red' }}
                     flexShrink={0}
                 >

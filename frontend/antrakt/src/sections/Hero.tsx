@@ -72,7 +72,7 @@ export default function Hero() {
                         textShadow="0 0 10px rgba(128, 0, 32, 0.8)"
                         color="white"
                     >
-                        Театральная студия "Антракт"
+                        Норильский народный театр
                     </Heading>
 
                     <Text fontSize={{ base: "md", md: "xl" }} mb={{ base: 6, md: 10 }} color="white">

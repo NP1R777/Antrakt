@@ -42,7 +42,7 @@ const PerformancesPage: React.FC = () => {
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
-    const primaryColor = "#800020";
+    const primaryColor = "#f2f2f2";
 
     useEffect(() => {
         const fetchPerformances = async () => {
@@ -67,7 +67,7 @@ const PerformancesPage: React.FC = () => {
             <Box>
                 <Navigation />
                 <Flex justify="center" align="center" minH="70vh" bg="black">
-                    <Spinner size="xl" color="#F56565" />
+                    <Spinner size="xl" color="#d9d9d9" />
                 </Flex>
                 <Footer />
             </Box>
@@ -105,7 +105,7 @@ const PerformancesPage: React.FC = () => {
                     right="-10%"
                     w="400px"
                     h="400px"
-                    bg="linear-gradient(135deg, #800020, #400010)"
+                    bg="linear-gradient(135deg, #2a2a2a, #151515)"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.2}

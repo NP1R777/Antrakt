@@ -63,8 +63,8 @@ const AfishaDetail: React.FC = () => {
                     <Heading size="md" mb={4} color="white">Запись не найдена</Heading>
                     <Button
                         variant="outline"
-                        color="#FC8181"
-                        _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
+                        color="#e2e2e2"
+                        _hover={{ color: "#efefef", borderColor: "#efefef" }}
                         size="sm"
                         fontSize="sm"
                         onClick={() => navigate("/afisha")}
@@ -87,7 +87,7 @@ const AfishaDetail: React.FC = () => {
                     left="-10%"
                     w="500px"
                     h="500px"
-                    bg="#800020"
+                    bg="#2a2a2a"
                     borderRadius="full"
                     filter="blur(80px)"
                     opacity={0.15}
@@ -100,8 +100,8 @@ const AfishaDetail: React.FC = () => {
                         leftIcon={<ChevronLeftIcon />}
                         mb={6}
                         variant="outline"
-                        color="#FC8181"
-                        _hover={{ color: "#FEB2B2", borderColor: "#FEB2B2" }}
+                        color="#e2e2e2"
+                        _hover={{ color: "#efefef", borderColor: "#efefef" }}
                         size="sm"
                         fontSize="sm"
                         onClick={() => navigate('/afisha')}
@@ -127,7 +127,7 @@ const AfishaDetail: React.FC = () => {
                                 height="auto"
                                 objectFit="contain"
                                 border="4px solid"
-                                borderColor="#F56565"
+                                borderColor="#d9d9d9"
                                 borderRadius="md"
                                 boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
                             />
@@ -146,7 +146,7 @@ const AfishaDetail: React.FC = () => {
                                 <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6} w="full">
                                     <VStack align="start">
                                         <Heading as="h3" size="sm" display="flex" alignItems="center" color="white">
-                                            <CFaTheaterMasks mr={2} color="#F56565" />
+                                            <CFaTheaterMasks mr={2} color="#d9d9d9" />
                                             Основная информация
                                         </Heading>
                                         {item.genre && (
@@ -188,7 +188,7 @@ const AfishaDetail: React.FC = () => {
                                         )}
                                         <Box w="full" mt={4}>
                                             <Heading as="h3" size="sm" mb={3} display="flex" alignItems="center" color="white">
-                                                <CFaTheaterMasks mr={2} color="#F56565" />
+                                                <CFaTheaterMasks mr={2} color="#d9d9d9" />
                                                 Описание
                                             </Heading>
                                             <Text fontSize="md" color="gray.400" w="full">
