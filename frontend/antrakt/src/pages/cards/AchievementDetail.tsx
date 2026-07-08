@@ -16,7 +16,8 @@ import {
     AlertIcon,
     AlertTitle,
     AlertDescription,
-    VStack
+    VStack,
+    SimpleGrid
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import Navigation from "../../components/Navigation";
@@ -35,6 +36,7 @@ interface Achievement {
     deleted_at: string | null;
     achievement: string;
     image_url: string;
+    images_list?: string[];
     assigned?: string; // Добавляем поле assigned
 }
 
@@ -208,6 +210,34 @@ const AchievementDetail: React.FC = () => {
                             </VStack>
                         </GridItem>
                     </Grid>
+
+                    {achievement.images_list && achievement.images_list.length > 0 && (
+                        <Box mt={10}>
+                            <Heading as="h3" size="md" mb={4} display="flex" alignItems="center" color="white">
+                                <CFaTrophy mr={2} color="#d9d9d9" />
+                                Фотогалерея
+                            </Heading>
+                            <SimpleGrid columns={{ base: 2, md: 3 }} spacing={4}>
+                                {achievement.images_list.map((url, index) => (
+                                    <Image
+                                        key={index}
+                                        src={url}
+                                        alt={`Фото достижения ${index + 1}`}
+                                        w="100%"
+                                        h={{ base: "150px", md: "220px" }}
+                                        objectFit="cover"
+                                        borderRadius="lg"
+                                        border="1px solid"
+                                        borderColor="rgba(255,255,255,0.15)"
+                                        cursor="pointer"
+                                        transition="transform 0.25s ease, box-shadow 0.25s ease"
+                                        _hover={{ transform: "translateY(-4px)", boxShadow: "0 10px 25px rgba(255,255,255,0.12)" }}
+                                        onClick={() => window.open(url, '_blank')}
+                                    />
+                                ))}
+                            </SimpleGrid>
+                        </Box>
+                    )}
                 </Box>
             </Box>
             <Footer />

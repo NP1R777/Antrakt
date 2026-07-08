@@ -53,7 +53,7 @@ interface Performance {
     premiere_date: string | null;
     production_team: string[] | null;
     director_name?: string | null;
-    cast: { id?: number; actor: number; actor_name?: string; role: string }[] | null;
+    cast: { id?: number; actor?: number | null; actor_name?: string; role: string }[] | null;
     shows: { id?: number; show_datetime: string; ticket_url?: string | null }[] | null;
     description: string;
     afisha: boolean;
@@ -390,12 +390,34 @@ const PerformanceDetail: React.FC = () => {
                                             <b>Постановочная команда:</b> {performance.production_team.join(', ')}
                                         </Text>
                                         {performance.cast && performance.cast.length > 0 && (
-                                            <Text fontSize="md" color="#e0e0e0">
-                                                <b>Актёрский состав:</b>{' '}
-                                                {performance.cast
-                                                    .map(c => `${c.actor_name || 'Актёр'} — ${c.role}`)
-                                                    .join(', ')}
-                                            </Text>
+                                            <Box w="full">
+                                                <Text fontSize="md" color="#e0e0e0" mb={2}>
+                                                    <b>Актёрский состав:</b>
+                                                </Text>
+                                                <VStack align="stretch" spacing={2} w="full">
+                                                    {performance.cast.map((c, i) => (
+                                                        <Flex
+                                                            key={c.id ?? i}
+                                                            align="baseline"
+                                                            gap={2}
+                                                            borderLeft="2px solid"
+                                                            borderColor="#3a3a3a"
+                                                            pl={3}
+                                                            py={1}
+                                                        >
+                                                            <Text
+                                                                fontWeight="semibold"
+                                                                color="#ffffff"
+                                                                minW={{ base: "120px", md: "160px" }}
+                                                            >
+                                                                {c.actor_name || 'Актёр'}
+                                                            </Text>
+                                                            <Text color="#a0a0a0">—</Text>
+                                                            <Text color="#c9c9c9">{c.role}</Text>
+                                                        </Flex>
+                                                    ))}
+                                                </VStack>
+                                            </Box>
                                         )}
                                     </VStack>
                                 </Grid>
