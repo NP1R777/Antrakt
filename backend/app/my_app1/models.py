@@ -300,6 +300,7 @@ class Achievements(ImageUploadMixin, models.Model): # Достижения
     deleted_at = models.DateTimeField(null=True)
     achievement = models.CharField(max_length=500, null=False)
     image_url = models.URLField(null=False, blank=True)
+    images_list = ArrayField(models.URLField(max_length=500), blank=True, default=list) # Галерея фотографий достижения.
     assigned = models.DateField(null=True, blank=True) # Дата присвоения достижения.
 
 
@@ -330,11 +331,15 @@ class PerformanceCast(models.Model): # Состав спектакля: актё
         related_name='cast_members',
         on_delete=models.CASCADE
     )
+    # actor может отсутствовать, если это приглашённый актёр не из базы («Другой(ая)»)
     actor = models.ForeignKey(
         Actors,
         related_name='cast_roles',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
     )
+    actor_name = models.CharField(max_length=100, blank=True, default='') # Имя актёра не из базы
     role = models.CharField(max_length=100) # Роль актёра в этом спектакле
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -529,3 +534,49 @@ class EmailVerification(models.Model): # Код подтверждения email
 
     def is_expired(self):
         return timezone.now() >= self.expires_at
+
+
+class SiteContent(models.Model): # Редактируемые надписи сайта (мини-CMS)
+    class Meta:
+        db_table = 'site_content'
+        ordering = ['section', 'order', 'id']
+
+    key = models.CharField(max_length=100, unique=True) # уникальный ключ строки
+    value = models.TextField(blank=True, default='') # сам текст
+    section = models.CharField(max_length=100, blank=True, default='') # группа (Шапка/Футер/...)
+    label = models.CharField(max_length=200, blank=True, default='') # человекочитаемое название поля
+    multiline = models.BooleanField(default=False) # многострочное ли поле в админке
+    order = models.IntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.key
+
+
+class BirthdayGreeting(models.Model): # Варианты поздравительного текста
+    class Meta:
+        db_table = 'birthday_greeting'
+        ordering = ['id']
+
+    text = models.TextField()
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.text[:50]
+
+
+class ActorBirthday(models.Model): # Дни рождения актёров
+    class Meta:
+        db_table = 'actor_birthday'
+        ordering = ['birth_date']
+
+    actor = models.OneToOneField(
+        Actors, related_name='birthday', on_delete=models.CASCADE
+    )
+    birth_date = models.DateField() # полная дата; для показа учитываются день и месяц
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.actor_id}: {self.birth_date}'

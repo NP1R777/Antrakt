@@ -1165,3 +1165,153 @@ class ReviewListAdmin(APIView):
                    .prefetch_related('reactions')
                    .order_by('-created_at'))
         return Response(_serialize_reviews(reviews, request))
+
+
+# ---------------------------------------------------------------------------
+# Редактируемые надписи сайта (мини-CMS)
+# ---------------------------------------------------------------------------
+
+class SiteContentList(APIView):
+    """GET — все надписи (публично, для рендера сайта);
+    PUT — массовое обновление значений (из админ-панели)."""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, format=None):
+        items = SiteContent.objects.all()
+        return Response(SiteContentSerializer(items, many=True).data)
+
+    def put(self, request, format=None):
+        data = request.data
+        items = data.get('items', []) if isinstance(data, dict) else data
+        if not isinstance(items, list):
+            return Response({"error": "Ожидается список {key, value}"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        updated = []
+        for it in items:
+            if not isinstance(it, dict):
+                continue
+            key = it.get('key')
+            if not key:
+                continue
+            obj = SiteContent.objects.filter(key=key).first()
+            if obj:
+                obj.value = it.get('value', '') or ''
+                obj.save(update_fields=['value', 'updated_at'])
+                updated.append(key)
+        return Response({"success": True, "updated": updated})
+
+
+# ---------------------------------------------------------------------------
+# Дни рождения актёров и поздравления
+# ---------------------------------------------------------------------------
+
+class BirthdayTodayView(APIView):
+    """Возвращает актёра, у которого сегодня день рождения (по TIME_ZONE проекта),
+    вместе с поздравительным текстом. Секция появляется/исчезает автоматически,
+    так как расчёт идёт по текущей дате при каждом запросе."""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, format=None):
+        today = timezone.localdate()
+        bday = (ActorBirthday.objects
+                .select_related('actor')
+                .filter(birth_date__month=today.month,
+                        birth_date__day=today.day,
+                        actor__deleted_at__isnull=True)
+                .first())
+        if not bday:
+            return Response({"active": False})
+        greetings = list(BirthdayGreeting.objects
+                         .filter(is_active=True).order_by('id'))
+        greeting = ''
+        if greetings:
+            # Детерминированный выбор варианта — не «прыгает» в течение дня.
+            greeting = greetings[today.toordinal() % len(greetings)].text
+        actor = bday.actor
+        greeting = greeting.replace('{name}', actor.name)
+        return Response({
+            "active": True,
+            "actor_id": actor.id,
+            "actor_name": actor.name,
+            "actor_image": actor.image_url,
+            "birth_date": bday.birth_date,
+            "greeting": greeting,
+        })
+
+
+class ActorBirthdayList(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, format=None):
+        items = ActorBirthday.objects.select_related('actor').all()
+        return Response(ActorBirthdaySerializer(items, many=True).data)
+
+    def post(self, request, format=None):
+        serializer = ActorBirthdaySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ActorBirthdayDetail(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get_object(self, id):
+        return get_object_or_404(ActorBirthday, id=id)
+
+    def get(self, request, id, format=None):
+        obj = self.get_object(id)
+        return Response(ActorBirthdaySerializer(obj).data)
+
+    def put(self, request, id, format=None):
+        obj = self.get_object(id)
+        serializer = ActorBirthdaySerializer(obj, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id, format=None):
+        obj = self.get_object(id)
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class BirthdayGreetingList(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, format=None):
+        items = BirthdayGreeting.objects.all()
+        return Response(BirthdayGreetingSerializer(items, many=True).data)
+
+    def post(self, request, format=None):
+        serializer = BirthdayGreetingSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BirthdayGreetingDetail(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get_object(self, id):
+        return get_object_or_404(BirthdayGreeting, id=id)
+
+    def get(self, request, id, format=None):
+        obj = self.get_object(id)
+        return Response(BirthdayGreetingSerializer(obj).data)
+
+    def put(self, request, id, format=None):
+        obj = self.get_object(id)
+        serializer = BirthdayGreetingSerializer(obj, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id, format=None):
+        obj = self.get_object(id)
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
