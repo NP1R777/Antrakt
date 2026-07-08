@@ -368,6 +368,10 @@ def promote_performance(performance):
                     .select_related('actor')
                     .order_by('actor_id', 'id'))
             for member in cast:
+                # Приглашённые актёры не из базы (actor is null) на страницы
+                # актёров не раздаются — у них нет карточки.
+                if not member.actor_id:
+                    continue
                 actor = Actors.objects.select_for_update().get(pk=member.actor_id)
                 titles = list(actor.perfomances or [])
                 roles = list(actor.role_in_perfomances or [])
