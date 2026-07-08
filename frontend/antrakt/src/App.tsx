@@ -2,6 +2,10 @@ import React from "react";
 import theme from "./styles/theme";
 import Hero from "./sections/Hero";
 import Footer from "./components/Footer";
+import BirthdaySection from "./sections/BirthdaySection";
+import { SiteContentProvider } from "./contexts/SiteContentContext";
+import SiteContentPageAdmin from "./pages/admin/SiteContentPageAdmin";
+import BirthdaysPageAdmin from "./pages/admin/BirthdaysPageAdmin";
 import UsersPage from "./pages/admin/UsersPage";
 import ReviewsPageAdmin from "./pages/admin/ReviewsPageAdmin";
 import Dashboard from "./pages/admin/Dashboard";
@@ -43,6 +47,7 @@ const MainPage = () => (
   <Box bg="black" color="white" minH="100vh">
     <Navigation />
     <Hero />
+    <BirthdaySection />
     <Performances />
     <NewsSection />
     <Testimonials />
@@ -81,6 +86,7 @@ function App() {
     <BrowserRouter>
       <ChakraProvider theme={theme}>
         <AuthProvider>
+          <SiteContentProvider>
           <ScrollToTop />
           <Routes>
             {/* Главная страница */}
@@ -204,9 +210,32 @@ function App() {
               }
             />
 
+            <Route
+              path="/admin/content"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminLayout>
+                    <SiteContentPageAdmin />
+                  </AdminLayout>
+                </ProtectedAdminRoute>
+              }
+            />
+
+            <Route
+              path="/admin/birthdays"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminLayout>
+                    <BirthdaysPageAdmin />
+                  </AdminLayout>
+                </ProtectedAdminRoute>
+              }
+            />
+
             {/* Перенаправление на главную для неизвестных маршрутов */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          </SiteContentProvider>
         </AuthProvider>
       </ChakraProvider>
     </BrowserRouter >

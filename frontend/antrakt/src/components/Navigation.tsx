@@ -21,6 +21,7 @@ import { useState } from "react";
 import { useNavigate, Link as RouterLink } from "react-router-dom"; // Добавлен импорт Link as RouterLink
 import AuthModal from "./AuthModal";
 import { useAuth } from "../contexts/AuthContext";
+import { useSiteContent } from "../contexts/SiteContentContext";
 
 const primaryColor = "#f2f2f2";
 const darkBg = "#0a0a0a";
@@ -43,6 +44,7 @@ export default function Navigation() {
     const toast = useToast();
     const navigate = useNavigate(); // Добавлен хук useNavigate
     const { user, isAuthenticated, login, register, verifyRegistration, resendCode, logout } = useAuth();
+    const { getText } = useSiteContent();
 
     const handleLoginClick = () => {
         setAuthMode("login");
@@ -184,9 +186,9 @@ export default function Navigation() {
                             color={lightText}
                             letterSpacing="widest"
                             whiteSpace="nowrap"
-                            title="Норильский народный театр"
+                            title={getText('nav.brand_full', 'Норильский народный театр')}
                         >
-                            ННТ
+                            {getText('nav.logo', 'ННТ')}
                         </Text>
                     </Link>
                 </Box>
