@@ -83,6 +83,7 @@ const BirthdaySection: React.FC = () => {
                                     borderRadius="full"
                                     border="3px solid #ffffff"
                                     boxShadow="0 0 40px rgba(255,255,255,0.28)"
+                                    objectPosition={"top center"}
                                 />
                             </MotionBox>
                         )}
