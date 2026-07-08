@@ -74,10 +74,13 @@ interface PerformanceShow {
 
 interface CastMember {
     id?: number;
-    actor: number; // id актёра
+    actor: number | null; // id актёра (null — приглашённый актёр не из базы)
     actor_name?: string;
     role: string;
 }
+
+// Значение пункта «Другой(ая)» в выпадающем списке актёров.
+const OTHER_ACTOR = '__other__';
 
 interface ActorOption {
     id: number;
@@ -191,8 +194,9 @@ export const PerformanceForm: React.FC<{
         show_datetime: '',
         ticket_url: ''
     });
-    const [newCast, setNewCast] = useState<{ actor: string; role: string }>({
+    const [newCast, setNewCast] = useState<{ actor: string; actor_name: string; role: string }>({
         actor: '',
+        actor_name: '',
         role: ''
     });
     const toast = useToast();
@@ -237,16 +241,20 @@ export const PerformanceForm: React.FC<{
 
     const handleAddCast = () => {
         if (!newCast.actor || !newCast.role.trim()) return;
-        const actorId = parseInt(newCast.actor, 10);
+        let member: CastMember;
+        if (newCast.actor === OTHER_ACTOR) {
+            const customName = newCast.actor_name.trim();
+            if (!customName) return; // имя приглашённого актёра обязательно
+            member = { actor: null, actor_name: customName, role: newCast.role.trim() };
+        } else {
+            const actorId = parseInt(newCast.actor, 10);
+            member = { actor: actorId, actor_name: actorNameById(actorId), role: newCast.role.trim() };
+        }
         setCurrentPerformance(prev => ({
             ...prev,
-            cast: [...(prev.cast || []), {
-                actor: actorId,
-                actor_name: actorNameById(actorId),
-                role: newCast.role.trim()
-            }]
+            cast: [...(prev.cast || []), member]
         }));
-        setNewCast({ actor: '', role: '' });
+        setNewCast({ actor: '', actor_name: '', role: '' });
     };
 
     const handleRemoveCast = (index: number) => {
@@ -325,6 +333,16 @@ export const PerformanceForm: React.FC<{
         setCurrentPerformance(prev => ({
             ...prev,
             images_list: [...(prev.images_list || []), imageUrl]
+        }));
+    };
+
+    // Добавление сразу нескольких фотографий в галерею
+    const handleAddGalleryImages = (imageUrls: string[]) => {
+        if (!imageUrls?.length) return;
+
+        setCurrentPerformance(prev => ({
+            ...prev,
+            images_list: [...(prev.images_list || []), ...imageUrls]
         }));
     };
 
@@ -798,21 +816,43 @@ export const PerformanceForm: React.FC<{
                             <Text as="span" fontWeight="semibold">Актёрский состав (актёр и роль)</Text>
                         </FormLabel>
                         <HStack mb={2} align="flex-end">
-                            <Select
-                                placeholder="Выберите актёра"
-                                value={newCast.actor}
-                                onChange={(e) => setNewCast(prev => ({ ...prev, actor: e.target.value }))}
-                                focusBorderColor={accentColor}
-                                bg="#333333"
-                                borderColor="#444444"
-                                _hover={{ borderColor: '#555555' }}
-                            >
-                                {actorOptions.map(a => (
-                                    <option key={a.id} value={a.id} style={{ backgroundColor: '#333333', color: 'white' }}>
-                                        {a.name}
+                            {newCast.actor === OTHER_ACTOR ? (
+                                <Input
+                                    autoFocus
+                                    placeholder="Введите имя актёра"
+                                    value={newCast.actor_name}
+                                    onChange={(e) => setNewCast(prev => ({ ...prev, actor_name: e.target.value }))}
+                                    onKeyDown={(e) => {
+                                        // Escape — вернуться к выпадающему списку
+                                        if (e.key === 'Escape') {
+                                            setNewCast(prev => ({ ...prev, actor: '', actor_name: '' }));
+                                        }
+                                    }}
+                                    focusBorderColor={accentColor}
+                                    bg="#333333"
+                                    borderColor="#444444"
+                                    _hover={{ borderColor: '#555555' }}
+                                />
+                            ) : (
+                                <Select
+                                    placeholder="Выберите актёра"
+                                    value={newCast.actor}
+                                    onChange={(e) => setNewCast(prev => ({ ...prev, actor: e.target.value, actor_name: '' }))}
+                                    focusBorderColor={accentColor}
+                                    bg="#333333"
+                                    borderColor="#444444"
+                                    _hover={{ borderColor: '#555555' }}
+                                >
+                                    {actorOptions.map(a => (
+                                        <option key={a.id} value={a.id} style={{ backgroundColor: '#333333', color: 'white' }}>
+                                            {a.name}
+                                        </option>
+                                    ))}
+                                    <option value={OTHER_ACTOR} style={{ backgroundColor: '#333333', color: 'white' }}>
+                                        Другой(ая)…
                                     </option>
-                                ))}
-                            </Select>
+                                </Select>
+                            )}
                             <Input
                                 placeholder="Роль"
                                 value={newCast.role}
@@ -846,7 +886,7 @@ export const PerformanceForm: React.FC<{
                                         py={1}
                                     >
                                         <TagLabel>
-                                            {member.actor_name || actorNameById(member.actor)} — {member.role}
+                                            {member.actor_name || (member.actor ? actorNameById(member.actor) : 'Актёр')} — {member.role}
                                         </TagLabel>
                                         <TagCloseButton onClick={() => handleRemoveCast(index)} />
                                     </MotionTag>
@@ -973,13 +1013,15 @@ export const PerformanceForm: React.FC<{
             <Modal isOpen={isOpen} onClose={onClose} size="lg">
                 <ModalOverlay />
                 <ModalContent bg="gray.800" color="white">
-                    <ModalHeader>Добавить фотографию в галерею</ModalHeader>
+                    <ModalHeader>Добавить фотографии в галерею</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
                         <ImageUpload
                             currentImageUrl={null}
-                            onImageUpload={(imageUrl) => {
-                                handleAddGalleryImage(imageUrl);
+                            multiple
+                            onImageUpload={handleAddGalleryImage}
+                            onImagesUpload={(imageUrls) => {
+                                handleAddGalleryImages(imageUrls);
                                 onClose();
                             }}
                             onImageRemove={() => { }}

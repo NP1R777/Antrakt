@@ -36,6 +36,9 @@ interface ImageUploadProps {
     aspectRatio?: number; // соотношение сторон (например, 16/9)
     disabled?: boolean;
     compact?: boolean;
+    // Множественная загрузка (для галерей): можно выбрать несколько фото за раз.
+    multiple?: boolean;
+    onImagesUpload?: (imageUrls: string[]) => void;
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({
@@ -46,6 +49,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     maxSize = 10,
     aspectRatio,
     disabled = false,
+    multiple = false,
+    onImagesUpload,
 }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -55,64 +60,66 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     const toast = useToast();
 
     const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
+        const files = Array.from(event.target.files || []);
+        if (files.length === 0) return;
 
         // Очищаем предыдущие ошибки
         setError(null);
 
-        // Валидация файла
-        const validation = ImageService.validateImageFile(file);
-        if (!validation.isValid) {
-            setError(validation.error);
-            toast({
-                title: 'Ошибка валидации',
-                description: validation.error,
-                status: 'error',
-                duration: 5000,
-                isClosable: true,
-            });
-            return;
+        // Валидация всех выбранных файлов
+        for (const file of files) {
+            const validation = ImageService.validateImageFile(file);
+            if (!validation.isValid) {
+                setError(validation.error);
+                toast({
+                    title: 'Ошибка валидации',
+                    description: `${file.name}: ${validation.error}`,
+                    status: 'error',
+                    duration: 5000,
+                    isClosable: true,
+                });
+                if (fileInputRef.current) fileInputRef.current.value = '';
+                return;
+            }
         }
 
         try {
-            // Создаем предварительный просмотр
-            const preview = await ImageService.createImagePreview(file);
-            setPreviewUrl(preview);
+            // Предпросмотр показываем только для одиночной загрузки
+            if (files.length === 1) {
+                const preview = await ImageService.createImagePreview(files[0]);
+                setPreviewUrl(preview);
+            }
 
-            // Загружаем изображение
             setIsUploading(true);
             setUploadProgress(0);
 
-            // Симуляция прогресса загрузки
-            const progressInterval = setInterval(() => {
-                setUploadProgress(prev => {
-                    if (prev >= 90) {
-                        clearInterval(progressInterval);
-                        return 90;
-                    }
-                    return prev + 10;
-                });
-            }, 100);
-
             const folder = ImageService.getFolderByContentType(contentType);
-            const imageUrl = await ImageService.uploadImage(file, folder);
+            const uploadedUrls: string[] = [];
 
-            clearInterval(progressInterval);
-            setUploadProgress(100);
+            // Загружаем последовательно, показывая прогресс по числу файлов
+            for (let i = 0; i < files.length; i++) {
+                const imageUrl = await ImageService.uploadImage(files[i], folder);
+                uploadedUrls.push(imageUrl);
+                setUploadProgress(Math.round(((i + 1) / files.length) * 100));
+            }
 
-            // Вызываем callback с новым URL
-            onImageUpload(imageUrl);
+            // Отдаём результат: пачкой (если поддерживается) либо по одному
+            if (multiple && onImagesUpload) {
+                onImagesUpload(uploadedUrls);
+            } else {
+                uploadedUrls.forEach(url => onImageUpload(url));
+            }
 
             toast({
                 title: 'Успешно',
-                description: 'Изображение загружено',
+                description: uploadedUrls.length > 1
+                    ? `Загружено фотографий: ${uploadedUrls.length}`
+                    : 'Изображение загружено',
                 status: 'success',
                 duration: 3000,
                 isClosable: true,
             });
 
-            // Очищаем предварительный просмотр
             setPreviewUrl(null);
         } catch (error) {
             const errorMessage = ImageService.handleUploadError(error);
@@ -327,7 +334,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                         </HStack>
                     ) : (
                         <Text>
-                            {currentImageUrl ? 'Заменить изображение' : 'Загрузить изображение'}
+                            {multiple
+                                ? 'Загрузить фотографии'
+                                : (currentImageUrl ? 'Заменить изображение' : 'Загрузить изображение')}
                         </Text>
                     )}
                 </Button>
@@ -336,6 +345,12 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                     Поддерживаемые форматы: JPEG, PNG, GIF, WebP
                     <br />
                     Максимальный размер: {maxSize}MB
+                    {multiple && (
+                        <>
+                            <br />
+                            Можно выбрать сразу несколько файлов
+                        </>
+                    )}
                 </Text>
             </VStack>
 
@@ -344,6 +359,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple={multiple}
                 onChange={handleFileSelect}
                 style={{ display: 'none' }}
                 disabled={disabled || isUploading}

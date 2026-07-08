@@ -11,6 +11,10 @@ import {
     Textarea,
     useToast,
     Input,
+    Box,
+    Image,
+    IconButton,
+    SimpleGrid,
 } from '@chakra-ui/react';
 import { FaTimes, FaSave, FaTrophy, FaCalendarAlt } from 'react-icons/fa';
 import axios from 'axios';
@@ -30,6 +34,7 @@ interface Achievement {
     id?: number;
     achievement: string;
     image_url: string;
+    images_list?: string[];
     deleted_at?: string | null;
     assigned?: string | null;
 }
@@ -42,6 +47,7 @@ export const AchievementForm: React.FC<{
     const [achievement, setAchievement] = useState<Achievement>(initialData || {
         achievement: '',
         image_url: '',
+        images_list: [],
         assigned: ''
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,6 +65,22 @@ export const AchievementForm: React.FC<{
             ...prev,
             image_url: ''
         }));
+    };
+
+    const handleAddGalleryImages = (imageUrls: string[]) => {
+        if (!imageUrls?.length) return;
+        setAchievement(prev => ({
+            ...prev,
+            images_list: [...(prev.images_list || []), ...imageUrls]
+        }));
+    };
+
+    const handleRemoveGalleryImage = (index: number) => {
+        setAchievement(prev => {
+            const images = [...(prev.images_list || [])];
+            images.splice(index, 1);
+            return { ...prev, images_list: images };
+        });
     };
 
     const handleAchievementChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -82,6 +104,7 @@ export const AchievementForm: React.FC<{
                 await axios.put(`http://localhost:8000/achievement${achievement.id}/`, {
                     achievement: achievement.achievement,
                     image_url: achievement.image_url,
+                    images_list: achievement.images_list || [],
                     assigned: achievement.assigned || null
                 });
                 toast({
@@ -95,6 +118,7 @@ export const AchievementForm: React.FC<{
                 await axios.post('http://localhost:8000/achievements/', {
                     achievement: achievement.achievement,
                     image_url: achievement.image_url,
+                    images_list: achievement.images_list || [],
                     assigned: achievement.assigned || null
                 });
                 toast({
@@ -179,6 +203,42 @@ export const AchievementForm: React.FC<{
                     </FormControl>
                 </VStack>
             </Grid>
+
+            <FormControl>
+                <FormLabel display="flex" alignItems="center" gap={2}>
+                    <CFaTrophy color={accentColor} />
+                    <Text as="span" fontWeight="semibold">Галерея фотографий</Text>
+                </FormLabel>
+                {(achievement.images_list && achievement.images_list.length > 0) && (
+                    <SimpleGrid columns={{ base: 2, md: 4 }} spacing={3} mb={4}>
+                        {achievement.images_list.map((url, index) => (
+                            <Box key={index} position="relative" borderRadius="md" overflow="hidden" border="1px solid" borderColor="#444444">
+                                <Image src={url} alt={`Фото ${index + 1}`} w="100%" h="110px" objectFit="cover" />
+                                <IconButton
+                                    aria-label="Удалить фото"
+                                    icon={<CFaTimes />}
+                                    size="xs"
+                                    colorScheme="red"
+                                    position="absolute"
+                                    top={1}
+                                    right={1}
+                                    onClick={() => handleRemoveGalleryImage(index)}
+                                />
+                            </Box>
+                        ))}
+                    </SimpleGrid>
+                )}
+                <ImageUpload
+                    currentImageUrl={null as any}
+                    multiple
+                    onImageUpload={(url) => handleAddGalleryImages([url])}
+                    onImagesUpload={handleAddGalleryImages}
+                    onImageRemove={() => { }}
+                    contentType="achievements"
+                    maxSize={10}
+                    disabled={isSubmitting}
+                />
+            </FormControl>
 
             <Flex justify="flex-end" mt={4}>
                 <Button

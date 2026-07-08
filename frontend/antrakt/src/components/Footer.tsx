@@ -12,21 +12,23 @@ import {
     FaClock
 } from "react-icons/fa";
 import type { ComponentWithAs, IconProps } from "@chakra-ui/react";
+import { useSiteContent } from "../contexts/SiteContentContext";
 
 const MotionBox = motion(Box);
 const MotionLink = motion(Link);
 
 export default function Footer() {
+    const { getText } = useSiteContent();
     const primaryColor = "#f2f2f2";
     const darkBg = "#0a0a0a";
     const lightText = "#ffffff";
     const grayText = "#a0a0a0";
 
-    const director = "Дустимов Андрей Аидмазонович";
-    const email = "ADustimov@mail.ru";
-    const phone = "+7-913-161-00-34";
-    const address = "г. Норильск, ул. Орджоникидзе, д. 15";
-    const hours = "Пн-Сб: 10:00 - 22:00, Вс: 11:00 - 20:00";
+    const director = getText('footer.director', "Дустимов Андрей Аидмазонович");
+    const email = getText('footer.email', "ADustimov@mail.ru");
+    const phone = getText('footer.phone', "+7-913-161-00-34");
+    const address = getText('footer.address', "г. Норильск, ул. Орджоникидзе, д. 15");
+    const hours = getText('footer.hours', "Пн-Сб: 10:00 - 22:00, Вс: 11:00 - 20:00");
 
     const socialLinks = [
         { icon: FaVk, url: "https://vk.com/tc_antrakt?from=groups", label: "ВКонтакте" },
@@ -92,8 +94,7 @@ export default function Footer() {
                             </Heading>
 
                             <Text color={grayText} mb={6} textAlign={{ base: "center", md: "left" }}>
-                                Профессиональная театральная студия, где каждый может раскрыть
-                                свой творческий потенциал и найти свою сцену.
+                                {getText('footer.tagline', 'Профессиональная театральная студия, где каждый может раскрыть свой творческий потенциал и найти свою сцену.')}
                             </Text>
 
                             <Flex gap={4}>
@@ -217,7 +218,7 @@ export default function Footer() {
                                 bg: primaryColor
                             }}
                         >
-                            Наш партнёр
+                            {getText('footer.partner_title', 'Наш партнёр')}
                         </Heading>
 
                         <Image
@@ -231,9 +232,7 @@ export default function Footer() {
                         />
 
                         <Text color={grayText} fontSize="sm">
-                            Городской центр культуры открылся в 1992 году и в настоящее время
-                            является одним из ведущих учреждений культурно-досуговой деятельности
-                            на территории Норильска.
+                            {getText('footer.partner_text', 'Городской центр культуры — центр развития творчества и досуга жителей Норильска с 1992 года.')}
                         </Text>
                     </GridItem>
                 </Grid>
@@ -247,7 +246,7 @@ export default function Footer() {
                     gap={4}
                 >
                     <Text color={grayText} fontSize="sm">
-                        © {new Date().getFullYear()} Норильский народный театр. Все права защищены.
+                        © {new Date().getFullYear()} {getText('footer.copyright', 'Норильский народный театр. Все права защищены.')}
                     </Text>
                     <Text color={grayText} fontSize="sm">
                         Разработано с ❤️ для театрального искусства

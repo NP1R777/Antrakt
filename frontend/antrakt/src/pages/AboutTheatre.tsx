@@ -3,11 +3,13 @@ import { motion } from "framer-motion";
 import Footer from "../components/Footer";
 import Navigation from "../components/Navigation";
 import { Box, Flex, Heading, Text, VStack, Grid, GridItem, Image, Center } from "@chakra-ui/react";
+import { useSiteContent } from "../contexts/SiteContentContext";
 
 const MotionBox = motion(Box);
 
 const AboutTheatre: React.FC = () => {
     const primaryColor = "#f2f2f2";
+    const { getText } = useSiteContent();
 
     return (
         <Box bg="#0a0a0a" minH="100vh" display="flex" flexDirection="column" color="#ffffff">
@@ -53,7 +55,7 @@ const AboutTheatre: React.FC = () => {
                                 borderRadius: "full"
                             }}
                         >
-                            О театре
+                            {getText('about.title', 'О театре')}
                         </Heading>
                     </MotionBox>
 
@@ -70,8 +72,8 @@ const AboutTheatre: React.FC = () => {
                         <GridItem>
                             <VStack align="center" justify="center" spacing={6}>
                                 <Text color="gray.300" lineHeight="tall"
-                                    fontSize={20} textAlign="center">
-                                    Норильский народный театр была основана в 2021 году под руководством художественного руководителя Андрея Аидмазоновича Дустимова.
+                                    fontSize={20} textAlign="center" whiteSpace="pre-line">
+                                    {getText('about.intro', 'Норильский народный театр была основана в 2021 году под руководством художественного руководителя Андрея Аидмазоновича Дустимова.')}
                                 </Text>
                             </VStack>
                         </GridItem>
@@ -93,14 +95,10 @@ const AboutTheatre: React.FC = () => {
                         <GridItem>
                             <VStack align="center" spacing={6}>
                                 <Heading fontSize={40} textAlign="center" color="#d9d9d9" mb={4}>
-                                    Наша миссия
+                                    {getText('about.mission_title', 'Наша миссия')}
                                 </Heading>
-                                <Text color="gray.300" lineHeight="tall" textAlign="center" fontSize={20}>
-                                    Норильский народный театр – это творческая площадка, где каждый может раскрыть свой потенциал и стать частью большого театрального сообщества.
-                                    Мы верим в силу искусства объединять людей и вдохновлять на создание лучшего будущего.
-                                    Наша миссия – создавать качественные спектакли, которые будут затрагивать сердца зрителей и поднимать важные социальные вопросы.
-                                    Мы создаем пространство для самовыражения, где каждый может раскрыть свой творческий потенциал.
-                                    Творчество норильчан для норильчан: вместе мы создаем театр!
+                                <Text color="gray.300" lineHeight="tall" textAlign="center" fontSize={20} whiteSpace="pre-line">
+                                    {getText('about.mission_text', 'Норильский народный театр – это творческая площадка, где каждый может раскрыть свой потенциал и стать частью большого театрального сообщества. Мы верим в силу искусства объединять людей и вдохновлять на создание лучшего будущего. Наша миссия – создавать качественные спектакли, которые будут затрагивать сердца зрителей и поднимать важные социальные вопросы. Мы создаем пространство для самовыражения, где каждый может раскрыть свой творческий потенциал. Творчество норильчан для норильчан: вместе мы создаем театр!')}
                                 </Text>
                             </VStack>
                         </GridItem>

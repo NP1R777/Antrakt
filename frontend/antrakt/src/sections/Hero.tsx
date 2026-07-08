@@ -1,10 +1,12 @@
 import { Box, Heading, Text, Button, Flex } from "@chakra-ui/react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { useSiteContent } from "../contexts/SiteContentContext";
 
 const MotionDiv = motion.div;
 
 export default function Hero() {
     const { scrollY } = useScroll();
+    const { getText } = useSiteContent();
 
     // Параллакс фона
     const backgroundY = useTransform(scrollY, [0, 500], [0, 200]);
@@ -71,11 +73,11 @@ export default function Hero() {
                         textShadow="0 0 10px rgba(255, 255, 255, 0.5)"
                         color="white"
                     >
-                        Норильский народный театр
+                        {getText('hero.title', 'Норильский народный театр')}
                     </Heading>
 
                     <Text fontSize={{ base: "md", md: "xl" }} mb={{ base: 6, md: 10 }} color="white">
-                        Где каждый находит свою сцену и раскрывает творческий потенциал
+                        {getText('hero.subtitle', 'Где каждый находит свою сцену и раскрывает творческий потенциал')}
                     </Text>
                 </MotionDiv>
             </Flex>

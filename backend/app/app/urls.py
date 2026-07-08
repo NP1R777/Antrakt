@@ -87,5 +87,11 @@ urlpatterns = [
     path('reviews-admin/', views.ReviewListAdmin.as_view(), name='reviews-admin'),
     path('upload-image/', views.ImageUploadView.as_view(), name='upload-image'),
     path('delete-image/', views.ImageDeleteView.as_view(), name='delete-image'),
+    path('site-content/', views.SiteContentList.as_view(), name='site-content'),
+    path('birthday-today/', views.BirthdayTodayView.as_view(), name='birthday-today'),
+    path('actor-birthdays/', views.ActorBirthdayList.as_view(), name='actor-birthday-list'),
+    path('actor-birthday<int:id>/', views.ActorBirthdayDetail.as_view(), name='actor-birthday'),
+    path('birthday-greetings/', views.BirthdayGreetingList.as_view(), name='birthday-greeting-list'),
+    path('birthday-greeting<int:id>/', views.BirthdayGreetingDetail.as_view(), name='birthday-greeting'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name="schema-swagger-ui"),
 ]

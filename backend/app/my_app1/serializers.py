@@ -5,7 +5,8 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from .models import (User, Perfomances, Actors, DirectorsTheatre,
                      News, Archive, Achievements,
                      PerformanceShow, PerformanceCast,
-                     Review, ReviewReaction)
+                     Review, ReviewReaction,
+                     SiteContent, BirthdayGreeting, ActorBirthday)
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
@@ -152,12 +153,32 @@ class PerformanceShowSerializer(serializers.ModelSerializer):
 
 
 class PerformanceCastSerializer(serializers.ModelSerializer):
-    actor_name = serializers.CharField(source='actor.name', read_only=True)
+    # actor может быть null (приглашённый актёр «Другой(ая)»); тогда используется actor_name.
+    actor = serializers.PrimaryKeyRelatedField(
+        queryset=Actors.objects.all(), required=False, allow_null=True
+    )
+    actor_name = serializers.CharField(required=False, allow_blank=True)
     actor_image = serializers.URLField(source='actor.image_url', read_only=True)
 
     class Meta:
         model = PerformanceCast
         fields = ['id', 'actor', 'actor_name', 'actor_image', 'role']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Если актёр есть в базе — имя всегда берём из связанной записи.
+        if instance.actor_id:
+            data['actor_name'] = instance.actor.name
+        return data
+
+    def validate(self, attrs):
+        actor = attrs.get('actor')
+        actor_name = (attrs.get('actor_name') or '').strip()
+        if not actor and not actor_name:
+            raise serializers.ValidationError(
+                'Нужно выбрать актёра или указать имя актёра.'
+            )
+        return attrs
 
 
 class PerfomanceSerializer(serializers.ModelSerializer):
@@ -343,3 +364,27 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class ReviewReactionSerializer(serializers.Serializer):
     reaction = serializers.ChoiceField(choices=ReviewReaction.REACTION_CHOICES)
+
+
+class SiteContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SiteContent
+        fields = ['id', 'key', 'value', 'section', 'label', 'multiline', 'order']
+        # Ключи/группы задаются в коде; через API меняется только текст.
+        read_only_fields = ['id', 'key', 'section', 'label', 'multiline', 'order']
+
+
+class BirthdayGreetingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BirthdayGreeting
+        fields = ['id', 'text', 'is_active', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class ActorBirthdaySerializer(serializers.ModelSerializer):
+    actor_name = serializers.CharField(source='actor.name', read_only=True)
+    actor_image = serializers.URLField(source='actor.image_url', read_only=True)
+
+    class Meta:
+        model = ActorBirthday
+        fields = ['id', 'actor', 'actor_name', 'actor_image', 'birth_date']

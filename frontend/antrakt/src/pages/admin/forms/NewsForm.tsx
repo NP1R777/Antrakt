@@ -109,6 +109,16 @@ export const NewsForm: React.FC<{
         }));
     };
 
+    // Добавление сразу нескольких фотографий в галерею
+    const handleAddGalleryImages = (imageUrls: string[]) => {
+        if (!imageUrls?.length) return;
+
+        setCurrentNews(prev => ({
+            ...prev,
+            images_list: [...(prev.images_list || []), ...imageUrls]
+        }));
+    };
+
     // Удаление изображения из галереи
     const handleRemoveGalleryImage = (index: number) => {
         if (!currentNews.images_list) return;
@@ -384,13 +394,15 @@ export const NewsForm: React.FC<{
             <Modal isOpen={isOpen} onClose={onClose} size={{ base: "sm", md: "lg" }}>
                 <ModalOverlay />
                 <ModalContent bg="gray.800" color="white">
-                    <ModalHeader>Добавить фотографию в галерею</ModalHeader>
+                    <ModalHeader>Добавить фотографии в галерею</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
                         <ImageUpload
                             currentImageUrl={null}
-                            onImageUpload={(imageUrl) => {
-                                handleAddGalleryImage(imageUrl);
+                            multiple
+                            onImageUpload={handleAddGalleryImage}
+                            onImagesUpload={(imageUrls) => {
+                                handleAddGalleryImages(imageUrls);
                                 onClose();
                             }}
                             onImageRemove={() => { }}
