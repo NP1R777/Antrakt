@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
     Box,
     Heading,
@@ -11,78 +11,43 @@ import {
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import { FaQuoteLeft, FaStar } from "react-icons/fa";
+import axios from "axios";
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
 
-// Оборачиваем react‑icons в chakra, приводя к any, чтобы избежать TypeScript-ошибок
 const ChakraFaQuoteLeft = chakra(FaQuoteLeft as any);
 const ChakraFaStar = chakra(FaStar as any);
 
-const testimonials = [
-    {
-        id: 1,
-        name: "Мария Иванова",
-        role: "Зритель",
-        avatar: "/images/avatar1.jpg",
-        text: "Посетили спектакль 'Вишнёвый сад' с дочерью. Были потрясены игрой актеров и глубиной проработки персонажей. Обязательно придем еще!",
-        performance: "Вишнёвый сад",
-        rating: 5,
-        date: "15 июня 2025"
-    },
-    {
-        id: 2,
-        name: "Алексей Петров",
-        role: "Студент театрального",
-        avatar: "/images/avatar2.jpg",
-        text: "Учусь актерскому мастерству в этой студии уже полгода. Преподаватели - профессионалы высшего уровня. Особенно рекомендую курс сценической речи!",
-        performance: "Актерские курсы",
-        rating: 5,
-        date: "12 июня 2025"
-    },
-    {
-        id: 3,
-        name: "Ольга Сидорова",
-        role: "Театральный критик",
-        avatar: "/images/avatar3.jpg",
-        text: "Спектакль 'Гамлет' в постановке Норильского народного театра - это свежий взгляд на классику. Современные решения не нарушили дух оригинала, а лишь усилили его.",
-        performance: "Гамлет",
-        rating: 4,
-        date: "10 июня 2025"
-    },
-    {
-        id: 4,
-        name: "Дмитрий Козлов",
-        role: "Родитель",
-        avatar: "/images/avatar4.jpg",
-        text: "Мой сын занимается в детской группе студии. Заметны огромные изменения в его уверенности и коммуникативных навыках. Спасибо педагогам!",
-        performance: "Детская группа",
-        rating: 5,
-        date: "8 июня 2025"
-    },
-    {
-        id: 5,
-        name: "Екатерина Волкова",
-        role: "Актриса",
-        avatar: "/images/avatar5.jpg",
-        text: "Как профессионал, могу сказать - уровень постановок здесь не уступает многим профессиональным театрам. Особенно впечатлили декорации и свет.",
-        performance: "Чайка",
-        rating: 5,
-        date: "5 июня 2025"
-    },
-    {
-        id: 6,
-        name: "Артем Федоров",
-        role: "Режиссер",
-        avatar: "/images/avatar6.jpg",
-        text: "Работал со студией над совместным проектом. Поразила дисциплина и преданность делу всех участников. Настоящие профессионалы!",
-        performance: "Ревизор",
-        rating: 5,
-        date: "1 июня 2025"
-    }
-];
+interface SiteReview {
+    id: number;
+    author_name: string;
+    role?: string;
+    avatar_url?: string;
+    rating: number;
+    text: string;
+    review_date?: string | null;
+}
+
+const formatDate = (iso?: string | null) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+};
 
 export default function Testimonials() {
+    const [reviews, setReviews] = useState<SiteReview[]>([]);
+
+    useEffect(() => {
+        axios.get("http://localhost:8000/site-reviews/")
+            .then(res => setReviews(res.data || []))
+            .catch(() => setReviews([]));
+    }, []);
+
+    // Пока отзывов нет — секцию не показываем.
+    if (!reviews.length) return null;
+
     return (
         <Box py={{ base: 12, md: 20 }} bg="black" position="relative" overflow="hidden" id="testimonials">
             {/* Размытый фоновой круг */}
@@ -127,7 +92,7 @@ export default function Testimonials() {
                     }}
                     gap={8}
                 >
-                    {testimonials.map((t) => (
+                    {reviews.map((t) => (
                         <MotionGridItem
                             key={t.id}
                             initial={{ opacity: 0, y: 30 }}
@@ -144,7 +109,8 @@ export default function Testimonials() {
     );
 }
 
-function TestimonialCard({ testimonial }: { testimonial: any }) {
+function TestimonialCard({ testimonial }: { testimonial: SiteReview }) {
+    const rating = testimonial.rating || 5;
     return (
         <MotionBox
             bg="rgba(30, 30, 30, 0.8)"
@@ -179,7 +145,7 @@ function TestimonialCard({ testimonial }: { testimonial: any }) {
                 {[...Array(5)].map((_, i) => (
                     <ChakraFaStar
                         key={i}
-                        color={i < testimonial.rating ? "#d9d9d9" : "gray.700"}
+                        color={i < rating ? "#d9d9d9" : "gray.700"}
                         mr={1}
                         fontSize="lg"
                     />
@@ -189,8 +155,8 @@ function TestimonialCard({ testimonial }: { testimonial: any }) {
             {/* Аватар и текст */}
             <Flex flex="1" mb={6}>
                 <Avatar
-                    src={testimonial.avatar}
-                    name={testimonial.name}
+                    src={testimonial.avatar_url || undefined}
+                    name={testimonial.author_name}
                     size="lg"
                     mr={4}
                     border="2px solid"
@@ -204,19 +170,18 @@ function TestimonialCard({ testimonial }: { testimonial: any }) {
             {/* Автор */}
             <Box borderTop="1px solid" borderColor="gray.800" pt={4}>
                 <Text color="white" fontWeight="bold" fontSize="lg">
-                    {testimonial.name}
+                    {testimonial.author_name}
                 </Text>
-                <Flex justify="space-between" mt={2}>
-                    <Text color="gray.400" fontSize="sm">
+                {testimonial.role && (
+                    <Text color="gray.400" fontSize="sm" mt={2}>
                         {testimonial.role}
                     </Text>
-                    <Text color="#e2e2e2" fontSize="sm" fontWeight="500">
-                        {testimonial.performance}
+                )}
+                {testimonial.review_date && (
+                    <Text color="gray.600" fontSize="xs" mt={2}>
+                        {formatDate(testimonial.review_date)}
                     </Text>
-                </Flex>
-                <Text color="gray.600" fontSize="xs" mt={2}>
-                    {testimonial.date}
-                </Text>
+                )}
             </Box>
         </MotionBox>
     );

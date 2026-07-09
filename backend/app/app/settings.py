@@ -266,5 +266,12 @@ DEFAULT_FROM_EMAIL = config(
     default=(EMAIL_HOST_USER or 'noreply@antrakt.local')
 )
 
+# --- Парсер отзывов из ВКонтакте ---
+# Сервисный ключ доступа сообщества/приложения ВК (для методов wall.get /
+# wall.getComments). Задаётся через переменные окружения / Secrets.
+VK_ACCESS_TOKEN = config('VK_ACCESS_TOKEN', default='')
+VK_API_VERSION = config('VK_API_VERSION', default='5.199')
+VK_GROUP_DOMAIN = config('VK_GROUP_DOMAIN', default='tc_antrakt')
+
 # Настройки для работы с разными типами БД
 print("Используется PostgreSQL с полной функциональностью")

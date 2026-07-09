@@ -6,6 +6,7 @@ import BirthdaySection from "./sections/BirthdaySection";
 import { SiteContentProvider } from "./contexts/SiteContentContext";
 import SiteContentPageAdmin from "./pages/admin/SiteContentPageAdmin";
 import BirthdaysPageAdmin from "./pages/admin/BirthdaysPageAdmin";
+import SiteReviewsPageAdmin from "./pages/admin/SiteReviewsPageAdmin";
 import UsersPage from "./pages/admin/UsersPage";
 import ReviewsPageAdmin from "./pages/admin/ReviewsPageAdmin";
 import Dashboard from "./pages/admin/Dashboard";
@@ -227,6 +228,17 @@ function App() {
                 <ProtectedAdminRoute>
                   <AdminLayout>
                     <BirthdaysPageAdmin />
+                  </AdminLayout>
+                </ProtectedAdminRoute>
+              }
+            />
+
+            <Route
+              path="/admin/site-reviews"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminLayout>
+                    <SiteReviewsPageAdmin />
                   </AdminLayout>
                 </ProtectedAdminRoute>
               }

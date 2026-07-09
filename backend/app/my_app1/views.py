@@ -8,6 +8,7 @@ from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from django.db.models import Max
 from urllib.parse import urlparse
 from rest_framework.views import APIView
@@ -123,6 +124,54 @@ class ChangePasswordView(APIView):
         user.set_password(serializer.validated_data['new_password'])
         user.save(update_fields=['password'])
         return Response({"success": True, "message": "Пароль изменён"})
+
+
+def _send_new_password_email(email, password):
+    send_mail(
+        subject='Новый пароль — Норильский народный театр',
+        message=(f'Вы запросили восстановление пароля на сайте '
+                 f'«Норильский народный театр».\n\n'
+                 f'Ваш новый пароль: {password}\n\n'
+                 f'Рекомендуем сразу войти и сменить его в личном кабинете.\n'
+                 f'Если вы не запрашивали смену пароля — просто проигнорируйте это письмо.'),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[email],
+        fail_silently=False,
+    )
+
+
+class PasswordResetView(APIView):
+    """Восстановление пароля по email.
+
+    Пользователь указывает почту — на неё отправляется НОВЫЙ сгенерированный
+    пароль (старый знать не нужно). Работает и со страницы входа («Забыли
+    пароль?»), и из личного кабинета. В целях безопасности ответ одинаков вне
+    зависимости от того, существует ли аккаунт с такой почтой.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, format=None):
+        email = (request.data.get('email') or '').strip()
+        generic = Response({
+            "message": "Если аккаунт с такой почтой существует, "
+                       "на неё отправлен новый пароль."
+        })
+        if not email:
+            return Response({"error": "Укажите электронную почту"},
+                            status=status.HTTP_400_BAD_REQUEST)
+        user = User.objects.filter(email__iexact=email).first()
+        if not user:
+            return generic  # не раскрываем, есть ли такой аккаунт
+        new_password = get_random_string(
+            10, allowed_chars='abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789')
+        user.set_password(new_password)
+        user.save(update_fields=['password'])
+        try:
+            _send_new_password_email(user.email, new_password)
+        except Exception as exc:
+            return Response({"error": f"Не удалось отправить письмо: {exc}"},
+                            status=status.HTTP_502_BAD_GATEWAY)
+        return generic
 
 
 def _generate_code():
@@ -1322,3 +1371,77 @@ class BirthdayGreetingDetail(APIView):
         obj = self.get_object(id)
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ---------------------------------------------------------------------------
+# Отзывы для секции на главной («Что говорят о нас»): парсинг из ВК + ручное
+# ---------------------------------------------------------------------------
+
+def _featured_site_reviews(limit=6):
+    """Отзывы для главной: сначала закреплённые админом, затем свежие; максимум limit."""
+    pinned = list(SiteReview.objects.filter(pinned=True, hidden=False)
+                  .order_by('position', '-review_date', '-id'))
+    result = pinned[:limit]
+    if len(result) < limit:
+        rest = (SiteReview.objects.filter(pinned=False, hidden=False)
+                .order_by('-review_date', '-id')[:limit - len(result)])
+        result += list(rest)
+    return result
+
+
+class SiteReviewList(APIView):
+    """Публичный список: до 6 отзывов для секции на главной."""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, format=None):
+        return Response(SiteReviewSerializer(_featured_site_reviews(), many=True).data)
+
+
+class SiteReviewListAdmin(APIView):
+    """Админ: все отзывы + ручное добавление."""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, format=None):
+        items = SiteReview.objects.all().order_by('-review_date', '-id')
+        return Response(SiteReviewSerializer(items, many=True).data)
+
+    def post(self, request, format=None):
+        serializer = SiteReviewSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(source='manual')
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SiteReviewDetail(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get_object(self, id):
+        return get_object_or_404(SiteReview, id=id)
+
+    def put(self, request, id, format=None):
+        obj = self.get_object(id)
+        serializer = SiteReviewSerializer(obj, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id, format=None):
+        obj = self.get_object(id)
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class VkReviewsParseView(APIView):
+    """Запуск парсера отзывов ВК из админ-панели (кнопка «Обновить из ВК»)."""
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, format=None):
+        from .vk_parser import parse_reviews, VkParserError
+        full = str(request.data.get('full', '')).lower() in ('1', 'true', 'yes')
+        try:
+            result = parse_reviews(full=full)
+        except VkParserError as exc:
+            return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"success": True, **result})

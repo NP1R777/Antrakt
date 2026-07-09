@@ -7,6 +7,7 @@ from .models import (User, Perfomances, Actors, DirectorsTheatre,
                      PerformanceShow, PerformanceCast,
                      Review, ReviewReaction,
                      SiteContent, BirthdayGreeting, ActorBirthday,
+                     SiteReview,
                      sync_performance_cast_to_actors)
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -388,6 +389,15 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class ReviewReactionSerializer(serializers.Serializer):
     reaction = serializers.ChoiceField(choices=ReviewReaction.REACTION_CHOICES)
+
+
+class SiteReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SiteReview
+        fields = ['id', 'author_name', 'role', 'avatar_url', 'rating', 'text',
+                  'review_date', 'source_url', 'source', 'pinned', 'hidden',
+                  'position', 'created_at']
+        read_only_fields = ['id', 'source', 'created_at']
 
 
 class SiteContentSerializer(serializers.ModelSerializer):

@@ -231,6 +231,14 @@ class AuthService {
   }
 
   /**
+   * Восстановление пароля: на указанную почту приходит новый пароль.
+   */
+  async requestPasswordReset(email: string): Promise<boolean> {
+    await axios.post(`${API_BASE_URL}/password-reset/`, { email });
+    return true;
+  }
+
+  /**
    * Выход из системы
    */
   async logout(): Promise<void> {

@@ -43,7 +43,7 @@ export default function Navigation() {
     const [authMode, setAuthMode] = useState<"login" | "register">("login");
     const toast = useToast();
     const navigate = useNavigate(); // Добавлен хук useNavigate
-    const { user, isAuthenticated, login, register, verifyRegistration, resendCode, logout } = useAuth();
+    const { user, isAuthenticated, login, register, verifyRegistration, resendCode, resetPassword, logout } = useAuth();
     const { getText } = useSiteContent();
 
     const handleLoginClick = () => {
@@ -374,6 +374,7 @@ export default function Navigation() {
                 onRegister={handleRegister}
                 onVerify={handleVerify}
                 onResend={handleResend}
+                onResetPassword={resetPassword}
             />
         </Box>
     );
