@@ -4,8 +4,9 @@ from my_app1.vk_parser import parse_reviews, VkParserError
 
 class Command(BaseCommand):
     help = ('Парсит отзывы из группы ВК (комментарии к постам-приглашениям). '
-            'Первый запуск — полный проход; далее — первые 20 постов. '
-            'Запускать по расписанию раз в две недели (cron / планировщик).')
+            'Источник: HTML m.vk.com по cookie VK_SESSION_COOKIE, либо VK API по '
+            'VK_ACCESS_TOKEN (что задано). Первый запуск — полный проход; далее — '
+            'первые 20 постов. Запускать по расписанию раз в две недели (cron).')
 
     def add_arguments(self, parser):
         parser.add_argument(

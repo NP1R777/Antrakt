@@ -267,8 +267,11 @@ DEFAULT_FROM_EMAIL = config(
 )
 
 # --- Парсер отзывов из ВКонтакте ---
-# Сервисный ключ доступа сообщества/приложения ВК (для методов wall.get /
-# wall.getComments). Задаётся через переменные окружения / Secrets.
+# Способ 1 (HTML): cookie `remixsid` браузера, где вы вошли во ВКонтакте
+# (парсинг m.vk.com; НЕ требует прав администратора группы и токена).
+VK_SESSION_COOKIE = config('VK_SESSION_COOKIE', default='')
+# Способ 2 (API): сервисный ключ доступа вашего приложения dev.vk.com
+# (тоже НЕ требует прав администратора группы; надёжнее HTML).
 VK_ACCESS_TOKEN = config('VK_ACCESS_TOKEN', default='')
 VK_API_VERSION = config('VK_API_VERSION', default='5.199')
 VK_GROUP_DOMAIN = config('VK_GROUP_DOMAIN', default='tc_antrakt')
