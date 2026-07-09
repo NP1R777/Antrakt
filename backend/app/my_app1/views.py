@@ -910,8 +910,14 @@ class ImageUploadView(APIView):
             }
         )
 
-        # Публичный URL строим из настроенного endpoint MinIO.
-        public_url = f"{settings.AWS_S3_ENDPOINT_URL.rstrip('/')}/{bucket}/{object_key}"
+        # Публичный URL строим из ПУБЛИЧНОГО адреса хранилища (MEDIA_URL),
+        # а не из внутреннего endpoint (например, http://minio:9000), чтобы
+        # ссылка была доступна из браузера и в продакшене.
+        public_base = getattr(settings, 'MEDIA_URL', '')
+        if public_base and '//' in public_base:
+            public_url = f"{public_base.rstrip('/')}/{object_key}"
+        else:
+            public_url = f"{settings.AWS_S3_ENDPOINT_URL.rstrip('/')}/{bucket}/{object_key}"
         return Response({"success": True, "image_url": public_url, "message": "Изображение загружено"})
 
 

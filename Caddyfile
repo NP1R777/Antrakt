@@ -1,0 +1,19 @@
+# Reverse-proxy с автоматическим HTTPS (Let's Encrypt).
+# Домены берутся из переменной окружения DOMAIN (см. .env.prod).
+# Требуется: публичный домен, A-записи domain / api.domain / s3.domain на сервер,
+# открытые порты 80 и 443.
+
+{$DOMAIN} {
+	encode gzip
+	reverse_proxy frontend:80
+}
+
+api.{$DOMAIN} {
+	encode gzip
+	reverse_proxy backend:8000
+}
+
+# Публичный доступ к изображениям из MinIO.
+s3.{$DOMAIN} {
+	reverse_proxy minio:9000
+}
