@@ -260,7 +260,7 @@ EMAIL_PORT = config('EMAIL_PORT', default=465, cast=int)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=True, cast=bool)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='vloscddlwlypenvr')
 DEFAULT_FROM_EMAIL = config(
     'DEFAULT_FROM_EMAIL',
     default=(EMAIL_HOST_USER or 'noreply@antrakt.local')
@@ -269,15 +269,12 @@ DEFAULT_FROM_EMAIL = config(
 # --- Парсер отзывов из ВКонтакте ---
 # Способ 1 (HTML): cookie `remixsid` браузера, где вы вошли во ВКонтакте
 # (парсинг m.vk.com; НЕ требует прав администратора группы и токена).
-VK_SESSION_COOKIE = config('VK_SESSION_COOKIE', default='vk1.a.DWcPRTYkLJyoBBbIGyTKRGycPLZbmZWGlaCbUqFB571knz0NeCvUbvtOeB41hgLk7spXNEqqqF3UnpkrBfrXklDjfADZwj_12CgZ-RA3Un9w2RJSXTsnc7uLnRa4bTHuGGl0FDUMuz2YV7v14s_g4xeSLoY-F_OYHO5DEwGoAqNypH9LthEA8amjCYzt2G-C')
+VK_SESSION_COOKIE = config('VK_SESSION_COOKIE', default='1_LX9C4u10fwMDAqg8f6dm7NHlVlyGGaTZQsBCJZ4tOjFrYEWx0KlMQKWGgB0dQJExPq73wsylVBUiXLmHLhuUvg')
 # Способ 2 (API): сервисный ключ доступа вашего приложения dev.vk.com
 # (тоже НЕ требует прав администратора группы; надёжнее HTML).
-VK_ACCESS_TOKEN = config('VK_ACCESS_TOKEN', default='')
+VK_ACCESS_TOKEN = config('VK_ACCESS_TOKEN', default='bf4d5ac1bf4d5ac1bf4d5ac149bc0f6151bbf4dbf4d5ac1d5029410521aaf8cc0d6f6ea')
 VK_API_VERSION = config('VK_API_VERSION', default='5.199')
 VK_GROUP_DOMAIN = config('VK_GROUP_DOMAIN', default='tc_antrakt')
-# Проверка SSL-сертификата при запросах к ВК. Используется бандл certifi.
-# Отключать (False) только как временный обходной путь при проблемах с CA.
-VK_SSL_VERIFY = config('VK_SSL_VERIFY', default=True, cast=bool)
 
 # Настройки для работы с разными типами БД
 print("Используется PostgreSQL с полной функциональностью")
