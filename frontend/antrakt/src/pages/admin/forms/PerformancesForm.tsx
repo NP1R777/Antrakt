@@ -75,6 +75,7 @@ interface PerformanceShow {
 interface CastMember {
     id?: number;
     actor: number | null; // id актёра (null — приглашённый актёр не из базы)
+    director?: number | null; // id режиссёра, если роль исполняет режиссёр
     actor_name?: string;
     role: string;
 }
@@ -176,6 +177,7 @@ export const PerformanceForm: React.FC<{
             cast: (data.cast || []).map(c => ({
                 id: c.id,
                 actor: c.actor,
+                director: (c as any).director ?? null,
                 actor_name: c.actor_name,
                 role: c.role
             }))
@@ -219,6 +221,9 @@ export const PerformanceForm: React.FC<{
     const actorNameById = (id: number) =>
         actorOptions.find(a => a.id === id)?.name || `Актёр #${id}`;
 
+    const directorNameById = (id: number) =>
+        directorOptions.find(d => d.id === id)?.name || `Режиссёр #${id}`;
+
     const handleAddShow = () => {
         if (!newShow.show_datetime) return;
         setCurrentPerformance(prev => ({
@@ -245,10 +250,14 @@ export const PerformanceForm: React.FC<{
         if (newCast.actor === OTHER_ACTOR) {
             const customName = newCast.actor_name.trim();
             if (!customName) return; // имя приглашённого актёра обязательно
-            member = { actor: null, actor_name: customName, role: newCast.role.trim() };
+            member = { actor: null, director: null, actor_name: customName, role: newCast.role.trim() };
+        } else if (newCast.actor.startsWith('d:')) {
+            const dirId = parseInt(newCast.actor.slice(2), 10);
+            member = { actor: null, director: dirId, actor_name: directorNameById(dirId), role: newCast.role.trim() };
         } else {
-            const actorId = parseInt(newCast.actor, 10);
-            member = { actor: actorId, actor_name: actorNameById(actorId), role: newCast.role.trim() };
+            // формат 'a:<id>' либо просто '<id>' (совместимость)
+            const actorId = parseInt(newCast.actor.replace(/^a:/, ''), 10);
+            member = { actor: actorId, director: null, actor_name: actorNameById(actorId), role: newCast.role.trim() };
         }
         setCurrentPerformance(prev => ({
             ...prev,
@@ -835,7 +844,7 @@ export const PerformanceForm: React.FC<{
                                 />
                             ) : (
                                 <Select
-                                    placeholder="Выберите актёра"
+                                    placeholder="Выберите актёра или режиссёра"
                                     value={newCast.actor}
                                     onChange={(e) => setNewCast(prev => ({ ...prev, actor: e.target.value, actor_name: '' }))}
                                     focusBorderColor={accentColor}
@@ -843,11 +852,20 @@ export const PerformanceForm: React.FC<{
                                     borderColor="#444444"
                                     _hover={{ borderColor: '#555555' }}
                                 >
-                                    {actorOptions.map(a => (
-                                        <option key={a.id} value={a.id} style={{ backgroundColor: '#333333', color: 'white' }}>
-                                            {a.name}
-                                        </option>
-                                    ))}
+                                    <optgroup label="Актёры" style={{ backgroundColor: '#333333', color: 'white' }}>
+                                        {actorOptions.map(a => (
+                                            <option key={`a${a.id}`} value={`a:${a.id}`} style={{ backgroundColor: '#333333', color: 'white' }}>
+                                                {a.name}
+                                            </option>
+                                        ))}
+                                    </optgroup>
+                                    <optgroup label="Режиссёры" style={{ backgroundColor: '#333333', color: 'white' }}>
+                                        {directorOptions.map(d => (
+                                            <option key={`d${d.id}`} value={`d:${d.id}`} style={{ backgroundColor: '#333333', color: 'white' }}>
+                                                {d.name}
+                                            </option>
+                                        ))}
+                                    </optgroup>
                                     <option value={OTHER_ACTOR} style={{ backgroundColor: '#333333', color: 'white' }}>
                                         Другой(ая)…
                                     </option>
