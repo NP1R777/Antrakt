@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import {
     Box,
+    Container,
     Heading,
     Text,
     VStack,
@@ -95,7 +96,7 @@ const SiteContentPageAdmin: React.FC = () => {
     }
 
     return (
-        <Box>
+        <Container maxW="container.xl" py={8}>
             <Flex justify="space-between" align="center" mb={2} wrap="wrap" gap={4}>
                 <Box>
                     <Heading size="lg" color="white">Тексты сайта</Heading>
@@ -166,7 +167,7 @@ const SiteContentPageAdmin: React.FC = () => {
                     <Footer />
                 </SiteContentContext.Provider>
             </Box>
-        </Box>
+        </Container>
     );
 };
 

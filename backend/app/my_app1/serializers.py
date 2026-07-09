@@ -6,7 +6,8 @@ from .models import (User, Perfomances, Actors, DirectorsTheatre,
                      News, Archive, Achievements,
                      PerformanceShow, PerformanceCast,
                      Review, ReviewReaction,
-                     SiteContent, BirthdayGreeting, ActorBirthday)
+                     SiteContent, BirthdayGreeting, ActorBirthday,
+                     sync_performance_cast_to_actors)
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
@@ -153,30 +154,44 @@ class PerformanceShowSerializer(serializers.ModelSerializer):
 
 
 class PerformanceCastSerializer(serializers.ModelSerializer):
-    # actor может быть null (приглашённый актёр «Другой(ая)»); тогда используется actor_name.
+    # Роль может исполнять: актёр из базы, режиссёр из базы либо приглашённый
+    # актёр «Другой(ая)» (только имя, actor_name).
     actor = serializers.PrimaryKeyRelatedField(
         queryset=Actors.objects.all(), required=False, allow_null=True
     )
+    director = serializers.PrimaryKeyRelatedField(
+        queryset=DirectorsTheatre.objects.all(), required=False, allow_null=True
+    )
     actor_name = serializers.CharField(required=False, allow_blank=True)
-    actor_image = serializers.URLField(source='actor.image_url', read_only=True)
+    actor_image = serializers.SerializerMethodField()
 
     class Meta:
         model = PerformanceCast
-        fields = ['id', 'actor', 'actor_name', 'actor_image', 'role']
+        fields = ['id', 'actor', 'director', 'actor_name', 'actor_image', 'role']
+
+    def get_actor_image(self, obj):
+        if obj.actor_id:
+            return obj.actor.image_url
+        if obj.director_id:
+            return obj.director.image_url
+        return None
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        # Если актёр есть в базе — имя всегда берём из связанной записи.
+        # Имя показываем из связанной записи (актёр/режиссёр), иначе — свободный текст.
         if instance.actor_id:
             data['actor_name'] = instance.actor.name
+        elif instance.director_id:
+            data['actor_name'] = instance.director.name
         return data
 
     def validate(self, attrs):
         actor = attrs.get('actor')
+        director = attrs.get('director')
         actor_name = (attrs.get('actor_name') or '').strip()
-        if not actor and not actor_name:
+        if not actor and not director and not actor_name:
             raise serializers.ValidationError(
-                'Нужно выбрать актёра или указать имя актёра.'
+                'Нужно выбрать актёра/режиссёра или указать имя.'
             )
         return attrs
 
@@ -223,12 +238,20 @@ class PerfomanceSerializer(serializers.ModelSerializer):
             performance = Perfomances.objects.create(**validated_data)
             self._sync_shows(performance, shows_data)
             self._sync_cast(performance, cast_data)
+            # Синхронизируем состав с карточками актёров (для afisha=False).
+            sync_performance_cast_to_actors(performance)
         return performance
 
     def update(self, instance, validated_data):
         shows_data = validated_data.pop('shows', None)
         cast_data = validated_data.pop('cast_members', None)
         with transaction.atomic():
+            # Актёры, состоявшие в спектакле до изменения, — чтобы корректно
+            # убрать роль у тех, кого удалили из состава.
+            previous_actor_ids = list(
+                instance.cast_members.filter(actor__isnull=False)
+                .values_list('actor_id', flat=True)
+            )
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
             instance.save()
@@ -239,6 +262,7 @@ class PerfomanceSerializer(serializers.ModelSerializer):
             if cast_data is not None:
                 instance.cast_members.all().delete()
                 self._sync_cast(instance, cast_data)
+            sync_performance_cast_to_actors(instance, previous_actor_ids)
         return instance
 
 
@@ -382,9 +406,30 @@ class BirthdayGreetingSerializer(serializers.ModelSerializer):
 
 
 class ActorBirthdaySerializer(serializers.ModelSerializer):
-    actor_name = serializers.CharField(source='actor.name', read_only=True)
-    actor_image = serializers.URLField(source='actor.image_url', read_only=True)
+    # Именинником может быть актёр или режиссёр.
+    actor = serializers.PrimaryKeyRelatedField(
+        queryset=Actors.objects.all(), required=False, allow_null=True
+    )
+    director = serializers.PrimaryKeyRelatedField(
+        queryset=DirectorsTheatre.objects.all(), required=False, allow_null=True
+    )
+    person_name = serializers.CharField(read_only=True)
+    person_image = serializers.CharField(read_only=True)
+    # Обратная совместимость: actor_name/actor_image = имя/фото именинника.
+    actor_name = serializers.CharField(source='person_name', read_only=True)
+    actor_image = serializers.CharField(source='person_image', read_only=True)
 
     class Meta:
         model = ActorBirthday
-        fields = ['id', 'actor', 'actor_name', 'actor_image', 'birth_date']
+        fields = ['id', 'actor', 'director', 'person_name', 'person_image',
+                  'actor_name', 'actor_image', 'birth_date']
+
+    def validate(self, attrs):
+        # На create — ровно один из actor/director; на partial update допускаем отсутствие.
+        actor = attrs.get('actor', getattr(self.instance, 'actor', None))
+        director = attrs.get('director', getattr(self.instance, 'director', None))
+        if bool(actor) == bool(director):
+            raise serializers.ValidationError(
+                'Укажите ровно одного именинника: актёра ИЛИ режиссёра.'
+            )
+        return attrs

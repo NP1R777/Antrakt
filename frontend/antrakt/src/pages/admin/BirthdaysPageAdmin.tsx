@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
     Box,
+    Container,
     Heading,
     Text,
     VStack,
@@ -35,6 +36,7 @@ interface Greeting { id: number; text: string; is_active: boolean; }
 
 const BirthdaysPageAdmin: React.FC = () => {
     const [actors, setActors] = useState<ActorOption[]>([]);
+    const [directors, setDirectors] = useState<ActorOption[]>([]);
     const [birthdays, setBirthdays] = useState<Birthday[]>([]);
     const [greetings, setGreetings] = useState<Greeting[]>([]);
     const [loading, setLoading] = useState(true);
@@ -48,10 +50,12 @@ const BirthdaysPageAdmin: React.FC = () => {
         setLoading(true);
         Promise.all([
             axios.get(`${API}/actors/`),
+            axios.get(`${API}/directors/`),
             axios.get(`${API}/actor-birthdays/`),
             axios.get(`${API}/birthday-greetings/`),
-        ]).then(([a, b, g]) => {
+        ]).then(([a, d, b, g]) => {
             setActors((a.data || []).map((x: any) => ({ id: x.id, name: x.name, image_url: x.image_url })));
+            setDirectors((d.data || []).map((x: any) => ({ id: x.id, name: x.name, image_url: x.image_url })));
             setBirthdays(b.data || []);
             setGreetings(g.data || []);
         }).catch(() => {
@@ -66,16 +70,25 @@ const BirthdaysPageAdmin: React.FC = () => {
 
     const addBirthday = async () => {
         if (!newActor || !newDate) {
-            toast({ title: 'Выберите актёра и дату', status: 'warning', duration: 2500, isClosable: true });
+            toast({ title: 'Выберите человека и дату', status: 'warning', duration: 2500, isClosable: true });
             return;
         }
+        // Значение в формате 'a:<id>' (актёр) либо 'd:<id>' (режиссёр).
+        const payload: any = { birth_date: newDate };
+        if (newActor.startsWith('d:')) {
+            payload.director = parseInt(newActor.slice(2), 10);
+        } else {
+            payload.actor = parseInt(newActor.replace(/^a:/, ''), 10);
+        }
         try {
-            await axios.post(`${API}/actor-birthdays/`, { actor: parseInt(newActor, 10), birth_date: newDate });
+            await axios.post(`${API}/actor-birthdays/`, payload);
             setNewActor(''); setNewDate('');
             toast({ title: 'День рождения добавлен', status: 'success', duration: 2000, isClosable: true });
             loadAll();
         } catch (e: any) {
-            const msg = e?.response?.data?.actor?.[0] || 'Не удалось добавить (возможно, у актёра уже есть запись)';
+            const data = e?.response?.data;
+            const msg = (data?.actor?.[0] || data?.director?.[0] || data?.non_field_errors?.[0]
+                || 'Не удалось добавить (возможно, запись уже есть)');
             toast({ title: msg, status: 'error', duration: 3500, isClosable: true });
         }
     };
@@ -134,32 +147,41 @@ const BirthdaysPageAdmin: React.FC = () => {
     }
 
     return (
-        <Box>
+        <Container maxW="container.xl" py={8}>
             <Box mb={2}>
                 <Heading size="lg" color="white">Дни рождения</Heading>
                 <Text color="gray.400" fontSize="sm">
-                    В день рождения актёра на главной странице автоматически появляется поздравительная секция.
+                    В день рождения актёра или режиссёра на главной странице автоматически появляется поздравительная секция.
                 </Text>
             </Box>
             <Divider my={6} borderColor="#2a2a2a" />
 
-            {/* Дни рождения актёров */}
+            {/* Дни рождения актёров и режиссёров */}
             <Box bg="#141414" borderRadius="xl" border="1px solid #2a2a2a" p={6} mb={8}>
-                <Heading size="md" color={primaryColor} mb={4}>Дни рождения актёров</Heading>
+                <Heading size="md" color={primaryColor} mb={4}>Дни рождения актёров и режиссёров</Heading>
 
                 <HStack mb={5} align="flex-end" wrap="wrap" spacing={3}>
                     <Select
-                        placeholder="Выберите актёра"
+                        placeholder="Выберите человека"
                         value={newActor}
                         onChange={(e) => setNewActor(e.target.value)}
                         bg="#0f0f0f" borderColor="#333333" _hover={{ borderColor: '#444444' }}
                         maxW="320px"
                     >
-                        {actors.map(a => (
-                            <option key={a.id} value={a.id} style={{ backgroundColor: '#0f0f0f', color: 'white' }}>
-                                {a.name}
-                            </option>
-                        ))}
+                        <optgroup label="Актёры" style={{ backgroundColor: '#0f0f0f', color: 'white' }}>
+                            {actors.map(a => (
+                                <option key={`a${a.id}`} value={`a:${a.id}`} style={{ backgroundColor: '#0f0f0f', color: 'white' }}>
+                                    {a.name}
+                                </option>
+                            ))}
+                        </optgroup>
+                        <optgroup label="Режиссёры" style={{ backgroundColor: '#0f0f0f', color: 'white' }}>
+                            {directors.map(d => (
+                                <option key={`d${d.id}`} value={`d:${d.id}`} style={{ backgroundColor: '#0f0f0f', color: 'white' }}>
+                                    {d.name}
+                                </option>
+                            ))}
+                        </optgroup>
                     </Select>
                     <Input
                         type="date"
@@ -245,7 +267,7 @@ const BirthdaysPageAdmin: React.FC = () => {
                     Добавить поздравление
                 </Button>
             </Box>
-        </Box>
+        </Container>
     );
 };
 
