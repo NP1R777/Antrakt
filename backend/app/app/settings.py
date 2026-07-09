@@ -269,7 +269,7 @@ DEFAULT_FROM_EMAIL = config(
 # --- Парсер отзывов из ВКонтакте ---
 # Способ 1 (HTML): cookie `remixsid` браузера, где вы вошли во ВКонтакте
 # (парсинг m.vk.com; НЕ требует прав администратора группы и токена).
-VK_SESSION_COOKIE = config('VK_SESSION_COOKIE', default='')
+VK_SESSION_COOKIE = config('VK_SESSION_COOKIE', default='vk1.a.DWcPRTYkLJyoBBbIGyTKRGycPLZbmZWGlaCbUqFB571knz0NeCvUbvtOeB41hgLk7spXNEqqqF3UnpkrBfrXklDjfADZwj_12CgZ-RA3Un9w2RJSXTsnc7uLnRa4bTHuGGl0FDUMuz2YV7v14s_g4xeSLoY-F_OYHO5DEwGoAqNypH9LthEA8amjCYzt2G-C')
 # Способ 2 (API): сервисный ключ доступа вашего приложения dev.vk.com
 # (тоже НЕ требует прав администратора группы; надёжнее HTML).
 VK_ACCESS_TOKEN = config('VK_ACCESS_TOKEN', default='')
