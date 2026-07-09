@@ -20,6 +20,7 @@ import { chakra } from '@chakra-ui/react';
 import { FaTimes, FaSave } from 'react-icons/fa';
 import axios from 'axios';
 import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
+import { API_URL } from '../../../config';
 
 const CFaTimes = chakra(FaTimes as any);
 const CFaSave = chakra(FaSave as any);
@@ -128,9 +129,9 @@ export const UserForm: React.FC<UserFormProps> = ({
             }
 
             if (initialData) {
-                await axios.put(`http://localhost:8000/user${initialData.id}/`, userData);
+                await axios.put(`${API_URL}/user${initialData.id}/`, userData);
             } else {
-                await axios.post('http://localhost:8000/users/', userData);
+                await axios.post(`${API_URL}/users/`, userData);
             }
 
             onSuccess();

@@ -39,6 +39,7 @@ import axios from 'axios';
 import { chakra, useToast } from '@chakra-ui/react';
 import ImageUpload from '../../../components/ImageUpload';
 import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
+import { API_URL } from '../../../config';
 
 const MotionButton = motion(Button);
 const MotionBox = motion(Box);
@@ -135,7 +136,7 @@ export const NewsForm: React.FC<{
     const handleCreateNews = async () => {
         setIsSubmitting(true);
         try {
-            await axios.post('http://localhost:8000/news/', currentNews);
+            await axios.post(`${API_URL}/news/`, currentNews);
             toast({
                 title: 'Успешно',
                 description: 'Новость создана',
@@ -163,7 +164,7 @@ export const NewsForm: React.FC<{
 
         setIsSubmitting(true);
         try {
-            await axios.put(`http://localhost:8000/news${currentNews.id}/`, currentNews);
+            await axios.put(`${API_URL}/news${currentNews.id}/`, currentNews);
             toast({
                 title: 'Успешно',
                 description: 'Новость обновлена',

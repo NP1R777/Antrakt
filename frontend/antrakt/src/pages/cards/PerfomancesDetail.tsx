@@ -31,6 +31,7 @@ import Footer from "../../components/Footer";
 import ReviewsSection from "../../components/ReviewsSection";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaUserTie, FaClock, FaUsers, FaExpand } from "react-icons/fa";
+import { API_URL } from '../../config';
 
 // Стилизованные компоненты для иконок
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
@@ -79,7 +80,7 @@ const PerformanceDetail: React.FC = () => {
         const fetchPerformance = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`http://localhost:8000/perfomance${id}`);
+                const response = await axios.get(`${API_URL}/perfomance${id}`);
                 setPerformance({
                     ...response.data,
                     production_team: response.data.production_team || [],

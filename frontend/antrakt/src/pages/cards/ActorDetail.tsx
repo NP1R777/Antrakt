@@ -25,6 +25,7 @@ import ReviewsSection from "../../components/ReviewsSection";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaQuoteLeft, FaUserTie, FaBook, FaUser, FaPaintBrush, FaVideo, FaMusic } from "react-icons/fa";
 import { yearDeclension, performanceDeclension } from "../../utils/declension";
+import { API_URL } from '../../config';
 
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
 const CFaFilm = chakra(FaFilm as any);
@@ -78,8 +79,8 @@ const ActorDetail: React.FC = () => {
             try {
                 setLoading(true);
                 const [actorResponse, performancesResponse] = await Promise.all([
-                    axios.get(`http://localhost:8000/actor${id}`),
-                    axios.get(`http://localhost:8000/perfomances/`)
+                    axios.get(`${API_URL}/actor${id}`),
+                    axios.get(`${API_URL}/perfomances/`)
                 ]);
 
                 setActor({

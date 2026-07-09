@@ -41,6 +41,7 @@ import {
 import axios from 'axios';
 import { ArchiveForm } from './forms/ArchiveForm';
 import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
+import { API_URL } from '../../config';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -86,7 +87,7 @@ const ArchivePageAdmin: React.FC = () => {
 
     const fetchArchives = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/archive-admin/');
+            const response = await axios.get(`${API_URL}/archive-admin/`);
             setArchives(response.data);
             setIsLoading(false);
         } catch (error) {
@@ -105,7 +106,7 @@ const ArchivePageAdmin: React.FC = () => {
     const handleHardDelete = async () => {
         if (!deleteId) return;
         try {
-            await axios.delete(`http://localhost:8000/archive${deleteId}/?hard=1`);
+            await axios.delete(`${API_URL}/archive${deleteId}/?hard=1`);
             setArchives(archives.filter(a => a.id !== deleteId));
             toast({ title: 'Удалено навсегда', description: 'Запись архива полностью удалена из базы', status: 'info', duration: 2000, isClosable: true });
         } catch (error) {
@@ -121,7 +122,7 @@ const ArchivePageAdmin: React.FC = () => {
         if (!deleteId) return;
 
         try {
-            await axios.put(`http://localhost:8000/archive${deleteId}/`, {
+            await axios.put(`${API_URL}/archive${deleteId}/`, {
                 deleted_at: new Date().toISOString()
             });
             setArchives(archives.map(archive =>
@@ -151,7 +152,7 @@ const ArchivePageAdmin: React.FC = () => {
 
     const handleRestoreArchive = async (id: number) => {
         try {
-            await axios.put(`http://localhost:8000/archive${id}/`, {
+            await axios.put(`${API_URL}/archive${id}/`, {
                 deleted_at: null
             });
             setArchives(archives.map(archive =>

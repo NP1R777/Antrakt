@@ -47,6 +47,7 @@ import axios from 'axios';
 import { chakra, useToast } from '@chakra-ui/react';
 import ImageUpload from '../../../components/ImageUpload';
 import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
+import { API_URL } from '../../../config';
 
 const MotionButton = motion(Button);
 const MotionTag = motion(Tag);
@@ -206,12 +207,12 @@ export const PerformanceForm: React.FC<{
 
     useEffect(() => {
         // active=1 — только действующие актёры (выбывшие в списке состава не нужны).
-        axios.get('http://localhost:8000/actors/?active=1')
+        axios.get(`${API_URL}/actors/?active=1`)
             .then(res => setActorOptions(
                 (res.data || []).map((a: any) => ({ id: a.id, name: a.name }))
             ))
             .catch(err => console.error('Не удалось загрузить актёров:', err));
-        axios.get('http://localhost:8000/directors/')
+        axios.get(`${API_URL}/directors/`)
             .then(res => setDirectorOptions(
                 (res.data || []).map((d: any) => ({ id: d.id, name: d.name }))
             ))
@@ -371,7 +372,7 @@ export const PerformanceForm: React.FC<{
     const handleCreatePerformance = async () => {
         setIsSubmitting(true);
         try {
-            await axios.post('http://localhost:8000/perfomances/', currentPerformance);
+            await axios.post(`${API_URL}/perfomances/`, currentPerformance);
             toast({
                 title: 'Успех!',
                 description: 'Спектакль успешно добавлен',
@@ -399,7 +400,7 @@ export const PerformanceForm: React.FC<{
 
         setIsSubmitting(true);
         try {
-            await axios.put(`http://localhost:8000/perfomance${currentPerformance.id}/`, currentPerformance);
+            await axios.put(`${API_URL}/perfomance${currentPerformance.id}/`, currentPerformance);
             toast({
                 title: 'Успех!',
                 description: 'Спектакль успешно обновлён',

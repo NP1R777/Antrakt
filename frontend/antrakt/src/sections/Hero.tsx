@@ -1,6 +1,7 @@
 import { Box, Heading, Text, Button, Flex } from "@chakra-ui/react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useSiteContent } from "../contexts/SiteContentContext";
+import { MEDIA_URL } from '../config';
 
 const MotionDiv = motion.div;
 
@@ -25,7 +26,7 @@ export default function Hero() {
                     left: 0,
                     width: "100%",
                     height: "100%",
-                    backgroundImage: "url('http://localhost:9000/antrakt-images/Общая.png')",
+                    backgroundImage: "url(`${MEDIA_URL}/antrakt-images/Общая.png`)",
                     backgroundSize: "contain",
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",

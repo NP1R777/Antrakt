@@ -41,6 +41,7 @@ import {
 import axios from 'axios';
 import { AchievementForm } from './forms/AchievementForm';
 import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
+import { API_URL } from '../../config';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -81,7 +82,7 @@ const AchievementsPageAdmin: React.FC = () => {
 
     const fetchAchievements = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/achievements-admin/');
+            const response = await axios.get(`${API_URL}/achievements-admin/`);
             setAchievements(response.data);
         } catch (error) {
             console.error('Ошибка при загрузке достижений:', error);
@@ -115,7 +116,7 @@ const AchievementsPageAdmin: React.FC = () => {
     const handleHardDelete = async (id: number) => {
         if (!id) return;
         try {
-            await axios.delete(`http://localhost:8000/achievement${id}/?hard=1`);
+            await axios.delete(`${API_URL}/achievement${id}/?hard=1`);
             setAchievements(prev => prev.filter(a => a.id !== id));
             toast({ title: 'Удалено навсегда', description: 'Достижение полностью удалено из базы', status: 'info', duration: 2000, isClosable: true });
         } catch (error) {
@@ -131,7 +132,7 @@ const AchievementsPageAdmin: React.FC = () => {
         if (!id) return;
 
         try {
-            await axios.put(`http://localhost:8000/achievement${id}/`, {
+            await axios.put(`${API_URL}/achievement${id}/`, {
                 deleted_at: new Date().toISOString()
             });
             toast({
@@ -168,7 +169,7 @@ const AchievementsPageAdmin: React.FC = () => {
         if (!id) return;
 
         try {
-            await axios.put(`http://localhost:8000/achievement${id}/`, {
+            await axios.put(`${API_URL}/achievement${id}/`, {
                 deleted_at: null
             });
             toast({

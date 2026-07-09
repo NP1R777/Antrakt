@@ -37,6 +37,7 @@ import axios from 'axios';
 import ImageUpload from '../components/ImageUpload';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
+import { API_URL } from '../config';
 
 const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
@@ -215,7 +216,7 @@ const ChangePasswordForm: React.FC<{
         }
         setIsSubmitting(true);
         try {
-            await axios.post('http://localhost:8000/password-reset/', { email: email.trim() });
+            await axios.post(`${API_URL}/password-reset/`, { email: email.trim() });
             toast({
                 title: 'Проверьте почту',
                 description: 'Новый пароль отправлен на указанную почту. Войдите с ним и при желании смените в кабинете.',
@@ -292,7 +293,7 @@ export default function ProfilePage() {
     useEffect(() => {
         const fetchMyReviews = async () => {
             try {
-                const res = await axios.get('http://localhost:8000/my/reviews/');
+                const res = await axios.get(`${API_URL}/my/reviews/`);
                 setMyReviews(res.data || []);
             } catch (error) {
                 console.error('Ошибка при загрузке отзывов:', error);
@@ -307,7 +308,7 @@ export default function ProfilePage() {
         const fetchProfile = async () => {
             try {
                 setIsLoading(true);
-                const response = await axios.get(`http://localhost:8000/user${user?.id}/`);
+                const response = await axios.get(`${API_URL}/user${user?.id}/`);
                 setProfile(response.data);
                 setIsLoading(false);
             } catch (error) {
@@ -341,7 +342,7 @@ export default function ProfilePage() {
                 profile_photo: data.profile_photo || profile.profile_photo,
             };
 
-            await axios.put(`http://localhost:8000/user${profile.id}/`, updatedData);
+            await axios.put(`${API_URL}/user${profile.id}/`, updatedData);
 
             updateUser({
                 ...user!,
@@ -359,7 +360,7 @@ export default function ProfilePage() {
 
     const handleDeleteAccount = async () => {
         try {
-            await axios.delete(`http://localhost:8000/user${profile?.id}/`);
+            await axios.delete(`${API_URL}/user${profile?.id}/`);
             logout();
             navigate('/');
             toast({

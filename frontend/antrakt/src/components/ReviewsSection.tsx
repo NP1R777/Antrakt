@@ -27,8 +27,9 @@ import {
 import { FaTrash, FaExclamationTriangle } from 'react-icons/fa';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import { API_URL } from '../config';
 
-const API = 'http://localhost:8000';
+const API = `${API_URL}`;
 const primaryColor = '#f2f2f2';
 
 const CFaTrash = chakra(FaTrash as any);

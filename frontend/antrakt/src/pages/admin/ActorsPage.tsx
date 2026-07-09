@@ -39,6 +39,7 @@ import {
 import axios from 'axios';
 import { ActorForm } from './forms/ActorForm';
 import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
+import { API_URL } from '../../config';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -89,7 +90,7 @@ const ActorsPage: React.FC = () => {
 
     const fetchActors = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/actors-admin/');
+            const response = await axios.get(`${API_URL}/actors-admin/`);
             setActors(response.data);
             setIsLoading(false);
         } catch (error) {
@@ -109,7 +110,7 @@ const ActorsPage: React.FC = () => {
         if (!id) return;
 
         try {
-            await axios.put(`http://localhost:8000/actor${id}/`, {
+            await axios.put(`${API_URL}/actor${id}/`, {
                 deleted_at: new Date().toISOString()
             });
             toast({
@@ -145,7 +146,7 @@ const ActorsPage: React.FC = () => {
     const handleHardDeleteActor = async (id: number) => {
         if (!id) return;
         try {
-            await axios.delete(`http://localhost:8000/actor${id}/?hard=1`);
+            await axios.delete(`${API_URL}/actor${id}/?hard=1`);
             toast({
                 title: 'Удалено навсегда',
                 description: 'Актёр полностью удалён из базы',
@@ -173,7 +174,7 @@ const ActorsPage: React.FC = () => {
         if (!id) return;
 
         try {
-            await axios.put(`http://localhost:8000/actor${id}/`, {
+            await axios.put(`${API_URL}/actor${id}/`, {
                 deleted_at: null
             });
             toast({

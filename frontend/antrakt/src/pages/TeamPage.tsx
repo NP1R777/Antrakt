@@ -25,6 +25,7 @@ import Navigation from "../components/Navigation";
 import { FaTheaterMasks, FaCrown, FaFilm } from "react-icons/fa";
 import { ChevronRightIcon, CalendarIcon } from "@chakra-ui/icons";
 import { yearDeclension, performanceDeclension } from "../utils/declension";
+import { API_URL } from '../config';
 
 // Стилизованные компоненты для иконок
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
@@ -98,7 +99,7 @@ const TeamPage: React.FC = () => {
                 setLoading(true);
 
                 // Загрузка режиссеров
-                const directorsRes = await axios.get("http://localhost:8000/directors");
+                const directorsRes = await axios.get(`${API_URL}/directors`);
                 const transformedDirectors = directorsRes.data.map((director: ServerDirector, index: number) => ({
                     id: director.id,
                     name: director.name,
@@ -112,7 +113,7 @@ const TeamPage: React.FC = () => {
                 setDirectors(transformedDirectors);
 
                 // Загрузка актеров
-                const actorsRes = await axios.get("http://localhost:8000/actors");
+                const actorsRes = await axios.get(`${API_URL}/actors`);
                 const transformedActors = actorsRes.data.map((actor: ServerActor, index: number) => {
                     const experienceMatch = actor.time_in_theatre.match(/\d+/);
                     const experience = experienceMatch ? parseInt(experienceMatch[0]) : 0;

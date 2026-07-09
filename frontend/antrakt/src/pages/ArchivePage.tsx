@@ -19,6 +19,7 @@ import {
 import { motion } from "framer-motion";
 import Navigation from "../components/Navigation";
 import Footer from "../components/Footer";
+import { API_URL } from '../config';
 
 const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
@@ -49,7 +50,7 @@ const ArchivePage: React.FC = () => {
         const fetchProjects = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get("http://localhost:8000/archive");
+                const response = await axios.get(`${API_URL}/archive`);
                 const pastProjects = response.data.filter((proj: ArchiveProject) => proj.afisha === false);
                 setProjects(pastProjects);
             } catch (err) {

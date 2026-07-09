@@ -13,6 +13,7 @@ import {
 } from "react-icons/fa";
 import type { ComponentWithAs, IconProps } from "@chakra-ui/react";
 import { useSiteContent } from "../contexts/SiteContentContext";
+import { MEDIA_URL } from '../config';
 
 const MotionBox = motion(Box);
 const MotionLink = motion(Link);
@@ -222,7 +223,7 @@ export default function Footer() {
                         </Heading>
 
                         <Image
-                            src="http://localhost:9000/antrakt-images/unnamed.jpg" // Placeholder для логотипа партнёра
+                            src={`${MEDIA_URL}/antrakt-images/unnamed.jpg`} // Placeholder для логотипа партнёра
                             alt="Логотип партнёра"
                             mb={4}
                             maxH="130px" // Ограничение высоты для логотипа

@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { API_URL } from '../config';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -27,7 +28,7 @@ export default function Performances() {
     useEffect(() => {
         const fetchPerformances = async () => {
             try {
-                const response = await axios.get<Performance[]>("http://localhost:8000/afisha");
+                const response = await axios.get<Performance[]>(`${API_URL}/afisha`);
                 setPerformances(response.data);
                 setIsLoading(false);
             } catch (err) {

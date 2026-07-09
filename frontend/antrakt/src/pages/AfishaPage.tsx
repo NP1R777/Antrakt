@@ -22,6 +22,7 @@ import { motion } from "framer-motion";
 import Navigation from "../components/Navigation";
 import Footer from "../components/Footer";
 import { ChevronRightIcon } from "@chakra-ui/icons";
+import { API_URL } from '../config';
 
 const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
@@ -52,7 +53,7 @@ const AfishaPage: React.FC = () => {
         const fetchAfishaItems = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get("http://localhost:8000/afisha");
+                const response = await axios.get(`${API_URL}/afisha`);
                 // Фильтрация по afisha=true убрана, так как API возвращает объединённый список
                 setAfishaItems(response.data);
             } catch (err) {

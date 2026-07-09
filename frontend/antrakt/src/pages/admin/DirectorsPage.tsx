@@ -41,6 +41,7 @@ import {
 import axios from 'axios';
 import { DirectorForm } from './forms/DirectorForm';
 import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
+import { API_URL } from '../../config';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -82,7 +83,7 @@ const DirectorsPage: React.FC = () => {
 
     const fetchDirectors = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/directors-admin/');
+            const response = await axios.get(`${API_URL}/directors-admin/`);
             setDirectors(response.data);
             setIsLoading(false);
         } catch (error) {
@@ -101,7 +102,7 @@ const DirectorsPage: React.FC = () => {
     const handleHardDeleteDirector = async (id: number) => {
         if (!id) return;
         try {
-            await axios.delete(`http://localhost:8000/director${id}/?hard=1`);
+            await axios.delete(`${API_URL}/director${id}/?hard=1`);
             setDirectors(prev => prev.filter(d => d.id !== id));
             toast({ title: 'Удалено навсегда', description: 'Режиссёр полностью удалён из базы', status: 'info', duration: 2000, isClosable: true });
         } catch (error) {
@@ -117,7 +118,7 @@ const DirectorsPage: React.FC = () => {
         if (!id) return;
 
         try {
-            await axios.put(`http://localhost:8000/director${id}/`, {
+            await axios.put(`${API_URL}/director${id}/`, {
                 deleted_at: new Date().toISOString()
             });
             toast({
@@ -154,7 +155,7 @@ const DirectorsPage: React.FC = () => {
         if (!id) return;
 
         try {
-            await axios.put(`http://localhost:8000/director${id}/`, {
+            await axios.put(`${API_URL}/director${id}/`, {
                 deleted_at: null
             });
             toast({

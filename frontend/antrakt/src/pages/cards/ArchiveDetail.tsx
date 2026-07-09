@@ -23,6 +23,7 @@ import ReviewsSection from "../../components/ReviewsSection";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaProjectDiagram } from "react-icons/fa";
 import { Image as ChakraImage } from "@chakra-ui/react";
+import { API_URL } from '../../config';
 
 const MotionBox = motion(Box);
 const MotionImage = motion(ChakraImage);
@@ -48,7 +49,7 @@ const ArchiveDetail: React.FC = () => {
         const fetchProject = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`http://localhost:8000/archive${id}/`);
+                const response = await axios.get(`${API_URL}/archive${id}/`);
                 setProject(response.data);
             } catch (e) {
                 setError("Ошибка загрузки архива");

@@ -23,6 +23,7 @@ import {
 import { FaPlus, FaTrash, FaSave, FaSyncAlt } from 'react-icons/fa';
 import { chakra } from '@chakra-ui/react';
 import axios from 'axios';
+import { API_URL } from '../../config';
 
 const CFaPlus = chakra(FaPlus as any);
 const CFaTrash = chakra(FaTrash as any);
@@ -30,7 +31,7 @@ const CFaSave = chakra(FaSave as any);
 const CFaSync = chakra(FaSyncAlt as any);
 
 const primaryColor = '#f2f2f2';
-const API = 'http://localhost:8000';
+const API = `${API_URL}`;
 
 interface SiteReview {
     id: number;

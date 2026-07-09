@@ -28,8 +28,9 @@ import { motion } from 'framer-motion';
 import { FaTrash, FaExclamationTriangle } from 'react-icons/fa';
 import axios from 'axios';
 import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
+import { API_URL } from '../../config';
 
-const API = 'http://localhost:8000';
+const API = `${API_URL}`;
 const primaryColor = '#f2f2f2';
 
 const MotionBox = motion(Box);

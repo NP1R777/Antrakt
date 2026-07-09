@@ -38,6 +38,7 @@ import axios from 'axios';
 import { chakra, useToast } from '@chakra-ui/react';
 import ImageUpload from '../../../components/ImageUpload';
 import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
+import { API_URL } from '../../../config';
 
 const MotionButton = motion(Button);
 const MotionBox = motion(Box);
@@ -124,8 +125,8 @@ export const ArchiveForm: React.FC<{
         try {
             const method = currentArchive.id ? 'put' : 'post';
             const url = currentArchive.id
-                ? `http://localhost:8000/archive${currentArchive.id}/`
-                : 'http://localhost:8000/archive/';
+                ? `${API_URL}/archive${currentArchive.id}/`
+                : `${API_URL}/archive/`;
 
             await axios[method](url, currentArchive);
 

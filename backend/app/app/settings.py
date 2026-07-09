@@ -22,13 +22,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+from django.core.exceptions import ImproperlyConfigured
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-tz-^0_e%qv2&ac4e1$viah-tr=gby9=0grcdeu_yp0kcop^_1%'
+# В dev используется небезопасный ключ по умолчанию; на проде ОБЯЗАТЕЛЬНО задайте
+# переменную окружения SECRET_KEY (случайная длинная строка).
+_INSECURE_SECRET_KEY = 'django-insecure-tz-^0_e%qv2&ac4e1$viah-tr=gby9=0grcdeu_yp0kcop^_1%'
+SECRET_KEY = config('SECRET_KEY', default=_INSECURE_SECRET_KEY)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['*']
+# Список хостов через запятую: "example.com,api.example.com". В dev — все.
+ALLOWED_HOSTS = [h.strip() for h in config('ALLOWED_HOSTS', default='*').split(',') if h.strip()]
+
+# Защита от запуска продакшена с dev-ключом.
+if not DEBUG and SECRET_KEY == _INSECURE_SECRET_KEY:
+    raise ImproperlyConfigured(
+        'Задайте переменную окружения SECRET_KEY для продакшена (DEBUG=False).'
+    )
 
 
 # Application definition
@@ -52,6 +64,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # WhiteNoise отдаёт статику Django (админка, DRF, Swagger) в проде без nginx.
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -116,7 +130,25 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': None,
 }
 
-CORS_ALLOW_ALL_ORIGINS = True  # Для разработки, в продакшене укажите конкретные домены
+# CORS/CSRF: в dev разрешаем всё; в проде выключите CORS_ALLOW_ALL_ORIGINS и
+# перечислите домены фронтенда в CORS_ALLOWED_ORIGINS / CSRF_TRUSTED_ORIGINS.
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=True, cast=bool)
+CORS_ALLOWED_ORIGINS = [o.strip() for o in config('CORS_ALLOWED_ORIGINS', default='').split(',') if o.strip()]
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in config('CSRF_TRUSTED_ORIGINS', default='').split(',') if o.strip()]
+CORS_ALLOW_CREDENTIALS = True
+
+# HTTPS-настройки безопасности включаются флагом SECURE_HTTPS=True (за reverse-proxy).
+SECURE_HTTPS = config('SECURE_HTTPS', default=False, cast=bool)
+if SECURE_HTTPS:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+
 AUTH_USER_MODEL = 'my_app1.User'
 
 # Database
@@ -178,8 +210,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-# STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]  # Для React build
-# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')   # Для collectstatic
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Для collectstatic (прод)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -240,11 +271,16 @@ if USE_MINIO_STORAGE:
     except Exception:
         pass
 
-    # Use S3-backed storage for Django file storage
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
     # MEDIA_URL should point to MinIO public HTTP endpoint
     MEDIA_URL = f"{AWS_S3_URL_PROTOCOL}//{AWS_S3_CUSTOM_DOMAIN}/"
+
+# Хранилища (Django 5): статику отдаёт WhiteNoise (сжатие + кэш-заголовки).
+# Загрузка изображений идёт напрямую через boto3 (см. views), поэтому для
+# файлов достаточно обычного FileSystemStorage.
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
 
 # Email configuration (Яндекс SMTP)
 # По умолчанию используется console-backend (письма печатаются в консоль),
@@ -260,7 +296,7 @@ EMAIL_PORT = config('EMAIL_PORT', default=465, cast=int)
 EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=True, cast=bool)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='vloscddlwlypenvr')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config(
     'DEFAULT_FROM_EMAIL',
     default=(EMAIL_HOST_USER or 'noreply@antrakt.local')
@@ -269,10 +305,10 @@ DEFAULT_FROM_EMAIL = config(
 # --- Парсер отзывов из ВКонтакте ---
 # Способ 1 (HTML): cookie `remixsid` браузера, где вы вошли во ВКонтакте
 # (парсинг m.vk.com; НЕ требует прав администратора группы и токена).
-VK_SESSION_COOKIE = config('VK_SESSION_COOKIE', default='1_LX9C4u10fwMDAqg8f6dm7NHlVlyGGaTZQsBCJZ4tOjFrYEWx0KlMQKWGgB0dQJExPq73wsylVBUiXLmHLhuUvg')
+VK_SESSION_COOKIE = config('VK_SESSION_COOKIE', default='')
 # Способ 2 (API): сервисный ключ доступа вашего приложения dev.vk.com
 # (тоже НЕ требует прав администратора группы; надёжнее HTML).
-VK_ACCESS_TOKEN = config('VK_ACCESS_TOKEN', default='bf4d5ac1bf4d5ac1bf4d5ac149bc0f6151bbf4dbf4d5ac1d5029410521aaf8cc0d6f6ea')
+VK_ACCESS_TOKEN = config('VK_ACCESS_TOKEN', default='')
 VK_API_VERSION = config('VK_API_VERSION', default='5.199')
 VK_GROUP_DOMAIN = config('VK_GROUP_DOMAIN', default='tc_antrakt')
 

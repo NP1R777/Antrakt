@@ -41,6 +41,7 @@ import {
 import axios from 'axios';
 import { PerformanceForm } from './forms/PerformancesForm';
 import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
+import { API_URL } from '../../config';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -93,7 +94,7 @@ const PerformancesPage: React.FC = () => {
 
     const fetchPerformances = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/perfomances-admin/');
+            const response = await axios.get(`${API_URL}/perfomances-admin/`);
             setPerformances(response.data);
             setIsLoading(false);
         } catch (error) {
@@ -112,7 +113,7 @@ const PerformancesPage: React.FC = () => {
     const handleHardDelete = async () => {
         if (!deleteId) return;
         try {
-            await axios.delete(`http://localhost:8000/perfomance${deleteId}/?hard=1`);
+            await axios.delete(`${API_URL}/perfomance${deleteId}/?hard=1`);
             setPerformances(performances.filter(p => p.id !== deleteId));
             toast({ title: 'Удалено навсегда', description: 'Спектакль полностью удалён из базы', status: 'info', duration: 2000, isClosable: true });
         } catch (error) {
@@ -128,7 +129,7 @@ const PerformancesPage: React.FC = () => {
         if (!deleteId) return;
 
         try {
-            await axios.put(`http://localhost:8000/perfomance${deleteId}/`, {
+            await axios.put(`${API_URL}/perfomance${deleteId}/`, {
                 deleted_at: new Date().toISOString()
             });
             setPerformances(performances.map(performance =>
@@ -158,7 +159,7 @@ const PerformancesPage: React.FC = () => {
 
     const handleRestorePerformance = async (id: number) => {
         try {
-            await axios.put(`http://localhost:8000/perfomance${id}/`, {
+            await axios.put(`${API_URL}/perfomance${id}/`, {
                 deleted_at: null
             });
             setPerformances(performances.map(performance =>

@@ -45,6 +45,7 @@ import { PerformanceForm } from './forms/PerformancesForm';
 import { NewsForm } from './forms/NewsForm';
 import { DirectorForm } from './forms/DirectorForm';
 import { AchievementForm } from './forms/AchievementForm';
+import { API_URL } from '../../config';
 
 const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
@@ -94,12 +95,12 @@ const Dashboard: React.FC = () => {
     const fetchDashboardData = async () => {
         try {
             const [perfRes, actRes, dirRes, newsRes, achRes, usrRes] = await Promise.all([
-                axios.get('http://localhost:8000/perfomances-admin/'),
-                axios.get('http://localhost:8000/actors/'),
-                axios.get('http://localhost:8000/directors/'),
-                axios.get('http://localhost:8000/news/'),
-                axios.get('http://localhost:8000/achievements/'),
-                axios.get('http://localhost:8000/users/'),
+                axios.get(`${API_URL}/perfomances-admin/`),
+                axios.get(`${API_URL}/actors/`),
+                axios.get(`${API_URL}/directors/`),
+                axios.get(`${API_URL}/news/`),
+                axios.get(`${API_URL}/achievements/`),
+                axios.get(`${API_URL}/users/`),
             ]);
 
             setStats({
