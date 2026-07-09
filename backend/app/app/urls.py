@@ -52,6 +52,7 @@ urlpatterns = [
     path('register/verify/', views.RegisterVerifyView.as_view(), name='register-verify'),
     path('register/resend/', views.RegisterResendView.as_view(), name='register-resend'),
     path('change-password/', views.ChangePasswordView.as_view(), name='change-password'),
+    path('password-reset/', views.PasswordResetView.as_view(), name='password-reset'),
     path('login/', views.CustomTokenObtainPairView.as_view(), name='login'),
     path('token/refresh/', views.CustomTokenRefreshView.as_view(), name='token_refresh'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
@@ -93,5 +94,9 @@ urlpatterns = [
     path('actor-birthday<int:id>/', views.ActorBirthdayDetail.as_view(), name='actor-birthday'),
     path('birthday-greetings/', views.BirthdayGreetingList.as_view(), name='birthday-greeting-list'),
     path('birthday-greeting<int:id>/', views.BirthdayGreetingDetail.as_view(), name='birthday-greeting'),
+    path('site-reviews/', views.SiteReviewList.as_view(), name='site-reviews'),
+    path('site-reviews-admin/', views.SiteReviewListAdmin.as_view(), name='site-reviews-admin'),
+    path('site-review<int:id>/', views.SiteReviewDetail.as_view(), name='site-review'),
+    path('vk-reviews/parse/', views.VkReviewsParseView.as_view(), name='vk-reviews-parse'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name="schema-swagger-ui"),
 ]

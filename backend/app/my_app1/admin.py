@@ -1,5 +1,18 @@
 from django.contrib import admin
-from .models import SiteContent, BirthdayGreeting, ActorBirthday
+from .models import (SiteContent, BirthdayGreeting, ActorBirthday,
+                     SiteReview, VkParserState)
+
+
+@admin.register(SiteReview)
+class SiteReviewAdmin(admin.ModelAdmin):
+    list_display = ('author_name', 'review_date', 'source', 'pinned', 'hidden')
+    list_filter = ('source', 'pinned', 'hidden')
+    search_fields = ('author_name', 'text')
+
+
+@admin.register(VkParserState)
+class VkParserStateAdmin(admin.ModelAdmin):
+    list_display = ('initial_done', 'last_run_at', 'last_result')
 
 
 @admin.register(SiteContent)
