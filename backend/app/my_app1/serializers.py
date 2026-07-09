@@ -25,8 +25,11 @@ class UserSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
-        email = attrs.get('email')
-        phone_number = attrs.get('phone_number')
+        # На частичном обновлении (например, восстановление пользователя —
+        # передаётся только deleted_at) берём недостающие значения из уже
+        # сохранённого объекта, иначе валидация ломала бы restore/soft-delete.
+        email = attrs.get('email', getattr(self.instance, 'email', None))
+        phone_number = attrs.get('phone_number', getattr(self.instance, 'phone_number', None))
         if not email and not phone_number:
             raise serializers.ValidationError("Требуется email или номер телефона")
         return attrs
