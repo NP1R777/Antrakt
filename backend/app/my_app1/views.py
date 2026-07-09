@@ -1213,12 +1213,19 @@ class BirthdayTodayView(APIView):
 
     def get(self, request, format=None):
         today = timezone.localdate()
-        bday = (ActorBirthday.objects
-                .select_related('actor')
-                .filter(birth_date__month=today.month,
-                        birth_date__day=today.day,
-                        actor__deleted_at__isnull=True)
-                .first())
+        # Именинником может быть актёр или режиссёр; удалённых пропускаем.
+        candidates = (ActorBirthday.objects
+                      .select_related('actor', 'director')
+                      .filter(birth_date__month=today.month,
+                              birth_date__day=today.day))
+        bday = None
+        for c in candidates:
+            if c.actor_id and c.actor.deleted_at is None:
+                bday = c
+                break
+            if c.director_id and c.director.deleted_at is None:
+                bday = c
+                break
         if not bday:
             return Response({"active": False})
         greetings = list(BirthdayGreeting.objects
@@ -1227,13 +1234,13 @@ class BirthdayTodayView(APIView):
         if greetings:
             # Детерминированный выбор варианта — не «прыгает» в течение дня.
             greeting = greetings[today.toordinal() % len(greetings)].text
-        actor = bday.actor
-        greeting = greeting.replace('{name}', actor.name)
+        name = bday.person_name
+        greeting = greeting.replace('{name}', name)
         return Response({
             "active": True,
-            "actor_id": actor.id,
-            "actor_name": actor.name,
-            "actor_image": actor.image_url,
+            "actor_id": bday.actor_id or bday.director_id,
+            "actor_name": name,
+            "actor_image": bday.person_image,
             "birth_date": bday.birth_date,
             "greeting": greeting,
         })
