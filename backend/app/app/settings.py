@@ -275,6 +275,9 @@ VK_SESSION_COOKIE = config('VK_SESSION_COOKIE', default='vk1.a.DWcPRTYkLJyoBBbIG
 VK_ACCESS_TOKEN = config('VK_ACCESS_TOKEN', default='')
 VK_API_VERSION = config('VK_API_VERSION', default='5.199')
 VK_GROUP_DOMAIN = config('VK_GROUP_DOMAIN', default='tc_antrakt')
+# Проверка SSL-сертификата при запросах к ВК. Используется бандл certifi.
+# Отключать (False) только как временный обходной путь при проблемах с CA.
+VK_SSL_VERIFY = config('VK_SSL_VERIFY', default=True, cast=bool)
 
 # Настройки для работы с разными типами БД
 print("Используется PostgreSQL с полной функциональностью")
