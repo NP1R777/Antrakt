@@ -22,6 +22,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Navigation from "../components/Navigation";
 import Footer from "../components/Footer";
+import { API_URL } from '../config';
 
 const MotionBox = motion(Box);
 const MotionButton = motion(Button);
@@ -54,7 +55,7 @@ const NewsPage: React.FC = () => {
                 setIsLoading(true);
                 setError(null);
 
-                const response = await axios.get("http://localhost:8000/news");
+                const response = await axios.get(`${API_URL}/news`);
 
                 if (response.status !== 200) {
                     throw new Error(`Ошибка загрузки: ${response.status} ${response.statusText}`);

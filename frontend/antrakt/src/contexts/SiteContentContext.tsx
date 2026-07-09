@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
+import { API_URL } from '../config';
 
 export interface SiteContentItem {
     id: number;
@@ -29,7 +30,7 @@ export const SiteContentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const [content, setContent] = useState<Record<string, string>>({});
 
     const load = useCallback(() => {
-        axios.get('http://localhost:8000/site-content/')
+        axios.get(`${API_URL}/site-content/`)
             .then(res => {
                 const map: Record<string, string> = {};
                 (res.data || []).forEach((item: SiteContentItem) => {

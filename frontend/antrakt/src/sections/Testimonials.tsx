@@ -12,6 +12,7 @@ import {
 import { motion } from "framer-motion";
 import { FaQuoteLeft, FaStar } from "react-icons/fa";
 import axios from "axios";
+import { API_URL } from '../config';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -40,7 +41,7 @@ export default function Testimonials() {
     const [reviews, setReviews] = useState<SiteReview[]>([]);
 
     useEffect(() => {
-        axios.get("http://localhost:8000/site-reviews/")
+        axios.get(`${API_URL}/site-reviews/`)
             .then(res => setReviews(res.data || []))
             .catch(() => setReviews([]));
     }, []);

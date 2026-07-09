@@ -32,6 +32,7 @@ import ReviewsSection from "../../components/ReviewsSection";
 import Navigation from "../../components/Navigation";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaQuoteLeft, FaUserTie, FaBook, FaUser, FaPaintBrush, FaVideo, FaMusic } from "react-icons/fa";
+import { API_URL } from '../../config';
 
 
 // Стилизованные компоненты для иконок
@@ -130,8 +131,8 @@ const DirectorDetail: React.FC = () => {
 
                 // Загружаем данные режиссёра и список всех спектаклей параллельно
                 const [directorResponse, performancesResponse] = await Promise.all([
-                    axios.get(`http://localhost:8000/director${id}`),
-                    axios.get(`http://localhost:8000/perfomances/`)
+                    axios.get(`${API_URL}/director${id}`),
+                    axios.get(`${API_URL}/perfomances/`)
                 ]);
 
                 setDirector({

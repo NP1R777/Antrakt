@@ -19,6 +19,7 @@ import {
 import axios from 'axios';
 import Footer from '../../components/Footer';
 import { SiteContentContext, useSiteContent, SiteContentItem } from '../../contexts/SiteContentContext';
+import { API_URL } from '../../config';
 
 const primaryColor = '#f2f2f2';
 
@@ -32,7 +33,7 @@ const SiteContentPageAdmin: React.FC = () => {
 
     const load = () => {
         setLoading(true);
-        axios.get('http://localhost:8000/site-content/')
+        axios.get(`${API_URL}/site-content/`)
             .then(res => {
                 const data: SiteContentItem[] = res.data || [];
                 setItems(data);
@@ -68,7 +69,7 @@ const SiteContentPageAdmin: React.FC = () => {
     const handleSave = async () => {
         setSaving(true);
         try {
-            await axios.put('http://localhost:8000/site-content/', {
+            await axios.put(`${API_URL}/site-content/`, {
                 items: items.map(i => ({ key: i.key, value: draft[i.key] ?? '' })),
             });
             toast({ title: 'Тексты сайта сохранены', status: 'success', duration: 2500, isClosable: true });

@@ -24,6 +24,7 @@ import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTrophy, FaCalendarAlt } from "react-icons/fa";
+import { API_URL } from '../../config';
 
 const MotionBox = motion(Box);
 const CFaTrophy = chakra(FaTrophy as any);
@@ -51,7 +52,7 @@ const AchievementDetail: React.FC = () => {
         const fetchAchievement = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`http://localhost:8000/achievement${id}/`);
+                const response = await axios.get(`${API_URL}/achievement${id}/`);
                 setAchievement(response.data);
             } catch (err) {
                 setError("Ошибка загрузки достижения");

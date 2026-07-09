@@ -4,6 +4,7 @@ import Footer from "../components/Footer";
 import Navigation from "../components/Navigation";
 import { Box, Flex, Heading, Text, VStack, Grid, GridItem, Image, Center } from "@chakra-ui/react";
 import { useSiteContent } from "../contexts/SiteContentContext";
+import { MEDIA_URL } from '../config';
 
 const MotionBox = motion(Box);
 
@@ -80,7 +81,7 @@ const AboutTheatre: React.FC = () => {
 
                         <GridItem>
                             <Image
-                                src="http://localhost:9000/antrakt-images/Общая.png"
+                                src={`${MEDIA_URL}/antrakt-images/Общая.png`}
                                 alt="Норильский народный театр"
                                 w="100%"
                                 h="auto"

@@ -34,6 +34,7 @@ import {
 import axios from 'axios';
 import { UserForm } from './forms/UsersForm';
 import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
+import { API_URL } from '../../config';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -74,7 +75,7 @@ const UsersPage: React.FC = () => {
 
     const fetchUsers = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/users-admin/');
+            const response = await axios.get(`${API_URL}/users-admin/`);
             setUsers(response.data);
             setIsLoading(false);
         } catch (error) {
@@ -93,7 +94,7 @@ const UsersPage: React.FC = () => {
     const handleHardDeleteUser = async (id: number) => {
         if (!id) return;
         try {
-            await axios.delete(`http://localhost:8000/user${id}/?hard=1`);
+            await axios.delete(`${API_URL}/user${id}/?hard=1`);
             setUsers(prev => prev.filter(u => u.id !== id));
             toast({ title: 'Удалено навсегда', description: 'Пользователь полностью удалён из базы', status: 'info', duration: 2000, isClosable: true });
         } catch (error) {
@@ -109,7 +110,7 @@ const UsersPage: React.FC = () => {
         if (!id) return;
 
         try {
-            await axios.put(`http://localhost:8000/user${id}/`, {
+            await axios.put(`${API_URL}/user${id}/`, {
                 deleted_at: new Date().toISOString()
             });
             toast({
@@ -146,7 +147,7 @@ const UsersPage: React.FC = () => {
         if (!id) return;
 
         try {
-            await axios.put(`http://localhost:8000/user${id}/`, {
+            await axios.put(`${API_URL}/user${id}/`, {
                 deleted_at: null
             });
             toast({

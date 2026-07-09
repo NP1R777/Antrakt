@@ -31,6 +31,7 @@ import Footer from "../../components/Footer";
 import ReviewsSection from "../../components/ReviewsSection";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { FaNewspaper, FaCalendarAlt, FaExpand } from "react-icons/fa";
+import { API_URL } from '../../config';
 
 const MotionBox = motion(Box);
 const MotionImage = motion(Image);
@@ -66,7 +67,7 @@ const NewsDetail: React.FC = () => {
         const fetchNews = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`http://localhost:8000/news${id}/`);
+                const response = await axios.get(`${API_URL}/news${id}/`);
                 setNews(response.data);
             } catch (err) {
                 setError("Ошибка загрузки новости");

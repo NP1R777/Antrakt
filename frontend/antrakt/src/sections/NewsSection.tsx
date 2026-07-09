@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { API_URL } from '../config';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -26,7 +27,7 @@ export default function NewsSection() {
     useEffect(() => {
         const fetchNews = async () => {
             try {
-                const response = await axios.get<NewsItem[]>("http://localhost:8000/news");
+                const response = await axios.get<NewsItem[]>(`${API_URL}/news`);
                 setNews(response.data);
                 setIsLoading(false);
             } catch (err) {

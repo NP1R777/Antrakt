@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Container, Heading, Text, Image, VStack } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { API_URL } from '../config';
 
 const MotionBox = motion(Box);
 
@@ -19,7 +20,7 @@ const BirthdaySection: React.FC = () => {
 
     useEffect(() => {
         const load = () => {
-            axios.get('http://localhost:8000/birthday-today/')
+            axios.get(`${API_URL}/birthday-today/`)
                 .then(res => setData(res.data))
                 .catch(() => setData({ active: false }));
         };

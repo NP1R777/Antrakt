@@ -21,6 +21,7 @@ import { motion } from "framer-motion";
 import Navigation from "../components/Navigation";
 import Footer from "../components/Footer";
 import { ChevronRightIcon } from "@chakra-ui/icons";
+import { API_URL } from '../config';
 
 const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
@@ -48,7 +49,7 @@ const PerformancesPage: React.FC = () => {
         const fetchPerformances = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get("http://localhost:8000/perfomances");
+                const response = await axios.get(`${API_URL}/perfomances`);
                 const pastPerformances = response.data.filter((perf: Performance) => perf.afisha === false);
                 setPerformances(pastPerformances);
             } catch (err) {

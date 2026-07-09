@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getTokens } from './tokenStorage';
+import { API_URL } from '../config';
 
-const API_URL = 'http://127.0.0.1:8000';
 const REFRESH_URL = `${API_URL}/login/`;
 
 // Создаем экземпляр axios с базовой конфигурацией

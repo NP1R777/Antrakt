@@ -35,6 +35,7 @@ import axios from 'axios';
 import { chakra, useToast } from '@chakra-ui/react';
 import ImageUpload from '../../../components/ImageUpload';
 import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
+import { API_URL } from '../../../config';
 
 const MotionButton = motion(Button);
 const MotionTag = motion(Tag);
@@ -176,7 +177,7 @@ export const DirectorForm: React.FC<{
     const handleCreateDirector = async () => {
         setIsSubmitting(true);
         try {
-            await axios.post('http://localhost:8000/directors/', currentDirector);
+            await axios.post(`${API_URL}/directors/`, currentDirector);
             toast({
                 title: 'Успех!',
                 description: 'Режиссёр успешно добавлен',
@@ -204,7 +205,7 @@ export const DirectorForm: React.FC<{
 
         setIsSubmitting(true);
         try {
-            await axios.put(`http://localhost:8000/director${currentDirector.id}/`, currentDirector);
+            await axios.put(`${API_URL}/director${currentDirector.id}/`, currentDirector);
             toast({
                 title: 'Успех!',
                 description: 'Режиссёр успешно обновлён',

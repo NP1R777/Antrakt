@@ -21,6 +21,7 @@ import axios from 'axios';
 import ImageUpload from '../../../components/ImageUpload';
 import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
 import { chakra } from '@chakra-ui/react';
+import { API_URL } from '../../../config';
 
 const CFaTimes = chakra(FaTimes as any);
 const CFaSave = chakra(FaSave as any);
@@ -101,7 +102,7 @@ export const AchievementForm: React.FC<{
         setIsSubmitting(true);
         try {
             if (achievement.id) {
-                await axios.put(`http://localhost:8000/achievement${achievement.id}/`, {
+                await axios.put(`${API_URL}/achievement${achievement.id}/`, {
                     achievement: achievement.achievement,
                     image_url: achievement.image_url,
                     images_list: achievement.images_list || [],
@@ -115,7 +116,7 @@ export const AchievementForm: React.FC<{
                     isClosable: true,
                 });
             } else {
-                await axios.post('http://localhost:8000/achievements/', {
+                await axios.post(`${API_URL}/achievements/`, {
                     achievement: achievement.achievement,
                     image_url: achievement.image_url,
                     images_list: achievement.images_list || [],

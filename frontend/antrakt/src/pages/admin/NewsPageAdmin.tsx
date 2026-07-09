@@ -45,6 +45,7 @@ import {
 import axios from 'axios';
 import { NewsForm } from './forms/NewsForm';
 import DeleteConfirmDialog from '../../components/admin/DeleteConfirmDialog';
+import { API_URL } from '../../config';
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -88,7 +89,7 @@ const NewsPageAdmin: React.FC = () => {
 
     const fetchNews = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/news-admin/');
+            const response = await axios.get(`${API_URL}/news-admin/`);
             setNews(response.data);
             setIsLoading(false);
         } catch (error) {
@@ -107,7 +108,7 @@ const NewsPageAdmin: React.FC = () => {
     const handleHardDeleteNews = async () => {
         if (!deleteId) return;
         try {
-            await axios.delete(`http://localhost:8000/news${deleteId}/?hard=1`);
+            await axios.delete(`${API_URL}/news${deleteId}/?hard=1`);
             setNews(prevNews => prevNews.filter(item => item.id !== deleteId));
             toast({ title: 'Удалено навсегда', description: 'Новость полностью удалена из базы', status: 'info', duration: 2000, isClosable: true });
         } catch (error) {
@@ -123,7 +124,7 @@ const NewsPageAdmin: React.FC = () => {
         if (!deleteId) return;
 
         try {
-            await axios.put(`http://localhost:8000/news${deleteId}/`, {
+            await axios.put(`${API_URL}/news${deleteId}/`, {
                 deleted_at: new Date().toISOString()
             });
             toast({
@@ -160,7 +161,7 @@ const NewsPageAdmin: React.FC = () => {
         if (!id) return;
 
         try {
-            await axios.put(`http://localhost:8000/news${id}/`, {
+            await axios.put(`${API_URL}/news${id}/`, {
                 deleted_at: null
             });
             toast({

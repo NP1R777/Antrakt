@@ -1,6 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
+import { API_URL } from '../config';
 
-const API_BASE_URL = 'http://localhost:8000'; // Адрес Django backend
+const API_BASE_URL = `${API_URL}`; // Адрес Django backend
 
 export interface User {
   id: number;

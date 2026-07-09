@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Navigation from "../components/Navigation";
 import Footer from "../components/Footer";
 import axios from "axios";
+import { API_URL } from '../config';
 
 const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
@@ -29,7 +30,7 @@ const AchievementsPage: React.FC = () => {
         const fetchAchievements = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get("http://localhost:8000/achievements/");
+                const response = await axios.get(`${API_URL}/achievements/`);
                 setAchievements(response.data);
             } catch (err) {
                 setError("Ошибка загрузки достижений");

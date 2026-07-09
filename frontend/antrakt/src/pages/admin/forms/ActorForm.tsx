@@ -35,6 +35,7 @@ import axios from 'axios';
 import ImageUpload from '../../../components/ImageUpload';
 import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
 import { chakra } from '@chakra-ui/react';
+import { API_URL } from '../../../config';
 
 const MotionTag = motion(Tag);
 const CFaPlus = chakra(FaPlus as any);
@@ -162,7 +163,7 @@ export const ActorForm: React.FC<{
     const handleCreateActor = async () => {
         setIsSubmitting(true);
         try {
-            const response = await axios.post('http://localhost:8000/actors/', currentActor);
+            const response = await axios.post(`${API_URL}/actors/`, currentActor);
             toast({
                 title: 'Успех!',
                 description: 'Актёр успешно добавлен',
@@ -190,7 +191,7 @@ export const ActorForm: React.FC<{
 
         setIsSubmitting(true);
         try {
-            await axios.put(`http://localhost:8000/actor${currentActor.id}/`, currentActor);
+            await axios.put(`${API_URL}/actor${currentActor.id}/`, currentActor);
             toast({
                 title: 'Успех!',
                 description: 'Актёр успешно обновлён',
