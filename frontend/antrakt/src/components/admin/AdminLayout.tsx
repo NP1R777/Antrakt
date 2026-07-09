@@ -32,7 +32,8 @@ import {
     FaUser,
     FaComments,
     FaFont,
-    FaBirthdayCake
+    FaBirthdayCake,
+    FaQuoteRight
 } from 'react-icons/fa';
 
 import { useAuth } from '../../contexts/AuthContext';
@@ -56,6 +57,7 @@ const CFaUser = chakra(FaUser as any);
 const CFaComments = chakra(FaComments as any);
 const CFaFont = chakra(FaFont as any);
 const CFaBirthdayCake = chakra(FaBirthdayCake as any);
+const CFaQuoteRight = chakra(FaQuoteRight as any);
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -144,6 +146,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             icon: CFaBirthdayCake,
             path: '/admin/birthdays',
             active: location.pathname.includes('/admin/birthdays')
+        },
+        {
+            label: 'Отзывы (главная)',
+            icon: CFaQuoteRight,
+            path: '/admin/site-reviews',
+            active: location.pathname.includes('/admin/site-reviews')
         }
     ];
 

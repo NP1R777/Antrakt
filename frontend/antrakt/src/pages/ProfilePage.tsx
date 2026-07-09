@@ -203,49 +203,30 @@ const ChangePasswordForm: React.FC<{
     onSuccess: () => void;
     onCancel: () => void;
 }> = ({ userId, onSuccess, onCancel }) => {
-    const [formData, setFormData] = useState<ChangePasswordFormData>({
-        current_password: '',
-        new_password: ''
-    });
+    const { user } = useAuth();
+    const [email, setEmail] = useState(user?.email || '');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const toast = useToast();
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
-
     const handleSubmit = async () => {
+        if (!email.trim()) {
+            toast({ title: 'Укажите электронную почту', status: 'warning', duration: 2500, isClosable: true });
+            return;
+        }
         setIsSubmitting(true);
         try {
-            await axios.post('http://localhost:8000/change-password/', {
-                current_password: formData.current_password,
-                new_password: formData.new_password,
-            });
+            await axios.post('http://localhost:8000/password-reset/', { email: email.trim() });
             toast({
-                title: 'Пароль изменён',
-                description: 'Ваш пароль успешно обновлён',
+                title: 'Проверьте почту',
+                description: 'Новый пароль отправлен на указанную почту. Войдите с ним и при желании смените в кабинете.',
                 status: 'success',
-                duration: 3000,
+                duration: 5000,
                 isClosable: true,
             });
             onSuccess();
         } catch (error: any) {
-            console.error('Ошибка при смене пароля:', error);
-            const data = error?.response?.data;
-            let description = 'Не удалось изменить пароль';
-            if (data?.error) {
-                description = data.error;
-            } else if (data?.new_password && Array.isArray(data.new_password)) {
-                description = data.new_password[0];
-            }
-            toast({
-                title: 'Ошибка',
-                description,
-                status: 'error',
-                duration: 4000,
-                isClosable: true,
-            });
+            const description = error?.response?.data?.error || 'Не удалось отправить письмо';
+            toast({ title: 'Ошибка', description, status: 'error', duration: 4000, isClosable: true });
         } finally {
             setIsSubmitting(false);
         }
@@ -253,30 +234,17 @@ const ChangePasswordForm: React.FC<{
 
     return (
         <VStack spacing={6} align="stretch">
+            <Text color="gray.400" fontSize="sm">
+                Старый пароль вводить не нужно. Укажите почту — мы отправим на неё новый
+                пароль, которым можно войти, а затем сменить его при необходимости.
+            </Text>
             <FormControl>
-                <FormLabel color="gray.300">Текущий пароль</FormLabel>
+                <FormLabel color="gray.300">Электронная почта</FormLabel>
                 <Input
-                    type="password"
-                    name="current_password"
-                    value={formData.current_password}
-                    onChange={handleInputChange}
-                    placeholder="Введите текущий пароль"
-                    focusBorderColor={primaryColor}
-                    bg="#333333"
-                    borderColor="#444444"
-                    color="white"
-                    _hover={{ borderColor: '#555555' }}
-                />
-            </FormControl>
-
-            <FormControl>
-                <FormLabel color="gray.300">Новый пароль</FormLabel>
-                <Input
-                    type="password"
-                    name="new_password"
-                    value={formData.new_password}
-                    onChange={handleInputChange}
-                    placeholder="Введите новый пароль"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="email@domain.com"
                     focusBorderColor={primaryColor}
                     bg="#333333"
                     borderColor="#444444"
@@ -303,7 +271,7 @@ const ChangePasswordForm: React.FC<{
                     onClick={handleSubmit}
                     leftIcon={<Icon as={CFaSave} />}
                 >
-                    Сохранить
+                    Отправить новый пароль
                 </Button>
             </Flex>
         </VStack>

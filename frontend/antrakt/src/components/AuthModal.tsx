@@ -37,6 +37,7 @@ interface AuthModalProps {
     onRegister: (email: string, password: string, phone: string) => Promise<boolean>;
     onVerify: (email: string, code: string) => Promise<boolean>;
     onResend: (email: string) => Promise<boolean>;
+    onResetPassword: (email: string) => Promise<boolean>;
 }
 
 const RESEND_COOLDOWN = 30;
@@ -51,9 +52,14 @@ export default function AuthModal({
     onRegister,
     onVerify,
     onResend,
+    onResetPassword,
 }: AuthModalProps) {
     const toast = useToast();
     const isRegister = mode === "register";
+
+    // Внутренний вид: обычная авторизация или восстановление пароля.
+    const [view, setView] = useState<"auth" | "forgot">("auth");
+    const [resetEmail, setResetEmail] = useState("");
 
     const [step, setStep] = useState<RegisterStep>("credentials");
     const [emailOrPhone, setEmailOrPhone] = useState("");
@@ -77,7 +83,28 @@ export default function AuthModal({
     useEffect(() => {
         setStep("credentials");
         setCode("");
+        setView("auth");
     }, [mode]);
+
+    const handleForgot = async () => {
+        if (!isEmail(resetEmail)) {
+            toast({ title: "Введите корректный email", status: "warning", duration: 2500, isClosable: true, position: "top" });
+            return;
+        }
+        setIsSubmitting(true);
+        try {
+            await onResetPassword(resetEmail);
+            toast({
+                title: "Проверьте почту",
+                description: "Если аккаунт с такой почтой существует, на неё отправлен новый пароль.",
+                status: "success", duration: 4000, isClosable: true, position: "top",
+            });
+            setView("auth");
+            setResetEmail("");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const isEmail = (value: string) => /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value);
     const isPhoneNumber = (value: string) => {
@@ -103,6 +130,7 @@ export default function AuthModal({
 
     const resetAll = () => {
         setStep("credentials");
+        setView("auth"); setResetEmail("");
         setEmailOrPhone(""); setEmail(""); setPhone(""); setPassword(""); setCode("");
         setErrors({ emailOrPhone: "", email: "", password: "" });
     };
@@ -178,9 +206,11 @@ export default function AuthModal({
         _hover: { borderColor: "#444" },
     };
 
-    const heading = isRegister
-        ? (step === "code" ? "Подтверждение почты" : "Регистрация")
-        : "Вход в аккаунт";
+    const heading = view === "forgot"
+        ? "Восстановление пароля"
+        : isRegister
+            ? (step === "code" ? "Подтверждение почты" : "Регистрация")
+            : "Вход в аккаунт";
 
     return (
         <Modal isOpen={isOpen} onClose={handleClose} isCentered size={{ base: "sm", md: "lg" }}
@@ -192,14 +222,34 @@ export default function AuthModal({
 
                 <Box p={{ base: 4, md: 8 }}>
                     <AnimatePresence mode="wait">
-                        <MotionBox key={`${mode}-${step}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                        <MotionBox key={`${mode}-${step}-${view}`} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3, ease: "easeInOut" }}>
                             <Heading as="h3" fontSize={{ base: "xl", md: "2xl" }} color="white" mb={6}
                                 textAlign="center" fontFamily="Playfair Display, serif">
                                 {heading}
                             </Heading>
 
-                            {isRegister && step === "code" ? (
+                            {view === "forgot" ? (
+                                <Flex direction="column" gap={5}>
+                                    <Text color="gray.300" textAlign="center" fontSize="sm">
+                                        Укажите почту, на которую зарегистрирован аккаунт. Мы отправим на неё новый пароль.
+                                    </Text>
+                                    <FormControl>
+                                        <FormLabel color="white">Email</FormLabel>
+                                        <Input type="email" value={resetEmail}
+                                            onChange={(e) => setResetEmail(e.target.value)}
+                                            placeholder="email@domain.com" {...inputStyles} />
+                                    </FormControl>
+                                    <Button bg="#2a2a2a" color="white" _hover={{ bg: "#d9d9d9", color: "#0a0a0a" }}
+                                        isLoading={isSubmitting} loadingText="Отправка..."
+                                        onClick={handleForgot} size={{ base: "md", md: "lg" }} fontWeight="bold">
+                                        Отправить новый пароль
+                                    </Button>
+                                    <Link color="#888" fontSize="sm" textAlign="center" onClick={() => setView("auth")}>
+                                        ← Вернуться ко входу
+                                    </Link>
+                                </Flex>
+                            ) : isRegister && step === "code" ? (
                                 <Flex direction="column" gap={5}>
                                     <Text color="gray.300" textAlign="center" fontSize="sm">
                                         Мы отправили 6-значный код на <b>{email}</b>. Введите его для завершения регистрации.
@@ -284,6 +334,14 @@ export default function AuthModal({
                                         fontSize={{ base: "sm", md: "md" }} fontWeight="bold" transition="all 0.3s" py={{ base: 4, md: 6 }}>
                                         {isRegister ? "Зарегистрироваться" : "Войти"}
                                     </Button>
+
+                                    {!isRegister && (
+                                        <Link color="#888" fontSize="sm" textAlign="center"
+                                            _hover={{ color: "#e8e8e8" }}
+                                            onClick={() => { setView("forgot"); setResetEmail(isEmail(emailOrPhone) ? emailOrPhone : ""); }}>
+                                            Забыли пароль?
+                                        </Link>
+                                    )}
 
                                     <Text color="#888" textAlign="center" fontSize="sm">
                                         {isRegister ? "Уже есть аккаунт? " : "Нет аккаунта? "}
