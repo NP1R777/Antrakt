@@ -19,6 +19,7 @@
 * Дубли исключаются по (owner_id, post_id, comment_id).
 """
 import re
+import ssl
 import html
 import json
 import hashlib
@@ -30,6 +31,31 @@ from django.conf import settings
 from django.utils import timezone
 
 from .models import SiteReview, VkParserState
+
+
+def _ssl_context():
+    """SSL-контекст с надёжным набором корневых сертификатов.
+
+    На некоторых системах системное хранилище CA недоступно из Python
+    (ошибка `CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate`),
+    поэтому явно используем бандл `certifi`. При крайней необходимости проверку
+    сертификата можно отключить настройкой VK_SSL_VERIFY=False (небезопасно —
+    только как временный обходной путь).
+    """
+    if not getattr(settings, 'VK_SSL_VERIFY', True):
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        return ctx
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except Exception:
+        return ssl.create_default_context()
+
+
+def _urlopen(req, timeout=30):
+    return urllib.request.urlopen(req, timeout=timeout, context=_ssl_context())
 
 VK_API = 'https://api.vk.com/method/'
 MOBILE_UA = ('Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) '
@@ -85,7 +111,7 @@ class ApiBackend:
         q['v'] = getattr(settings, 'VK_API_VERSION', '5.199')
         url = VK_API + method + '?' + urllib.parse.urlencode(q)
         try:
-            with urllib.request.urlopen(url, timeout=30) as resp:
+            with _urlopen(url, timeout=30) as resp:
                 data = json.loads(resp.read().decode('utf-8'))
         except Exception as exc:
             raise VkParserError(f'Ошибка запроса к ВК ({method}): {exc}')
@@ -186,7 +212,7 @@ class HtmlBackend:
             'Cookie': self.cookie,
         })
         try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
+            with _urlopen(req, timeout=30) as resp:
                 return resp.read().decode('utf-8', 'replace')
         except Exception as exc:
             raise VkParserError(f'Ошибка загрузки {url}: {exc}')
