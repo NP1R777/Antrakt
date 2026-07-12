@@ -12,8 +12,11 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копирование исходного кода
+# Копирование исходного кода (backend/ -> /app/).
+# Django-проект лежит в backend/app (manage.py), поэтому рабочая
+# директория — /app/app, а модуль настроек — app.settings.
 COPY . .
+WORKDIR /app/app
 
 # Запуск приложения
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "app.app.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "app.wsgi:application"]
