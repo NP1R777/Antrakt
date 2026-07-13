@@ -134,7 +134,7 @@ $RECYCLE.BIN/
 *~
 
 # Database dumps (except example)
-database/init.sql
+# database/init.sql
 !database/init.sql.example
 
 # Static files
