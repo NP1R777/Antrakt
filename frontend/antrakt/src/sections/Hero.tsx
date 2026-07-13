@@ -26,7 +26,7 @@ export default function Hero() {
                     left: 0,
                     width: "100%",
                     height: "100%",
-                    backgroundImage: "url(`${MEDIA_URL}/antrakt-images/Общая.png`)",
+                    backgroundImage: `url(${MEDIA_URL}/antrakt-images/Общая.png)`,
                     backgroundSize: "contain",
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",
