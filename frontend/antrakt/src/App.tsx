@@ -3,6 +3,8 @@ import theme from "./styles/theme";
 import Hero from "./sections/Hero";
 import Footer from "./components/Footer";
 import BirthdaySection from "./sections/BirthdaySection";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthModalProvider } from "./contexts/AuthModalContext";
 import { SiteContentProvider } from "./contexts/SiteContentContext";
 import SiteContentPageAdmin from "./pages/admin/SiteContentPageAdmin";
 import BirthdaysPageAdmin from "./pages/admin/BirthdaysPageAdmin";
@@ -19,7 +21,6 @@ import { ChakraProvider, Box } from "@chakra-ui/react";
 import NewsPageAdmin from "./pages/admin/NewsPageAdmin";
 import DirectorsPage from "./pages/admin/DirectorsPage";
 import AdminLayout from "./components/admin/AdminLayout";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ArchivePageAadmin from "./pages/admin/ArchivePageAdmin";
 import AchievementsPageAdmin from './pages/admin/AchievementsPageAdmin'
 import PerformancesPageAdmin from './pages/admin/PerformancesPageAdmin'
@@ -87,6 +88,7 @@ function App() {
     <BrowserRouter>
       <ChakraProvider theme={theme}>
         <AuthProvider>
+          <AuthModalProvider>
           <SiteContentProvider>
           <ScrollToTop />
           <Routes>
@@ -248,6 +250,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           </SiteContentProvider>
+          </AuthModalProvider>
         </AuthProvider>
       </ChakraProvider>
     </BrowserRouter >

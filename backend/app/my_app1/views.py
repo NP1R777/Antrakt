@@ -165,7 +165,19 @@ class PasswordResetView(APIView):
         new_password = get_random_string(
             10, allowed_chars='abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789')
         user.set_password(new_password)
-        user.save(update_fields=['password'])
+        # Сбрасываем сохранённые JWT и инвалидируем refresh-токены,
+        # чтобы текущие сессии не продолжали работать со старым паролем.
+        user.access_token = None
+        user.refresh_token = None
+        user.save(update_fields=['password', 'access_token', 'refresh_token'])
+        try:
+            from rest_framework_simplejwt.token_blacklist.models import (
+                OutstandingToken, BlacklistedToken,
+            )
+            for token in OutstandingToken.objects.filter(user=user):
+                BlacklistedToken.objects.get_or_create(token=token)
+        except Exception:
+            pass
         try:
             _send_new_password_email(user.email, new_password)
         except Exception as exc:
@@ -431,6 +443,11 @@ class PefomancesList(APIView):
     
 
     def get(self, request, format=None):
+        # Авто-перевод прошедших показов (без отдельного cron тоже срабатывает).
+        try:
+            promote_past_performances()
+        except Exception:
+            pass
         perfomances = self.model_class.objects.filter(deleted_at=None,
                                                       afisha=False).order_by('premiere_date')
         serializer = self.serializer_class(perfomances, many=True,
@@ -823,6 +840,10 @@ class AfishaList(APIView):
         # В "Афише" состав и роли НЕ отдаём — они появляются только после
         # перехода спектакля в раздел "Спектакли". Зато отдаём расписание
         # показов (даты и время), чтобы зрители знали, когда прийти.
+        try:
+            promote_past_performances()
+        except Exception:
+            pass
         performances = Perfomances.objects.filter(
             afisha=True, deleted_at=None
         ).select_related('director').prefetch_related('shows')
@@ -843,7 +864,10 @@ class AfishaList(APIView):
                 'genre': p.genre,
                 'ticket_url': p.ticket_url,
                 'director': p.director_id,
-                'director_name': (p.director.name if p.director_id else None),
+                'director_name': (
+                    p.director.name if p.director_id
+                    else ((p.guest_director_name or '').strip() or None)
+                ),
                 'shows': [
                     {
                         'id': s.id,

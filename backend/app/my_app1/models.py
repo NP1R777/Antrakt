@@ -119,6 +119,8 @@ class Perfomances(ImageUploadMixin, models.Model): # Спектакли
         on_delete=models.SET_NULL
     ) # Режиссёр спектакля. Имя видно уже в "Афише"; сам спектакль добавляется
       # режиссёру на страницу при переходе в раздел "Спектакли".
+    # Если режиссёра нет в базе — имя хранится здесь («Другой(-ая)»).
+    guest_director_name = models.CharField(max_length=100, blank=True, default='')
     # Данные для карточки на странице режиссёра (задаются заранее в админке).
     production_title = models.CharField(max_length=200, blank=True, default='')
     # Название постановки; если пусто — берётся название спектакля (title).
@@ -400,6 +402,61 @@ def sync_performance_cast_to_actors(perf, previous_actor_ids=()):
         actor.save(update_fields=['perfomances', 'role_in_perfomances', 'updated_at'])
 
 
+def sync_actor_roles_to_performances(actor):
+    """Синхронизировать массивы ролей актёра с таблицей `PerformanceCast`.
+
+    Источник правды при сохранении карточки актёра — массивы
+    `perfomances` / `role_in_perfomances`. Для каждого названия ищем спектакль
+    в БД (точное совпадение title) и обновляем строки состава. Спектакли,
+    которых нет в базе, пропускаются. Удаление роли у актёра убирает его
+    из состава соответствующего спектакля.
+    """
+    titles = list(actor.perfomances or [])
+    roles = list(actor.role_in_perfomances or [])
+    desired = {}  # performance_id -> [roles]
+    for i, raw_title in enumerate(titles):
+        title = (raw_title or '').strip()
+        if not title:
+            continue
+        role = (roles[i] if i < len(roles) else '') or ''
+        perfs = Perfomances.objects.filter(title=title, deleted_at__isnull=True)
+        perf = perfs.filter(afisha=False).order_by('id').first() \
+            or perfs.order_by('id').first()
+        if not perf:
+            continue
+        desired.setdefault(perf.id, []).append(role)
+
+    existing = list(
+        PerformanceCast.objects.filter(actor=actor).select_related('performance')
+    )
+    by_perf = {}
+    for row in existing:
+        by_perf.setdefault(row.performance_id, []).append(row)
+
+    for perf_id, role_list in desired.items():
+        current = {c.role: c for c in by_perf.get(perf_id, [])}
+        for role in role_list:
+            if role in current:
+                current.pop(role)
+            else:
+                PerformanceCast.objects.get_or_create(
+                    performance_id=perf_id,
+                    actor=actor,
+                    role=role,
+                    defaults={
+                        'director': None,
+                        'actor_name': actor.name or '',
+                    },
+                )
+        for leftover in current.values():
+            leftover.delete()
+
+    for perf_id, rows in by_perf.items():
+        if perf_id not in desired:
+            for row in rows:
+                row.delete()
+
+
 def promote_performance(performance):
     """Перевести спектакль из раздела «Афиша» в раздел «Спектакли».
 
@@ -418,6 +475,8 @@ def promote_performance(performance):
         # Спектакль становится прошедшим — состав должен появиться у актёров.
         perf.afisha = False
         perf.roles_propagated = True
+        # Билеты больше не нужны: спектакль уже сыгран.
+        perf.ticket_url = None
 
         # Добавляем спектакль режиссёру (на его страницу), однократно и
         # НЕЗАВИСИМО от раздачи ролей актёрам: отдельный флаг director_propagated
@@ -457,11 +516,34 @@ def promote_performance(performance):
         perf.afisha = False
         perf.updated_at = timezone.now()
         perf.save(update_fields=[
-            'afisha', 'roles_propagated', 'director_propagated', 'updated_at'
+            'afisha', 'roles_propagated', 'director_propagated',
+            'ticket_url', 'updated_at',
         ])
+        # Ссылки на билеты у отдельных показов тоже очищаем.
+        perf.shows.filter(ticket_url__isnull=False).exclude(ticket_url='').update(
+            ticket_url=None
+        )
         # Единая синхронизация состава с карточками актёров.
         sync_performance_cast_to_actors(perf)
         return perf
+
+
+def promote_past_performances():
+    """Перевести все спектакли, у которых последний показ уже прошёл."""
+    from django.db.models import Max
+
+    now = timezone.now()
+    candidates = (
+        Perfomances.objects
+        .filter(afisha=True, deleted_at__isnull=True)
+        .annotate(last_show=Max('shows__show_datetime'))
+        .filter(last_show__isnull=False, last_show__lte=now)
+        .order_by('id')
+    )
+    promoted = []
+    for performance in candidates:
+        promoted.append(promote_performance(performance))
+    return promoted
 
 
 class Review(models.Model): # Отзыв пользователя о спектакле или актёре

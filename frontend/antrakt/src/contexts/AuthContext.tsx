@@ -97,7 +97,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (AuthService.isAuthenticated()) {
         await refreshUser();
       } else {
-        setIsAuthenticated(false);
+        updateUser(null);
       }
       setIsLoading(false);
     };

@@ -108,6 +108,14 @@ export const ArchiveForm: React.FC<{
         }));
     };
 
+    const handleAddGalleryImages = (imageUrls: string[]) => {
+        if (!imageUrls?.length) return;
+        setCurrentArchive(prev => ({
+            ...prev,
+            images_list: [...(prev.images_list || []), ...imageUrls]
+        }));
+    };
+
     const handleRemoveGalleryImage = (index: number) => {
         if (!currentArchive.images_list) return;
 
@@ -402,13 +410,18 @@ export const ArchiveForm: React.FC<{
             <Modal isOpen={isOpen} onClose={onClose} size={{ base: "sm", md: "lg" }}>
                 <ModalOverlay />
                 <ModalContent bg="gray.800" color="white">
-                    <ModalHeader>Добавить фотографию в галерею</ModalHeader>
+                    <ModalHeader>Добавить фотографии в галерею</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
                         <ImageUpload
                             currentImageUrl={null}
+                            multiple
                             onImageUpload={(imageUrl) => {
                                 handleAddGalleryImage(imageUrl);
+                                onClose();
+                            }}
+                            onImagesUpload={(urls) => {
+                                handleAddGalleryImages(urls);
                                 onClose();
                             }}
                             onImageRemove={() => { }}

@@ -30,7 +30,7 @@ import {
     useDisclosure
 } from '@chakra-ui/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSave, FaEdit, FaTrash, FaArrowLeft, FaImage, FaUser, FaPhone } from 'react-icons/fa';
+import { FaSave, FaEdit, FaTrash, FaArrowLeft, FaImage, FaUser, FaPhone, FaSignOutAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
@@ -48,6 +48,7 @@ const CFaUser = motion(FaUser as any);
 const CFaSave = motion(FaSave as any);
 const CFaTrash = motion(FaTrash as any);
 const CFaEdit = motion(FaEdit as any);
+const CFaSignOutAlt = motion(FaSignOutAlt as any);
 
 const primaryColor = '#f2f2f2';
 const secondaryColor = '#8a8a8a';
@@ -204,7 +205,8 @@ const ChangePasswordForm: React.FC<{
     onSuccess: () => void;
     onCancel: () => void;
 }> = ({ userId, onSuccess, onCancel }) => {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
     const [email, setEmail] = useState(user?.email || '');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const toast = useToast();
@@ -225,6 +227,9 @@ const ChangePasswordForm: React.FC<{
                 isClosable: true,
             });
             onSuccess();
+            // После сброса пароля выходим, чтобы сразу войти с новым.
+            await logout();
+            navigate('/');
         } catch (error: any) {
             const description = error?.response?.data?.error || 'Не удалось отправить письмо';
             toast({ title: 'Ошибка', description, status: 'error', duration: 4000, isClosable: true });
@@ -509,6 +514,20 @@ export default function ProfilePage() {
                                 </VStack>
 
                                 <Divider borderColor="rgba(255, 255, 255, 0.15)" />
+
+                                <Button
+                                    colorScheme="gray"
+                                    variant="outline"
+                                    leftIcon={<Icon as={CFaSignOutAlt} />}
+                                    onClick={async () => {
+                                        await logout();
+                                        navigate('/');
+                                    }}
+                                    size="sm"
+                                    w="full"
+                                >
+                                    Выйти
+                                </Button>
 
                                 <Button
                                     colorScheme="red"
