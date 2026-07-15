@@ -17,10 +17,10 @@ import {
     useToast
 } from "@chakra-ui/react";
 import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
-import { useState } from "react";
 import { useNavigate, Link as RouterLink } from "react-router-dom"; // Добавлен импорт Link as RouterLink
 import AuthModal from "./AuthModal";
 import { useAuth } from "../contexts/AuthContext";
+import { useAuthModal } from "../contexts/AuthModalContext";
 import { useSiteContent } from "../contexts/SiteContentContext";
 
 const primaryColor = "#f2f2f2";
@@ -39,21 +39,24 @@ const NAV_ITEMS = [
 
 export default function Navigation() {
     const { isOpen, onToggle } = useDisclosure();
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-    const [authMode, setAuthMode] = useState<"login" | "register">("login");
+    const {
+        isAuthModalOpen,
+        authMode,
+        setAuthMode,
+        openAuthModal,
+        closeAuthModal,
+    } = useAuthModal();
     const toast = useToast();
     const navigate = useNavigate(); // Добавлен хук useNavigate
     const { user, isAuthenticated, login, register, verifyRegistration, resendCode, resetPassword, logout } = useAuth();
     const { getText } = useSiteContent();
 
     const handleLoginClick = () => {
-        setAuthMode("login");
-        setIsAuthModalOpen(true);
+        openAuthModal("login");
     };
 
     const handleRegisterClick = () => {
-        setAuthMode("register");
-        setIsAuthModalOpen(true);
+        openAuthModal("register");
     };
 
     const extractError = (error: any, fallback: string) => {
@@ -136,7 +139,7 @@ export default function Navigation() {
                 isClosable: true,
                 position: "top"
             });
-            setIsAuthModalOpen(false);
+            closeAuthModal();
         } else {
             toast({
                 title: "Ошибка входа",
@@ -364,9 +367,7 @@ export default function Navigation() {
 
             <AuthModal
                 isOpen={isAuthModalOpen}
-                onClose={() => {
-                    setIsAuthModalOpen(false);
-                }}
+                onClose={closeAuthModal}
                 mode={authMode}
                 switchToLogin={() => setAuthMode("login")}
                 switchToRegister={() => setAuthMode("register")}

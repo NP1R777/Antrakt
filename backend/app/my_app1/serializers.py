@@ -8,7 +8,8 @@ from .models import (User, Perfomances, Actors, DirectorsTheatre,
                      Review, ReviewReaction,
                      SiteContent, BirthdayGreeting, ActorBirthday,
                      SiteReview,
-                     sync_performance_cast_to_actors)
+                     sync_performance_cast_to_actors,
+                     sync_actor_roles_to_performances)
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
@@ -212,7 +213,10 @@ class PerfomanceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_director_name(self, obj):
-        return obj.director.name if obj.director_id else None
+        if obj.director_id:
+            return obj.director.name
+        name = (getattr(obj, 'guest_director_name', None) or '').strip()
+        return name or None
 
     def _is_admin(self):
         request = self.context.get('request')
@@ -222,7 +226,7 @@ class PerfomanceSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         # Состав и роли скрыты от обычных пользователей, пока спектакль в "Афише".
-        # Администраторам (для редактирования) состав отдаём всегда.
+        # Администраторам (для редактирования в админке) состав отдаём всегда.
         if instance.afisha and not self._is_admin():
             data['cast'] = []
         return data
@@ -238,6 +242,9 @@ class PerfomanceSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         shows_data = validated_data.pop('shows', [])
         cast_data = validated_data.pop('cast_members', [])
+        # Если выбран режиссёр из базы — гостевое имя не нужно.
+        if validated_data.get('director') is not None:
+            validated_data['guest_director_name'] = ''
         with transaction.atomic():
             performance = Perfomances.objects.create(**validated_data)
             self._sync_shows(performance, shows_data)
@@ -249,6 +256,8 @@ class PerfomanceSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         shows_data = validated_data.pop('shows', None)
         cast_data = validated_data.pop('cast_members', None)
+        if 'director' in validated_data and validated_data.get('director') is not None:
+            validated_data['guest_director_name'] = ''
         with transaction.atomic():
             # Актёры, состоявшие в спектакле до изменения, — чтобы корректно
             # убрать роль у тех, кого удалили из состава.
@@ -285,6 +294,23 @@ class ActorsSerializer(serializers.ModelSerializer):
 
     def get_is_active(self, obj):
         return obj.is_active
+
+    def create(self, validated_data):
+        with transaction.atomic():
+            actor = Actors.objects.create(**validated_data)
+            sync_actor_roles_to_performances(actor)
+        return actor
+
+    def update(self, instance, validated_data):
+        with transaction.atomic():
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+            # Если менялись роли/спектакли — синхронизируем состав спектаклей.
+            if ('perfomances' in validated_data
+                    or 'role_in_perfomances' in validated_data):
+                sync_actor_roles_to_performances(instance)
+        return instance
 
 
 class DirectorsSerializer(serializers.ModelSerializer):

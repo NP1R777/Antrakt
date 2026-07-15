@@ -94,58 +94,79 @@ const Dashboard: React.FC = () => {
 
     const fetchDashboardData = async () => {
         try {
-            const [perfRes, actRes, dirRes, newsRes, achRes, usrRes] = await Promise.all([
+            const results = await Promise.allSettled([
                 axios.get(`${API_URL}/perfomances-admin/`),
-                axios.get(`${API_URL}/actors/`),
-                axios.get(`${API_URL}/directors/`),
-                axios.get(`${API_URL}/news/`),
-                axios.get(`${API_URL}/achievements/`),
+                axios.get(`${API_URL}/actors-admin/`),
+                axios.get(`${API_URL}/directors-admin/`),
+                axios.get(`${API_URL}/news-admin/`),
+                axios.get(`${API_URL}/achievements-admin/`),
                 axios.get(`${API_URL}/users/`),
             ]);
 
+            const dataOf = (i: number) =>
+                results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<any>).value.data : [];
+
+            const perfData = Array.isArray(dataOf(0)) ? dataOf(0) : [];
+            const actData = Array.isArray(dataOf(1)) ? dataOf(1) : [];
+            const dirData = Array.isArray(dataOf(2)) ? dataOf(2) : [];
+            const newsData = Array.isArray(dataOf(3)) ? dataOf(3) : [];
+            const achData = Array.isArray(dataOf(4)) ? dataOf(4) : [];
+            const usrData = Array.isArray(dataOf(5)) ? dataOf(5) : [];
+
+            const active = (rows: any[]) =>
+                rows.filter((r) => !r.deleted_at);
+
             setStats({
-                performances: perfRes.data.length,
-                actors: actRes.data.length,
-                directors: dirRes.data.length,
-                news: newsRes.data.length,
-                achievements: achRes.data.length,
-                users: usrRes.data.length,
+                performances: active(perfData).length,
+                actors: active(actData).length,
+                directors: active(dirData).length,
+                news: active(newsData).length,
+                achievements: active(achData).length,
+                users: active(usrData).length,
             });
 
+            const byNewest = (rows: any[], n: number) =>
+                [...rows]
+                    .sort((a, b) =>
+                        new Date(b.created_at || b.date_publish || 0).getTime() -
+                        new Date(a.created_at || a.date_publish || 0).getTime()
+                    )
+                    .slice(0, n);
+
             const recent = [
-                ...newsRes.data.slice(-3).map((i: any) => ({
+                ...byNewest(active(newsData), 3).map((i: any) => ({
                     id: i.id,
-                    title: i.title,
-                    date: i.created_at || new Date().toISOString(),
+                    title: i.title || 'Без названия',
+                    date: i.created_at || i.date_publish || new Date().toISOString(),
                     type: 'news' as const
                 })),
-                ...perfRes.data.slice(-2).map((i: any) => ({
+                ...byNewest(active(perfData), 2).map((i: any) => ({
                     id: i.id,
-                    title: i.title,
+                    title: i.title || 'Без названия',
                     date: i.created_at || new Date().toISOString(),
                     type: 'performance' as const
                 })),
-                ...actRes.data.slice(-2).map((i: any) => ({
+                ...byNewest(active(actData), 2).map((i: any) => ({
                     id: i.id,
-                    title: i.name,
+                    title: i.name || 'Без имени',
                     date: i.created_at || new Date().toISOString(),
                     type: 'actor' as const
                 })),
-                ...achRes.data.slice(-2).map((i: any) => ({
+                ...byNewest(active(achData), 2).map((i: any) => ({
                     id: i.id,
-                    title: i.achievements && i.achievements.length > 0 ? i.achievements[0] : 'Без названия',
+                    title: i.achievement || 'Без названия',
                     date: i.created_at || new Date().toISOString(),
                     type: 'achievement' as const
                 })),
-                ...dirRes.data.slice(-1).map((i: any) => ({
+                ...byNewest(active(dirData), 1).map((i: any) => ({
                     id: i.id,
-                    title: i.name,
+                    title: i.name || 'Без имени',
                     date: i.created_at || new Date().toISOString(),
                     type: 'director' as const
                 })),
             ]
                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                .slice(0, 3);
+                .slice(0, 5);
 
             setRecentItems(recent);
         } catch (err) {

@@ -12,7 +12,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import Max
 from django.utils import timezone
 
-from my_app1.models import Perfomances, promote_performance
+from my_app1.models import Perfomances, promote_performance, promote_past_performances
 
 
 class Command(BaseCommand):

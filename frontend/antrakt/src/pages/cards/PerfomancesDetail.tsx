@@ -387,10 +387,43 @@ const PerformanceDetail: React.FC = () => {
                                             <CFaUsers mr={2} color="#d9d9d9" />
                                             Команда
                                         </Heading>
-                                        <Text fontSize="md" color="#e0e0e0">
-                                            <b>Постановочная команда:</b> {performance.production_team.join(', ')}
-                                        </Text>
-                                        {performance.cast && performance.cast.length > 0 && (
+                                        {performance.production_team && performance.production_team.length > 0 && (
+                                            <Box w="full">
+                                                <Text fontSize="md" color="#e0e0e0" mb={2}>
+                                                    <b>Постановочная команда:</b>
+                                                </Text>
+                                                <VStack align="stretch" spacing={2} w="full">
+                                                    {performance.production_team.map((member, i) => {
+                                                        const raw = (member || '').trim();
+                                                        const sep = raw.includes(':') ? ':' : (raw.includes('—') ? '—' : (raw.includes('-') ? '-' : null));
+                                                        const [left, ...rest] = sep ? raw.split(sep) : [raw];
+                                                        const right = rest.join(sep || '').trim();
+                                                        return (
+                                                            <Flex
+                                                                key={`${raw}-${i}`}
+                                                                align="baseline"
+                                                                gap={2}
+                                                                borderLeft="2px solid"
+                                                                borderColor="#3a3a3a"
+                                                                pl={3}
+                                                                py={1}
+                                                            >
+                                                                <Text
+                                                                    fontWeight="semibold"
+                                                                    color="#ffffff"
+                                                                    minW={{ base: "120px", md: "180px" }}
+                                                                >
+                                                                    {right ? left.trim() : 'Участник'}
+                                                                </Text>
+                                                                <Text color="#a0a0a0">—</Text>
+                                                                <Text color="#c9c9c9">{right || left.trim()}</Text>
+                                                            </Flex>
+                                                        );
+                                                    })}
+                                                </VStack>
+                                            </Box>
+                                        )}
+                                        {!performance.afisha && performance.cast && performance.cast.length > 0 && (
                                             <Box w="full">
                                                 <Text fontSize="md" color="#e0e0e0" mb={2}>
                                                     <b>Актёрский состав:</b>
