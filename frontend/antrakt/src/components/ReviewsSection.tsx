@@ -27,6 +27,7 @@ import {
 import { FaTrash, FaExclamationTriangle } from 'react-icons/fa';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import { useAuthModal } from '../contexts/AuthModalContext';
 import { API_URL } from '../config';
 
 const API = `${API_URL}`;
@@ -77,8 +78,10 @@ const URL_PREFIX: Record<ReviewTargetType, string> = {
 
 const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
     const { user, isAuthenticated } = useAuth();
+    const { openAuthModal } = useAuthModal();
     const toast = useToast();
     const listUrl = `${API}/${URL_PREFIX[type]}${targetId}/reviews/`;
+    const isAdmin = Boolean(isAuthenticated && user?.is_superuser);
 
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
@@ -204,7 +207,14 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
                     </Flex>
                 </Box>
             ) : (
-                <Text color="gray.400" mb={6}>
+                <Text
+                    color="gray.400"
+                    mb={6}
+                    cursor="pointer"
+                    textDecoration="underline"
+                    _hover={{ color: primaryColor }}
+                    onClick={() => openAuthModal('register')}
+                >
                     Войдите в аккаунт, чтобы оставить отзыв.
                 </Text>
             )}
@@ -216,7 +226,6 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
             ) : (
                 <VStack spacing={4} align="stretch">
                     {reviews.map((review) => {
-                        const canModerate = user?.is_superuser || user?.id === review.author;
                         return (
                             <Box
                                 key={review.id}
@@ -236,8 +245,9 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
                                             </Text>
                                         </Box>
                                     </HStack>
+                                    {isAdmin && (
                                     <HStack>
-                                        {user?.is_superuser && review.author_email && (
+                                        {review.author_email && (
                                             <Tooltip label={`Предупредить (${review.author_email})`} hasArrow>
                                                 <IconButton
                                                     aria-label="Отправить предупреждение"
@@ -250,20 +260,19 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({ type, targetId }) => {
                                                 />
                                             </Tooltip>
                                         )}
-                                        {canModerate && (
-                                            <Tooltip label="Удалить отзыв" hasArrow>
-                                                <IconButton
-                                                    aria-label="Удалить отзыв"
-                                                    icon={<CFaTrash />}
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    color="red.300"
-                                                    _hover={{ bg: 'rgba(255,255,255,0.1)' }}
-                                                    onClick={() => handleDelete(review)}
-                                                />
-                                            </Tooltip>
-                                        )}
+                                        <Tooltip label="Удалить отзыв" hasArrow>
+                                            <IconButton
+                                                aria-label="Удалить отзыв"
+                                                icon={<CFaTrash />}
+                                                size="sm"
+                                                variant="ghost"
+                                                color="red.300"
+                                                _hover={{ bg: 'rgba(255,255,255,0.1)' }}
+                                                onClick={() => handleDelete(review)}
+                                            />
+                                        </Tooltip>
                                     </HStack>
+                                    )}
                                 </Flex>
 
                                 <Text color="gray.200" whiteSpace="pre-wrap" mb={3}>{review.text}</Text>

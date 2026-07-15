@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Button,
     VStack,
@@ -10,6 +10,7 @@ import {
     Flex,
     Input,
     Textarea,
+    Select,
     Wrap,
     IconButton,
     Tooltip,
@@ -105,7 +106,26 @@ export const ActorForm: React.FC<{
     });
     const [listInputs, setListInputs] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [performanceOptions, setPerformanceOptions] = useState<{ id: number; title: string }[]>([]);
     const toast = useToast();
+
+    useEffect(() => {
+        axios.get(`${API_URL}/perfomances-admin/`)
+            .then(res => {
+                const rows = (res.data || [])
+                    .filter((p: any) => !p.deleted_at)
+                    .map((p: any) => ({ id: p.id, title: p.title }))
+                    .sort((a: any, b: any) => a.title.localeCompare(b.title, 'ru'));
+                // unique titles
+                const seen = new Set<string>();
+                setPerformanceOptions(rows.filter((p: any) => {
+                    if (seen.has(p.title)) return false;
+                    seen.add(p.title);
+                    return true;
+                }));
+            })
+            .catch(err => console.error('Не удалось загрузить спектакли:', err));
+    }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -515,15 +535,21 @@ export const ActorForm: React.FC<{
                                 <CFaTheaterMasks color={accentColor} />
                                 <Text as="span" fontWeight="semibold">Спектакли</Text>
                             </FormLabel>
-                            <Input
+                            <Select
+                                placeholder="Выберите спектакль"
                                 value={listInputs.perfomances || ''}
                                 onChange={(e) => handleListInputChange('perfomances', e.target.value)}
-                                placeholder="Добавить спектакль"
                                 focusBorderColor={accentColor}
                                 bg="#333333"
                                 borderColor="#444444"
                                 _hover={{ borderColor: '#555555' }}
-                            />
+                            >
+                                {performanceOptions.map(p => (
+                                    <option key={p.id} value={p.title} style={{ backgroundColor: '#333333', color: 'white' }}>
+                                        {p.title}
+                                    </option>
+                                ))}
+                            </Select>
                         </FormControl>
 
                         <FormControl>

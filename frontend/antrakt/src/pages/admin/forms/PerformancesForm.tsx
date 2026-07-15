@@ -83,6 +83,8 @@ interface CastMember {
 
 // Значение пункта «Другой(ая)» в выпадающем списке актёров.
 const OTHER_ACTOR = '__other__';
+// Значение пункта «Другой(-ая)» в выпадающем списке режиссёров.
+const OTHER_DIRECTOR = '__other_director__';
 
 interface ActorOption {
     id: number;
@@ -109,6 +111,7 @@ interface Performance {
     images_list: string[]; // Добавлено поле для галереи
     ticket_url?: string | null; // Ссылка на покупку билетов
     director?: number | null; // Режиссёр спектакля
+    guest_director_name?: string; // Режиссёр не из базы («Другой(-ая)»)
     // Данные для карточки на странице режиссёра (используются при авто-добавлении):
     production_title?: string; // Название постановки (если пусто — название спектакля)
     production_collective?: string; // Коллектив постановки
@@ -202,6 +205,9 @@ export const PerformanceForm: React.FC<{
         actor_name: '',
         role: ''
     });
+    const [directorIsOther, setDirectorIsOther] = useState(
+        Boolean(initialData?.guest_director_name) && !initialData?.director
+    );
     const toast = useToast();
     const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -518,26 +524,75 @@ export const PerformanceForm: React.FC<{
                             <CFaUser color={primaryColor} />
                             <Text as="span" fontWeight="semibold">Режиссёр</Text>
                         </FormLabel>
-                        <Select
-                            placeholder="Выберите режиссёра"
-                            value={currentPerformance.director ?? ''}
-                            onChange={(e) => setCurrentPerformance(prev => ({
-                                ...prev,
-                                director: e.target.value ? parseInt(e.target.value, 10) : null
-                            }))}
-                            focusBorderColor={primaryColor}
-                            bg="#333333"
-                            borderColor="#444444"
-                            _hover={{ borderColor: '#555555' }}
-                        >
-                            {directorOptions.map(d => (
-                                <option key={d.id} value={d.id} style={{ backgroundColor: '#333333', color: 'white' }}>
-                                    {d.name}
+                        {directorIsOther ? (
+                            <HStack>
+                                <Input
+                                    placeholder="Имя режиссёра"
+                                    value={currentPerformance.guest_director_name || ''}
+                                    onChange={(e) => setCurrentPerformance(prev => ({
+                                        ...prev,
+                                        director: null,
+                                        guest_director_name: e.target.value,
+                                    }))}
+                                    focusBorderColor={primaryColor}
+                                    bg="#333333"
+                                    borderColor="#444444"
+                                    _hover={{ borderColor: '#555555' }}
+                                />
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setDirectorIsOther(false);
+                                        setCurrentPerformance(prev => ({
+                                            ...prev,
+                                            guest_director_name: '',
+                                            director: null,
+                                        }));
+                                    }}
+                                >
+                                    Из списка
+                                </Button>
+                            </HStack>
+                        ) : (
+                            <Select
+                                placeholder="Выберите режиссёра"
+                                value={currentPerformance.director ?? ''}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === OTHER_DIRECTOR) {
+                                        setDirectorIsOther(true);
+                                        setCurrentPerformance(prev => ({
+                                            ...prev,
+                                            director: null,
+                                            guest_director_name: '',
+                                        }));
+                                        return;
+                                    }
+                                    setDirectorIsOther(false);
+                                    setCurrentPerformance(prev => ({
+                                        ...prev,
+                                        director: val ? parseInt(val, 10) : null,
+                                        guest_director_name: '',
+                                    }));
+                                }}
+                                focusBorderColor={primaryColor}
+                                bg="#333333"
+                                borderColor="#444444"
+                                _hover={{ borderColor: '#555555' }}
+                            >
+                                {directorOptions.map(d => (
+                                    <option key={d.id} value={d.id} style={{ backgroundColor: '#333333', color: 'white' }}>
+                                        {d.name}
+                                    </option>
+                                ))}
+                                <option value={OTHER_DIRECTOR} style={{ backgroundColor: '#333333', color: 'white' }}>
+                                    Другой(-ая)…
                                 </option>
-                            ))}
-                        </Select>
+                            </Select>
+                        )}
                         <Text mt={1} fontSize="sm" color="#AAAAAA">
-                            Имя режиссёра видно уже в «Афише». После завершения показов спектакль добавится на его страницу.
+                            Имя режиссёра видно уже в «Афише». После завершения показов спектакль добавится на его страницу (если выбран из списка).
                         </Text>
                     </FormControl>
 

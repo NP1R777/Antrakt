@@ -99,6 +99,34 @@ services:
       start_period: 40s
     restart: unless-stopped
 
+  # Периодический авто-перевод «Афиша → Спектакли» (каждую минуту).
+  promote-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    env_file:
+      - .env.prod
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_CUSTOM_DOMAIN: s3.${DOMAIN}/${MINIO_BUCKET_NAME}
+      MINIO_URL_PROTOCOL: "https:"
+      DEBUG: "False"
+      SECURE_HTTPS: "False"
+      ALLOWED_HOSTS: "*"
+    depends_on:
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    entrypoint: >
+      /bin/sh -c "while true; do
+        python manage.py promote_past_performances || true;
+        sleep 60;
+      done"
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend/antrakt
