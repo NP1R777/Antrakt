@@ -508,11 +508,17 @@ class PerfomanceDetail(APIView):
 
     def delete(self, request, id, format=None):
         perfomance = get_object_or_404(self.model_class, id=id)
+        # При переводе спектакль денормализованно добавляется в параллельные
+        # массивы режиссёра. Удаление должно убрать и эту запись.
+        remove_performance_from_director(perfomance)
         if is_hard_delete(request):
             perfomance.delete()
         else:
             perfomance.deleted_at = timezone.now()
-            perfomance.save()
+            # При восстановлении повторный promote снова добавит постановку
+            # режиссёру.
+            perfomance.director_propagated = False
+            perfomance.save(update_fields=['deleted_at', 'director_propagated'])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

@@ -25,6 +25,7 @@ import Navigation from "../components/Navigation";
 import { FaTheaterMasks, FaCrown, FaFilm } from "react-icons/fa";
 import { ChevronRightIcon, CalendarIcon } from "@chakra-ui/icons";
 import { yearDeclension, performanceDeclension } from "../utils/declension";
+import { getActorRoleLabel } from "../utils/actorRoleLabel";
 import { API_URL } from '../config';
 
 // Стилизованные компоненты для иконок
@@ -117,11 +118,10 @@ const TeamPage: React.FC = () => {
                 const transformedActors = actorsRes.data.map((actor: ServerActor, index: number) => {
                     const experienceMatch = actor.time_in_theatre.match(/\d+/);
                     const experience = experienceMatch ? parseInt(experienceMatch[0]) : 0;
-                    const isFemale = actor.name.match(/[ая]$/i);
                     return {
                         id: actor.id,
                         name: actor.name,
-                        role: isFemale ? "Актриса" : "Актер",
+                        role: getActorRoleLabel(actor.name),
                         experience,
                         productions: actor.perfomances?.length || 0,
                         isDirector: false,
@@ -260,7 +260,7 @@ const TeamPage: React.FC = () => {
     );
 
     return (
-        <Box minH="100vh" bg="black" display="flex" flexDirection="column" overflowY="hidden">
+        <Box minH="100vh" bg="black" display="flex" flexDirection="column" overflowX="hidden">
             <Navigation />
 
             <Box flex="1" py={{ base: 12, md: 20 }} px={{ base: 4, md: 8 }} position="relative">
@@ -269,8 +269,8 @@ const TeamPage: React.FC = () => {
                     position="absolute"
                     bottom="-20%"
                     left="-10%"
-                    w="500px"
-                    h="500px"
+                    w={{ base: "320px", md: "500px" }}
+                    h={{ base: "320px", md: "500px" }}
                     bg={primaryColor}
                     borderRadius="full"
                     filter="blur(80px)"

@@ -175,13 +175,18 @@ const ProfileForm: React.FC<{
                 />
             </FormControl>
 
-            <Flex justify="flex-end" gap={3}>
+            <Flex
+                justify="flex-end"
+                gap={3}
+                direction={{ base: "column-reverse", sm: "row" }}
+            >
                 <Button
                     variant="outline"
                     color="white"
-                    borderColor="#3a3a3a"
-                    _hover={{ bg: '#3a3a3a' }}
+                    borderColor="#777777"
+                    _hover={{ bg: '#3a3a3a', borderColor: '#f2f2f2' }}
                     onClick={onCancel}
+                    w={{ base: "full", sm: "auto" }}
                 >
                     Отмена
                 </Button>
@@ -276,6 +281,12 @@ const ChangePasswordForm: React.FC<{
                     isLoading={isSubmitting}
                     onClick={handleSubmit}
                     leftIcon={<Icon as={CFaSave} />}
+                    w={{ base: "full", sm: "auto" }}
+                    whiteSpace="normal"
+                    textTransform="none"
+                    fontSize={{ base: "sm", sm: "md" }}
+                    px={{ base: 3, sm: 5 }}
+                    minH="44px"
                 >
                     Отправить новый пароль
                 </Button>
@@ -516,8 +527,14 @@ export default function ProfilePage() {
                                 <Divider borderColor="rgba(255, 255, 255, 0.15)" />
 
                                 <Button
-                                    colorScheme="gray"
                                     variant="outline"
+                                    color="white"
+                                    borderColor="#8a8a8a"
+                                    bg="rgba(255, 255, 255, 0.06)"
+                                    _hover={{
+                                        bg: "rgba(255, 255, 255, 0.16)",
+                                        borderColor: "white"
+                                    }}
                                     leftIcon={<Icon as={CFaSignOutAlt} />}
                                     onClick={async () => {
                                         await logout();
@@ -555,8 +572,13 @@ export default function ProfilePage() {
                                     </Heading>
                                     <Button
                                         leftIcon={<Icon as={CFaEdit} />}
-                                        colorScheme="brand"
+                                        bg={primaryColor}
+                                        color="#0a0a0a"
+                                        border="1px solid"
+                                        borderColor={primaryColor}
+                                        _hover={{ bg: "#d9d9d9", borderColor: "#d9d9d9" }}
                                         onClick={onEditModalOpen}
+                                        flexShrink={0}
                                     >
                                         Редактировать
                                     </Button>

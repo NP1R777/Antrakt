@@ -242,7 +242,16 @@ export default function AuthModal({
                                     </FormControl>
                                     <Button bg="#2a2a2a" color="white" _hover={{ bg: "#d9d9d9", color: "#0a0a0a" }}
                                         isLoading={isSubmitting} loadingText="Отправка..."
-                                        onClick={handleForgot} size={{ base: "md", md: "lg" }} fontWeight="bold">
+                                        onClick={handleForgot}
+                                        size={{ base: "md", md: "lg" }}
+                                        fontWeight="bold"
+                                        w="full"
+                                        whiteSpace="normal"
+                                        textTransform="none"
+                                        fontSize={{ base: "sm", sm: "md" }}
+                                        px={{ base: 3, sm: 6 }}
+                                        minH="44px"
+                                    >
                                         Отправить новый пароль
                                     </Button>
                                     <Link color="#888" fontSize="sm" textAlign="center" onClick={() => setView("auth")}>

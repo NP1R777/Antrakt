@@ -25,6 +25,7 @@ import ReviewsSection from "../../components/ReviewsSection";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaQuoteLeft, FaUserTie, FaBook, FaUser, FaPaintBrush, FaVideo, FaMusic } from "react-icons/fa";
 import { yearDeclension, performanceDeclension } from "../../utils/declension";
+import { getActorRoleLabel } from "../../utils/actorRoleLabel";
 import { API_URL } from '../../config';
 
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
@@ -158,7 +159,7 @@ const ActorDetail: React.FC = () => {
 
     const experienceMatch = actor.time_in_theatre.match(/\d+/);
     const experience = experienceMatch ? parseInt(experienceMatch[0]) : 0;
-    const isFemale = actor.name.match(/[ая]$/i);
+    const roleLabel = getActorRoleLabel(actor.name);
 
     return (
         <Box bg="black" display="flex" flexDirection="column" minH="100vh">
@@ -219,7 +220,7 @@ const ActorDetail: React.FC = () => {
                         <GridItem minW="0">
                             <VStack align="start" spacing={6} sx={{ wordBreak: "break-word", overflowWrap: "anywhere" }}>
                                 <Heading as="h1" size="lg" color="white">{actor.name}</Heading>
-                                <Text color="whiteAlpha.800" fontSize="sm">{isFemale ? "Актриса" : "Актер"}</Text>
+                                <Text color="whiteAlpha.800" fontSize="sm">{roleLabel}</Text>
 
                                 <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6} w="full">
                                     <VStack align="start">
