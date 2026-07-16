@@ -12,20 +12,16 @@ import {
     Flex,
     Button,
     chakra,
-    Spinner,
-    Alert,
-    AlertIcon,
-    AlertTitle,
-    AlertDescription
+    Spinner
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
 import ReviewsSection from "../../components/ReviewsSection";
+import PageFetchError from "../../components/PageFetchError";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaQuoteLeft, FaUserTie, FaBook, FaUser, FaPaintBrush, FaVideo, FaMusic } from "react-icons/fa";
 import { yearDeclension, performanceDeclension } from "../../utils/declension";
-import { getActorRoleLabel } from "../../utils/actorRoleLabel";
 import { API_URL } from '../../config';
 
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
@@ -56,6 +52,7 @@ interface ServerActor {
     author_song: string[] | null;
     perfomances: string[] | null;
     role_in_perfomances: string[] | null;
+    role_label: "Актёр" | "Актриса";
 }
 
 interface Performance {
@@ -129,12 +126,12 @@ const ActorDetail: React.FC = () => {
 
     if (error) {
         return (
-            <Box textAlign="center" py={{ base: 12, md: 20 }} bg="black">
-                <Alert status="error" variant="subtle" flexDirection="column" alignItems="center">
-                    <AlertIcon boxSize="40px" mr={0} />
-                    <AlertTitle mt={4} mb={1} fontSize="md" color="white">Ошибка загрузки</AlertTitle>
-                    <AlertDescription maxWidth="sm" color="gray.400" fontSize="sm">{error}</AlertDescription>
-                </Alert>
+            <Box minH="100vh" bg="black">
+                <Navigation />
+                <Box py={{ base: 12, md: 20 }} px={4}>
+                    <PageFetchError message={error} />
+                </Box>
+                <Footer />
             </Box>
         );
     }
@@ -159,8 +156,6 @@ const ActorDetail: React.FC = () => {
 
     const experienceMatch = actor.time_in_theatre.match(/\d+/);
     const experience = experienceMatch ? parseInt(experienceMatch[0]) : 0;
-    const roleLabel = getActorRoleLabel(actor.name);
-
     return (
         <Box bg="black" display="flex" flexDirection="column" minH="100vh">
             <Navigation />
@@ -220,7 +215,7 @@ const ActorDetail: React.FC = () => {
                         <GridItem minW="0">
                             <VStack align="start" spacing={6} sx={{ wordBreak: "break-word", overflowWrap: "anywhere" }}>
                                 <Heading as="h1" size="lg" color="white">{actor.name}</Heading>
-                                <Text color="whiteAlpha.800" fontSize="sm">{roleLabel}</Text>
+                                <Text color="whiteAlpha.800" fontSize="sm">{actor.role_label}</Text>
 
                                 <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6} w="full">
                                     <VStack align="start">

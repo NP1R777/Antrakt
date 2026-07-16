@@ -3,6 +3,7 @@ import { Box, Container, Heading, Text, Image, VStack } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { API_URL } from '../config';
+import PageFetchError from '../components/PageFetchError';
 
 const MotionBox = motion(Box);
 
@@ -17,12 +18,14 @@ interface BirthdayData {
 
 const BirthdaySection: React.FC = () => {
     const [data, setData] = useState<BirthdayData | null>(null);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const load = () => {
+            setError('');
             axios.get(`${API_URL}/birthday-today/`)
                 .then(res => setData(res.data))
-                .catch(() => setData({ active: false }));
+                .catch(() => setError('Не удалось загрузить информацию об именинниках'));
         };
         load();
 
@@ -35,6 +38,14 @@ const BirthdaySection: React.FC = () => {
         const timer = setTimeout(load, nextMidnight.getTime() - now.getTime());
         return () => clearTimeout(timer);
     }, []);
+
+    if (error) {
+        return (
+            <Box as="section" bg="#0a0a0a" py={{ base: 12, md: 16 }} px={4}>
+                <PageFetchError message={error} />
+            </Box>
+        );
+    }
 
     if (!data?.active) return null;
 

@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 import { FaQuoteLeft, FaStar } from "react-icons/fa";
 import axios from "axios";
 import { API_URL } from '../config';
+import PageFetchError from "../components/PageFetchError";
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -39,12 +40,21 @@ const formatDate = (iso?: string | null) => {
 
 export default function Testimonials() {
     const [reviews, setReviews] = useState<SiteReview[]>([]);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         axios.get(`${API_URL}/site-reviews/`)
             .then(res => setReviews(res.data || []))
-            .catch(() => setReviews([]));
+            .catch(() => setError("Не удалось загрузить отзывы зрителей"));
     }, []);
+
+    if (error) {
+        return (
+            <Box py={{ base: 12, md: 20 }} px={4} bg="black">
+                <PageFetchError message={error} />
+            </Box>
+        );
+    }
 
     // Пока отзывов нет — секцию не показываем.
     if (!reviews.length) return null;

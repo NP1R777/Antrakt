@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
-    Alert,
-    AlertIcon,
-    AlertDescription,
-    AlertTitle,
     Box,
     Grid,
     GridItem,
@@ -22,10 +18,10 @@ import { motion } from "framer-motion";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import Navigation from "../components/Navigation";
+import PageFetchError from "../components/PageFetchError";
 import { FaTheaterMasks, FaCrown, FaFilm } from "react-icons/fa";
 import { ChevronRightIcon, CalendarIcon } from "@chakra-ui/icons";
 import { yearDeclension, performanceDeclension } from "../utils/declension";
-import { getActorRoleLabel } from "../utils/actorRoleLabel";
 import { API_URL } from '../config';
 
 // Стилизованные компоненты для иконок
@@ -71,6 +67,7 @@ interface ServerActor {
     perfomances: string[] | null;
     role_in_perfomances: string[] | null;
     image_url: string;
+    role_label: "Актёр" | "Актриса";
 }
 
 const TeamPage: React.FC = () => {
@@ -121,7 +118,7 @@ const TeamPage: React.FC = () => {
                     return {
                         id: actor.id,
                         name: actor.name,
-                        role: getActorRoleLabel(actor.name),
+                        role: actor.role_label,
                         experience,
                         productions: actor.perfomances?.length || 0,
                         isDirector: false,
@@ -154,19 +151,8 @@ const TeamPage: React.FC = () => {
         return (
             <Box>
                 <Navigation />
-                <Box textAlign="center" py={20} bg="black">
-                    <Alert status="error" variant="subtle" flexDirection="column" alignItems="center">
-                        <AlertIcon boxSize="40px" mr={0} />
-                        <AlertTitle mt={4} mb={1} fontSize="md" color="white">
-                            Ошибка загрузки
-                        </AlertTitle>
-                        <AlertDescription maxWidth="sm" color="gray.400" fontSize="sm">
-                            {error}
-                        </AlertDescription>
-                        <Button mt={4} colorScheme="red" size="sm" onClick={() => window.location.reload()}>
-                            Повторить попытку
-                        </Button>
-                    </Alert>
+                <Box py={20} px={4} bg="black">
+                    <PageFetchError message={error} />
                 </Box>
                 <Footer />
             </Box>
@@ -179,6 +165,7 @@ const TeamPage: React.FC = () => {
     const renderActorCard = (actor: TeamMember) => (
         <MotionGridItem
             key={actor.id}
+            minW="0"
             variants={{
                 hidden: { opacity: 0, scale: 0.8 },
                 visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
@@ -263,23 +250,35 @@ const TeamPage: React.FC = () => {
         <Box minH="100vh" bg="black" display="flex" flexDirection="column" overflowX="hidden">
             <Navigation />
 
-            <Box flex="1" py={{ base: 12, md: 20 }} px={{ base: 4, md: 8 }} position="relative">
+            <Box
+                flex="1"
+                py={{ base: 12, md: 20 }}
+                px={{ base: 4, md: 8 }}
+                position="relative"
+                overflow="hidden"
+            >
                 {/* Декоративный элемент */}
                 <MotionBox
                     position="absolute"
-                    bottom="-20%"
-                    left="-10%"
-                    w={{ base: "320px", md: "500px" }}
-                    h={{ base: "320px", md: "500px" }}
-                    bg={primaryColor}
+                    top="-10%"
+                    right="-10%"
+                    w="400px"
+                    h="400px"
+                    bg="linear-gradient(135deg, #2a2a2a, #151515)"
                     borderRadius="full"
                     filter="blur(80px)"
-                    opacity={0.15}
+                    opacity={0.2}
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ duration: 6, repeat: Infinity, repeatType: "reverse" }}
+                    pointerEvents="none"
                 />
 
-                <Container maxW="container.xl" position="relative" zIndex="1">
+                <Container
+                    maxW="container.xl"
+                    position="relative"
+                    zIndex="1"
+                    px={{ base: 0, md: 4 }}
+                >
                     {/* Заголовок страницы */}
                     <MotionBox
                         initial={{ opacity: 0, y: 20 }}
@@ -364,6 +363,7 @@ const TeamPage: React.FC = () => {
                             {directors.map((director) => (
                                 <MotionGridItem
                                     key={director.id}
+                                    minW="0"
                                     variants={{
                                         hidden: { opacity: 0, y: 30 },
                                         visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }

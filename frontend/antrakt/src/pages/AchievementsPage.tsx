@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-    Alert,
-    AlertDescription,
-    AlertIcon,
-    AlertTitle,
     Box,
     Button,
     Flex,
@@ -18,6 +14,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import Navigation from "../components/Navigation";
 import Footer from "../components/Footer";
+import PageFetchError from "../components/PageFetchError";
 import axios from "axios";
 import { API_URL } from '../config';
 
@@ -74,28 +71,7 @@ const AchievementsPage: React.FC = () => {
             <Box minH="100vh" bg="#0a0a0a" display="flex" flexDirection="column">
                 <Navigation />
                 <Flex flex="1" align="center" justify="center" px={4} py={{ base: 12, md: 20 }}>
-                    <Alert
-                        status="error"
-                        variant="subtle"
-                        flexDirection="column"
-                        alignItems="center"
-                        maxW="lg"
-                        borderRadius="xl"
-                        bg="rgba(197, 48, 48, 0.12)"
-                        border="1px solid"
-                        borderColor="red.700"
-                    >
-                        <AlertIcon boxSize="40px" mr={0} />
-                        <AlertTitle mt={4} mb={1} fontSize="md" color="white">
-                            Ошибка загрузки
-                        </AlertTitle>
-                        <AlertDescription maxW="sm" color="gray.300" fontSize="sm" textAlign="center">
-                            {error}
-                        </AlertDescription>
-                        <Button mt={4} colorScheme="red" size="sm" onClick={() => window.location.reload()}>
-                            Повторить попытку
-                        </Button>
-                    </Alert>
+                    <PageFetchError message={error} />
                 </Flex>
                 <Footer />
             </Box>

@@ -9,11 +9,7 @@ import {
     Heading,
     Skeleton,
     Flex,
-    Spinner,
-    Alert,
-    AlertIcon,
-    AlertTitle,
-    AlertDescription
+    Spinner
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
@@ -22,6 +18,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Navigation from "../components/Navigation";
 import Footer from "../components/Footer";
+import PageFetchError from "../components/PageFetchError";
 import { API_URL } from '../config';
 
 const MotionBox = motion(Box);
@@ -158,16 +155,8 @@ const NewsPage: React.FC = () => {
                     </MotionBox>
 
                     {error ? (
-                        <Box textAlign="center" py={10}>
-                            <Alert status="error" variant="subtle" flexDirection="column" alignItems="center">
-                                <AlertIcon boxSize="40px" mr={0} />
-                                <AlertTitle mt={4} mb={1} fontSize="md" color={lightText}>
-                                    Ошибка загрузки
-                                </AlertTitle>
-                                <AlertDescription maxWidth="sm" color={grayText} fontSize="sm">
-                                    {error}
-                                </AlertDescription>
-                            </Alert>
+                        <Box py={10}>
+                            <PageFetchError message={error} />
                         </Box>
                     ) : isLoading ? (
                         <Flex justify="center" align="center" minH="300px">

@@ -37,6 +37,7 @@ import axios from 'axios';
 import ImageUpload from '../components/ImageUpload';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
+import PageFetchError from '../components/PageFetchError';
 import { API_URL } from '../config';
 
 const MotionBox = motion(Box);
@@ -311,6 +312,7 @@ export default function ProfilePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [myReviews, setMyReviews] = useState<any[]>([]);
+    const [profileError, setProfileError] = useState('');
 
     useEffect(() => {
         const fetchMyReviews = async () => {
@@ -330,11 +332,13 @@ export default function ProfilePage() {
         const fetchProfile = async () => {
             try {
                 setIsLoading(true);
+                setProfileError('');
                 const response = await axios.get(`${API_URL}/user${user?.id}/`);
                 setProfile(response.data);
                 setIsLoading(false);
             } catch (error) {
                 console.error('Ошибка при загрузке профиля:', error);
+                setProfileError('Не удалось загрузить данные профиля');
                 toast({
                     title: 'Ошибка',
                     description: 'Не удалось загрузить данные профиля',
@@ -411,6 +415,18 @@ export default function ProfilePage() {
 
     if (isAuthLoading || !isAuthenticated) {
         return null;
+    }
+
+    if (profileError) {
+        return (
+            <Box bg="black" minH="100vh" display="flex" flexDirection="column">
+                <Navigation />
+                <Flex flex="1" align="center" justify="center" px={4} py={{ base: 12, md: 20 }}>
+                    <PageFetchError message={profileError} />
+                </Flex>
+                <Footer />
+            </Box>
+        );
     }
 
     return (

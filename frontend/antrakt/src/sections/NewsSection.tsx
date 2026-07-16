@@ -1,9 +1,10 @@
-import { Box, Heading, Grid, GridItem, Text, Button, Image, Flex, Tag, Spinner, Center, useToast } from "@chakra-ui/react";
+import { Box, Heading, Grid, GridItem, Text, Button, Image, Flex, Tag, Spinner, Center } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import { Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { API_URL } from '../config';
+import PageFetchError from "../components/PageFetchError";
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -22,7 +23,6 @@ export default function NewsSection() {
     const [news, setNews] = useState<NewsItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const toast = useToast();
 
     useEffect(() => {
         const fetchNews = async () => {
@@ -35,13 +35,6 @@ export default function NewsSection() {
                 setError("Не удалось загрузить новости");
                 setIsLoading(false);
 
-                toast({
-                    title: "Ошибка",
-                    description: "Не удалось загрузить данные новостей",
-                    status: "error",
-                    duration: 5000,
-                    isClosable: true,
-                });
             }
         };
 
@@ -118,11 +111,9 @@ export default function NewsSection() {
                         <Spinner size="xl" color="#d9d9d9" thickness="4px" />
                     </Center>
                 ) : error ? (
-                    <Center py={10}>
-                        <Text color="red.400" fontSize="xl">
-                            {error}
-                        </Text>
-                    </Center>
+                    <Box py={10}>
+                        <PageFetchError message={error} />
+                    </Box>
                 ) : news.length === 0 ? (
                     <Center py={10}>
                         <Text color="gray.400" fontSize="xl">

@@ -1,9 +1,10 @@
-import { Box, Heading, Grid, GridItem, Text, Button, Image, Flex, Spinner, Center, useToast } from "@chakra-ui/react";
+import { Box, Heading, Grid, GridItem, Text, Button, Image, Flex, Spinner, Center } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import { Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { API_URL } from '../config';
+import PageFetchError from "../components/PageFetchError";
 
 const MotionBox = motion(Box);
 const MotionGridItem = motion(GridItem);
@@ -23,7 +24,6 @@ export default function Performances() {
     const [performances, setPerformances] = useState<Performance[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const toast = useToast();
 
     useEffect(() => {
         const fetchPerformances = async () => {
@@ -36,13 +36,6 @@ export default function Performances() {
                 setError("Не удалось загрузить данные спектаклей");
                 setIsLoading(false);
 
-                toast({
-                    title: "Ошибка",
-                    description: "Не удалось загрузить данные спектаклей",
-                    status: "error",
-                    duration: 5000,
-                    isClosable: true,
-                });
             }
         };
 
@@ -114,11 +107,9 @@ export default function Performances() {
                         <Spinner size="xl" color="brand.500" thickness="4px" />
                     </Center>
                 ) : error ? (
-                    <Center py={10}>
-                        <Text color="red.400" fontSize="xl">
-                            {error}
-                        </Text>
-                    </Center>
+                    <Box py={10}>
+                        <PageFetchError message={error} />
+                    </Box>
                 ) : performances.length === 0 ? (
                     <Center py={10}>
                         <Text color="gray.400" fontSize="xl">
