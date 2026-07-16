@@ -12,16 +12,13 @@ import {
     Button,
     chakra,
     Spinner,
-    Alert,
-    AlertIcon,
-    AlertTitle,
-    AlertDescription,
     VStack,
     SimpleGrid
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
+import PageFetchError from "../../components/PageFetchError";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTrophy, FaCalendarAlt } from "react-icons/fa";
 import { API_URL } from '../../config';
@@ -77,19 +74,12 @@ const AchievementDetail: React.FC = () => {
 
     if (error) {
         return (
-            <Box textAlign="center" py={{ base: 12, md: 20 }} bg="black">
-                <Alert status="error" variant="subtle" flexDirection="column" alignItems="center">
-                    <AlertIcon boxSize="40px" mr={0} />
-                    <AlertTitle mt={4} mb={1} fontSize="md" color="white">
-                        Ошибка загрузки
-                    </AlertTitle>
-                    <AlertDescription maxWidth="sm" color="gray.400" fontSize="sm">
-                        {error}
-                    </AlertDescription>
-                    <Button mt={4} colorScheme="red" size="sm" onClick={() => window.location.reload()}>
-                        Повторить попытку
-                    </Button>
-                </Alert>
+            <Box minH="100vh" bg="black">
+                <Navigation />
+                <Box py={{ base: 12, md: 20 }} px={4}>
+                    <PageFetchError message={error} />
+                </Box>
+                <Footer />
             </Box>
         );
     }

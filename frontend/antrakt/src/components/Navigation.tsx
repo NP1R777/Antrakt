@@ -14,8 +14,10 @@ import {
     MenuButton,
     MenuList,
     MenuItem,
+    usePrefersReducedMotion,
     useToast
 } from "@chakra-ui/react";
+import { motion } from "framer-motion";
 import { CloseIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { useNavigate, Link as RouterLink } from "react-router-dom"; // Добавлен импорт Link as RouterLink
 import AuthModal from "./AuthModal";
@@ -26,6 +28,7 @@ import { useSiteContent } from "../contexts/SiteContentContext";
 const primaryColor = "#f2f2f2";
 const darkBg = "#0a0a0a";
 const lightText = "#ffffff";
+const MotionBox = motion(Box);
 
 const NAV_ITEMS = [
     { label: "Афиша", href: "afisha" },
@@ -39,6 +42,7 @@ const NAV_ITEMS = [
 
 export default function Navigation() {
     const { isOpen, onToggle } = useDisclosure();
+    const prefersReducedMotion = usePrefersReducedMotion();
     const {
         isAuthModalOpen,
         authMode,
@@ -183,16 +187,46 @@ export default function Navigation() {
             >
                 <Box>
                     <Link as={RouterLink} to="/" _hover={{ textDecoration: "none" }}>
-                        <Text
-                            fontSize={{ base: "xl", md: "2xl" }}
-                            fontWeight="bold"
-                            color={lightText}
-                            letterSpacing="widest"
-                            whiteSpace="nowrap"
-                            title={getText('nav.brand_full', 'Норильский народный театр')}
+                        <MotionBox
+                            position="relative"
+                            display="inline-block"
+                            animate={prefersReducedMotion ? undefined : {
+                                scale: [1, 1.035, 1],
+                                filter: [
+                                    "drop-shadow(0 0 4px rgba(255,255,255,0.25))",
+                                    "drop-shadow(0 0 13px rgba(255,255,255,0.75))",
+                                    "drop-shadow(0 0 4px rgba(255,255,255,0.25))",
+                                ],
+                            }}
+                            transition={{
+                                duration: 2.8,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                            }}
+                            whileHover={{ scale: 1.08 }}
                         >
-                            {getText('nav.logo', 'ННТ')}
-                        </Text>
+                            <Box
+                                position="absolute"
+                                inset="-8px"
+                                borderRadius="lg"
+                                bg="radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 72%)"
+                                filter="blur(7px)"
+                                pointerEvents="none"
+                                aria-hidden="true"
+                            />
+                            <Text
+                                position="relative"
+                                zIndex={1}
+                                fontSize={{ base: "xl", md: "2xl" }}
+                                fontWeight="bold"
+                                color={lightText}
+                                letterSpacing="widest"
+                                whiteSpace="nowrap"
+                                title={getText('nav.brand_full', 'Норильский народный театр')}
+                            >
+                                {getText('nav.logo', 'ННТ')}
+                            </Text>
+                        </MotionBox>
                     </Link>
                 </Box>
 

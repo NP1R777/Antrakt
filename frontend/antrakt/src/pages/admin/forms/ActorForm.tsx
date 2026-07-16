@@ -37,6 +37,10 @@ import ImageUpload from '../../../components/ImageUpload';
 import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
 import { chakra } from '@chakra-ui/react';
 import { API_URL } from '../../../config';
+import {
+    ActorGender,
+    getActorRoleLabel,
+} from '../../../utils/actorRoleLabel';
 
 const MotionTag = motion(Tag);
 const CFaPlus = chakra(FaPlus as any);
@@ -71,6 +75,8 @@ interface Actor {
     perfomances: string[];
     role_in_perfomances: string[];
     image_url: string;
+    gender_override: ActorGender | null;
+    role_label?: "Актёр" | "Актриса";
     deleted_at?: string | null;
 }
 
@@ -102,6 +108,7 @@ export const ActorForm: React.FC<{
         author_song: [],
         perfomances: [],
         role_in_perfomances: [],
+        gender_override: null,
         deleted_at: null
     });
     const [listInputs, setListInputs] = useState<Record<string, string>>({});
@@ -305,6 +312,43 @@ export const ActorForm: React.FC<{
                             borderColor="#444444"
                             _hover={{ borderColor: '#555555' }}
                         />
+                    </FormControl>
+
+                    <FormControl>
+                        <FormLabel display="flex" alignItems="center" gap={2}>
+                            <CFaUser color={primaryColor} />
+                            <Text as="span" fontWeight="semibold">
+                                Подпись на сайте
+                            </Text>
+                        </FormLabel>
+                        <Select
+                            value={currentActor.gender_override || ''}
+                            onChange={(e) => setCurrentActor(prev => ({
+                                ...prev,
+                                gender_override: (e.target.value || null) as ActorGender | null,
+                            }))}
+                            focusBorderColor={primaryColor}
+                            bg="#333333"
+                            borderColor="#444444"
+                            _hover={{ borderColor: '#555555' }}
+                        >
+                            <option value="" style={{ backgroundColor: '#333333', color: 'white' }}>
+                                Автоматически
+                            </option>
+                            <option value="male" style={{ backgroundColor: '#333333', color: 'white' }}>
+                                Актёр
+                            </option>
+                            <option value="female" style={{ backgroundColor: '#333333', color: 'white' }}>
+                                Актриса
+                            </option>
+                        </Select>
+                        <Text mt={1} fontSize="sm" color="#AAAAAA">
+                            Сейчас: {getActorRoleLabel(
+                                currentActor.name || '',
+                                currentActor.gender_override,
+                            )}. Если автоматическое определение ошиблось,
+                            выберите значение вручную.
+                        </Text>
                     </FormControl>
 
                     <FormControl>

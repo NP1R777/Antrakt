@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -10,32 +10,22 @@ import {
     GridItem,
     Button,
     Container,
-    Alert,
-    AlertIcon,
-    AlertTitle,
-    AlertDescription,
-    Flex,
-    IconButton,
-    Modal,
-    ModalOverlay,
-    ModalContent,
-    ModalCloseButton,
-    useDisclosure,
     chakra
 } from "@chakra-ui/react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
 import ReviewsSection from "../../components/ReviewsSection";
-import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
-import { FaProjectDiagram, FaExpand } from "react-icons/fa";
+import PhotoGallery from "../../components/PhotoGallery";
+import PageFetchError from "../../components/PageFetchError";
+import { ChevronLeftIcon } from "@chakra-ui/icons";
+import { FaProjectDiagram } from "react-icons/fa";
 import { Image as ChakraImage } from "@chakra-ui/react";
 import { API_URL } from '../../config';
 
 const MotionBox = motion(Box);
 const MotionImage = motion(ChakraImage);
 const CFaProject = chakra(FaProjectDiagram as any);
-const CFaExpand = chakra(FaExpand as any);
 
 interface ArchiveProject {
     id: number;
@@ -53,10 +43,6 @@ const ArchiveDetail: React.FC = () => {
     const [project, setProject] = useState<ArchiveProject | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [galleryIndex, setGalleryIndex] = useState(0);
-    const [direction, setDirection] = useState(1);
-    const { isOpen, onOpen, onClose } = useDisclosure();
-    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
         const fetchProject = async () => {
@@ -77,17 +63,6 @@ const ArchiveDetail: React.FC = () => {
 
     const gallery = project?.images_list?.filter(Boolean) || [];
 
-    useEffect(() => {
-        if (gallery.length <= 1) return;
-        intervalRef.current = setInterval(() => {
-            setDirection(1);
-            setGalleryIndex(prev => (prev + 1) % gallery.length);
-        }, 5000);
-        return () => {
-            if (intervalRef.current) clearInterval(intervalRef.current);
-        };
-    }, [gallery.length]);
-
     if (loading) {
         return (
             <Box bg="#0a0a0a" minH="100vh" display="flex" flexDirection="column">
@@ -104,12 +79,8 @@ const ArchiveDetail: React.FC = () => {
         return (
             <Box bg="#0a0a0a" minH="100vh" display="flex" flexDirection="column">
                 <Navigation />
-                <Box textAlign="center" py={{ base: 12, md: 20 }} bg="#0a0a0a">
-                    <Alert status="error" variant="subtle" flexDirection="column" alignItems="center">
-                        <AlertIcon boxSize="40px" mr={0} />
-                        <AlertTitle mt={4} mb={1} fontSize="md" color="#e0e0e0">Ошибка загрузки</AlertTitle>
-                        <AlertDescription maxWidth="sm" color="#a0a0a0" fontSize="sm">{error}</AlertDescription>
-                    </Alert>
+                <Box py={{ base: 12, md: 20 }} px={4} bg="#0a0a0a">
+                    <PageFetchError message={error} />
                 </Box>
                 <Footer />
             </Box>
@@ -190,107 +161,13 @@ const ArchiveDetail: React.FC = () => {
                         </GridItem>
                     </Grid>
 
-                    {gallery.length > 0 && (
-                        <Box mt={16}>
-                            <Heading
-                                as="h2"
-                                size="md"
-                                mb={6}
-                                color="white"
-                                textAlign="center"
-                            >
-                                Фотогалерея
-                            </Heading>
-
-                            <Flex
-                                position="relative"
-                                align="center"
-                                justify="center"
-                                overflow="hidden"
-                                h={{ base: "250px", md: "400px" }}
-                                w="100%"
-                            >
-                                {gallery.length > 1 && (
-                                    <IconButton
-                                        aria-label="Назад"
-                                        icon={<ChevronLeftIcon />}
-                                        position="absolute"
-                                        left={2}
-                                        zIndex={2}
-                                        onClick={() => {
-                                            setDirection(-1);
-                                            setGalleryIndex(prev => (prev - 1 + gallery.length) % gallery.length);
-                                        }}
-                                    />
-                                )}
-                                <AnimatePresence mode="wait" custom={direction}>
-                                    <MotionBox
-                                        key={galleryIndex}
-                                        custom={direction}
-                                        initial={{ opacity: 0, x: direction * 40 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: direction * -40 }}
-                                        transition={{ duration: 0.35 }}
-                                        position="relative"
-                                    >
-                                        <ChakraImage
-                                            src={gallery[galleryIndex]}
-                                            alt={`Фото ${galleryIndex + 1}`}
-                                            maxH={{ base: "230px", md: "380px" }}
-                                            objectFit="contain"
-                                            borderRadius="md"
-                                            cursor="pointer"
-                                            onClick={onOpen}
-                                        />
-                                        <IconButton
-                                            aria-label="Открыть"
-                                            icon={<CFaExpand />}
-                                            size="sm"
-                                            position="absolute"
-                                            top={2}
-                                            right={2}
-                                            onClick={onOpen}
-                                        />
-                                    </MotionBox>
-                                </AnimatePresence>
-                                {gallery.length > 1 && (
-                                    <IconButton
-                                        aria-label="Вперёд"
-                                        icon={<ChevronRightIcon />}
-                                        position="absolute"
-                                        right={2}
-                                        zIndex={2}
-                                        onClick={() => {
-                                            setDirection(1);
-                                            setGalleryIndex(prev => (prev + 1) % gallery.length);
-                                        }}
-                                    />
-                                )}
-                            </Flex>
-                        </Box>
-                    )}
+                    <PhotoGallery images={gallery} altPrefix={`Фото: ${project.title}`} />
 
                     {project.afisha === false && (
                         <ReviewsSection type="archive" targetId={Number(id)} />
                     )}
                 </Container>
             </Box>
-
-            <Modal isOpen={isOpen} onClose={onClose} size="6xl" isCentered>
-                <ModalOverlay />
-                <ModalContent bg="transparent" boxShadow="none" maxW="90vw">
-                    <ModalCloseButton color="white" />
-                    {gallery[galleryIndex] && (
-                        <ChakraImage
-                            src={gallery[galleryIndex]}
-                            alt="Фото"
-                            maxH="90vh"
-                            objectFit="contain"
-                            mx="auto"
-                        />
-                    )}
-                </ModalContent>
-            </Modal>
 
             <Footer />
         </Box>

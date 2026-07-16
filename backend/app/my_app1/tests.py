@@ -11,7 +11,8 @@ from my_app1.models import (
     Review, ReviewReaction, DirectorsTheatre, Archive, News,
     EmailVerification, promote_performance,
 )
-from my_app1.serializers import PerfomanceSerializer
+from my_app1.serializers import ActorsSerializer, PerfomanceSerializer
+from my_app1.actor_gender import actor_role_label, infer_actor_gender
 
 
 def make_actor(name='Актёр Тестовый'):
@@ -32,6 +33,32 @@ def make_performance(title='Спектакль', afisha=True, description='Оп�
         description=description,
         afisha=afisha,
     )
+
+
+class ActorGenderTests(TestCase):
+    def test_inference_uses_given_name_and_surname(self):
+        cases = {
+            'Захаров Илья': 'male',
+            'Юсупова Зайнап': 'female',
+            'Умблия Ольга': 'female',
+            'Авдиенко Инна': 'female',
+            'Протченко Татьяна': 'female',
+            'Садртдинова Гузель': 'female',
+            'Гузель Садртдинова': 'female',
+            'Нусс Анастасия': 'female',
+        }
+        for name, expected in cases.items():
+            with self.subTest(name=name):
+                self.assertEqual(infer_actor_gender(name), expected)
+
+    def test_admin_override_wins(self):
+        self.assertEqual(actor_role_label('Захаров Илья', 'female'), 'Актриса')
+        self.assertEqual(actor_role_label('Юсупова Зайнап', 'male'), 'Актёр')
+
+    def test_serializer_exposes_role_label(self):
+        actor = make_actor('Авдиенко Инна')
+        data = ActorsSerializer(actor).data
+        self.assertEqual(data['role_label'], 'Актриса')
 
 
 class PromotePerformanceTests(TestCase):

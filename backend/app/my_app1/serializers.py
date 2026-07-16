@@ -11,6 +11,7 @@ from .models import (User, Perfomances, Actors, DirectorsTheatre,
                      sync_performance_cast_to_actors,
                      sync_actor_roles_to_performances)
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from .actor_gender import actor_role_label
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -284,6 +285,7 @@ class ActorsSerializer(serializers.ModelSerializer):
     # Вычисляемые поля: стаж в студии считается из joined_at/left_at.
     time_in_theatre = serializers.SerializerMethodField()
     is_active = serializers.SerializerMethodField()
+    role_label = serializers.SerializerMethodField()
 
     class Meta:
         model = Actors
@@ -294,6 +296,9 @@ class ActorsSerializer(serializers.ModelSerializer):
 
     def get_is_active(self, obj):
         return obj.is_active
+
+    def get_role_label(self, obj):
+        return actor_role_label(obj.name, obj.gender_override)
 
     def create(self, validated_data):
         with transaction.atomic():

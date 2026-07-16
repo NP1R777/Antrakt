@@ -120,7 +120,12 @@ class Perfomances(ImageUploadMixin, models.Model): # Спектакли
     ) # Режиссёр спектакля. Имя видно уже в "Афише"; сам спектакль добавляется
       # режиссёру на страницу при переходе в раздел "Спектакли".
     # Если режиссёра нет в базе — имя хранится здесь («Другой(-ая)»).
-    guest_director_name = models.CharField(max_length=100, blank=True, default='')
+    guest_director_name = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text='Имя режиссёра не из базы («Другой(-ая)»).',
+    )
     # Данные для карточки на странице режиссёра (задаются заранее в админке).
     production_title = models.CharField(max_length=200, blank=True, default='')
     # Название постановки; если пусто — берётся название спектакля (title).
@@ -131,6 +136,13 @@ class Perfomances(ImageUploadMixin, models.Model): # Спектакли
 
 
 class Actors(ImageUploadMixin, models.Model):
+    GENDER_MALE = 'male'
+    GENDER_FEMALE = 'female'
+    GENDER_CHOICES = [
+        (GENDER_MALE, 'Актёр'),
+        (GENDER_FEMALE, 'Актриса'),
+    ]
+
     class Meta:
         db_table = 'actors'
     
@@ -138,6 +150,15 @@ class Actors(ImageUploadMixin, models.Model):
     updated_at = models.DateTimeField(null=True)
     deleted_at = models.DateTimeField(null=True, blank=True, default=None)
     name = models.CharField(max_length=50, null=False)
+    # NULL = определять автоматически по имени и фамилии; значение задаётся
+    # администратором только для ручного исправления.
+    gender_override = models.CharField(
+        max_length=10,
+        choices=GENDER_CHOICES,
+        null=True,
+        blank=True,
+        default=None,
+    )
     place_of_work = models.CharField(max_length=200, blank=True) # Место работы
     joined_at = models.DateField(null=True, blank=True) # Когда актёр пришёл в театр (год+месяц)
     left_at = models.DateField(null=True, blank=True) # Когда актёр выбыл (null = активный)

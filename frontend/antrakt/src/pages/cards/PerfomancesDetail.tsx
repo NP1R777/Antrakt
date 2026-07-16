@@ -13,10 +13,6 @@ import {
     Button,
     chakra,
     Spinner,
-    Alert,
-    AlertIcon,
-    AlertTitle,
-    AlertDescription,
     Modal,
     ModalOverlay,
     ModalContent,
@@ -29,6 +25,7 @@ import { motion, AnimatePresence } from "framer-motion"; // Добавлен Ani
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
 import ReviewsSection from "../../components/ReviewsSection";
+import PageFetchError from "../../components/PageFetchError";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaUserTie, FaClock, FaUsers, FaExpand } from "react-icons/fa";
 import { API_URL } from '../../config';
@@ -222,16 +219,8 @@ const PerformanceDetail: React.FC = () => {
         return (
             <Box>
                 <Navigation />
-                <Box textAlign="center" py={{ base: 12, md: 20 }} bg="black">
-                    <Alert status="error" variant="subtle" flexDirection="column" alignItems="center">
-                        <AlertIcon boxSize="40px" mr={0} />
-                        <AlertTitle mt={4} mb={1} fontSize="md" color="white">
-                            Ошибка загрузки
-                        </AlertTitle>
-                        <AlertDescription maxWidth="sm" color="gray.400" fontSize="sm">
-                            {error}
-                        </AlertDescription>
-                    </Alert>
+                <Box py={{ base: 12, md: 20 }} px={4} bg="black">
+                    <PageFetchError message={error} />
                 </Box>
                 <Footer />
             </Box>

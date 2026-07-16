@@ -8,10 +8,6 @@ import {
     Image,
     Flex,
     Spinner,
-    Alert,
-    AlertIcon,
-    AlertTitle,
-    AlertDescription,
     Container,
     Grid,
     GridItem
@@ -19,6 +15,7 @@ import {
 import { motion } from "framer-motion";
 import Navigation from "../components/Navigation";
 import Footer from "../components/Footer";
+import PageFetchError from "../components/PageFetchError";
 import { API_URL } from '../config';
 
 const MotionBox = motion(Box);
@@ -80,16 +77,8 @@ const ArchivePage: React.FC = () => {
         return (
             <Box>
                 <Navigation />
-                <Box textAlign="center" py={{ base: 12, md: 20 }} bg="black">
-                    <Alert status="error" variant="subtle" flexDirection="column" alignItems="center">
-                        <AlertIcon boxSize="40px" mr={0} />
-                        <AlertTitle mt={4} mb={1} fontSize="md" color="white">
-                            Ошибка загрузки
-                        </AlertTitle>
-                        <AlertDescription maxWidth="sm" color="gray.400" fontSize="sm">
-                            {error}
-                        </AlertDescription>
-                    </Alert>
+                <Box py={{ base: 12, md: 20 }} px={4} bg="black">
+                    <PageFetchError message={error} />
                 </Box>
                 <Footer />
             </Box>
