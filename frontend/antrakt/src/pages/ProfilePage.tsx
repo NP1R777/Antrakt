@@ -298,7 +298,13 @@ const ChangePasswordForm: React.FC<{
 export default function ProfilePage() {
     const navigate = useNavigate();
     const toast = useToast();
-    const { user, isAuthenticated, logout, updateUser } = useAuth();
+    const {
+        user,
+        isAuthenticated,
+        isLoading: isAuthLoading,
+        logout,
+        updateUser
+    } = useAuth();
     const { isOpen: isDeleteModalOpen, onOpen: onDeleteModalOpen, onClose: onDeleteModalClose } = useDisclosure();
     const { isOpen: isEditModalOpen, onOpen: onEditModalOpen, onClose: onEditModalClose } = useDisclosure();
     const { isOpen: isPasswordModalOpen, onOpen: onPasswordModalOpen, onClose: onPasswordModalClose } = useDisclosure();
@@ -340,12 +346,15 @@ export default function ProfilePage() {
             }
         };
 
+        if (isAuthLoading) {
+            return;
+        }
         if (isAuthenticated && user) {
             fetchProfile();
         } else {
             navigate('/');
         }
-    }, [user, isAuthenticated, navigate, toast]);
+    }, [user, isAuthenticated, isAuthLoading, navigate, toast]);
 
     const handleSaveProfile = async (data: Partial<UserProfile>) => {
         if (!profile) return;
@@ -400,7 +409,7 @@ export default function ProfilePage() {
         }
     };
 
-    if (!isAuthenticated) {
+    if (isAuthLoading || !isAuthenticated) {
         return null;
     }
 
