@@ -402,6 +402,43 @@ def sync_performance_cast_to_actors(perf, previous_actor_ids=()):
         actor.save(update_fields=['perfomances', 'role_in_perfomances', 'updated_at'])
 
 
+def remove_performance_from_director(perf):
+    """Remove a propagated performance from the director's parallel arrays."""
+    if not perf.director_id or not perf.director_propagated:
+        return
+
+    with transaction.atomic():
+        try:
+            director = DirectorsTheatre.objects.select_for_update().get(
+                pk=perf.director_id
+            )
+        except DirectorsTheatre.DoesNotExist:
+            return
+
+        production_title = (perf.production_title or '').strip() or perf.title
+        titles = list(director.perfomances or [])
+        try:
+            index = titles.index(production_title)
+        except ValueError:
+            return
+
+        years = list(director.years or [])
+        teams = list(director.team_name or [])
+        titles.pop(index)
+        if index < len(years):
+            years.pop(index)
+        if index < len(teams):
+            teams.pop(index)
+
+        director.perfomances = titles
+        director.years = years
+        director.team_name = teams
+        director.updated_at = timezone.now()
+        director.save(update_fields=[
+            'perfomances', 'years', 'team_name', 'updated_at',
+        ])
+
+
 def sync_actor_roles_to_performances(actor):
     """Синхронизировать массивы ролей актёра с таблицей `PerformanceCast`.
 

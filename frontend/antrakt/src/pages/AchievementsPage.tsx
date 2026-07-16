@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Box, Flex, Heading, Text, Grid, GridItem, Spinner, Button, Image } from "@chakra-ui/react";
+import {
+    Alert,
+    AlertDescription,
+    AlertIcon,
+    AlertTitle,
+    Box,
+    Button,
+    Flex,
+    Grid,
+    GridItem,
+    Heading,
+    Image,
+    Spinner,
+    Text
+} from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import Navigation from "../components/Navigation";
@@ -57,11 +71,32 @@ const AchievementsPage: React.FC = () => {
 
     if (error) {
         return (
-            <Box>
+            <Box minH="100vh" bg="#0a0a0a" display="flex" flexDirection="column">
                 <Navigation />
-                <Box textAlign="center" py={{ base: 12, md: 20 }} bg="#0a0a0a">
-                    <Text color="#ffffff">Ошибка: {error}</Text>
-                </Box>
+                <Flex flex="1" align="center" justify="center" px={4} py={{ base: 12, md: 20 }}>
+                    <Alert
+                        status="error"
+                        variant="subtle"
+                        flexDirection="column"
+                        alignItems="center"
+                        maxW="lg"
+                        borderRadius="xl"
+                        bg="rgba(197, 48, 48, 0.12)"
+                        border="1px solid"
+                        borderColor="red.700"
+                    >
+                        <AlertIcon boxSize="40px" mr={0} />
+                        <AlertTitle mt={4} mb={1} fontSize="md" color="white">
+                            Ошибка загрузки
+                        </AlertTitle>
+                        <AlertDescription maxW="sm" color="gray.300" fontSize="sm" textAlign="center">
+                            {error}
+                        </AlertDescription>
+                        <Button mt={4} colorScheme="red" size="sm" onClick={() => window.location.reload()}>
+                            Повторить попытку
+                        </Button>
+                    </Alert>
+                </Flex>
                 <Footer />
             </Box>
         );

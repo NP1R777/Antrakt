@@ -381,6 +381,7 @@ class DirectorPromotionTests(TestCase):
         self.now = timezone.now()
         self.director = DirectorsTheatre.objects.create(name='Режиссёр', description='о')
         self.factory = APIRequestFactory()
+        self.client = APIClient()
 
     def _perf(self, afisha=True):
         return Perfomances.objects.create(
@@ -446,6 +447,34 @@ class DirectorPromotionTests(TestCase):
         self.assertEqual(self.director.years[idx], 2019)
         # Название спектакля (title) не попадает, т.к. задано production_title.
         self.assertNotIn(perf.title, self.director.perfomances)
+
+    def test_deleting_performance_removes_it_from_director(self):
+        perf = self._perf(afisha=True)
+        perf.production_title = 'Удаляемая постановка'
+        perf.production_collective = Perfomances.COLLECTIVE_DA
+        perf.production_year = 2024
+        perf.save()
+        PerformanceShow.objects.create(
+            performance=perf,
+            show_datetime=self.now - timedelta(days=1),
+        )
+        promote_performance(perf)
+        self.director.refresh_from_db()
+        self.assertIn(perf.production_title, self.director.perfomances)
+
+        response = self.client.delete(f'/perfomance{perf.id}/?hard=1')
+
+        self.assertEqual(response.status_code, 204)
+        self.director.refresh_from_db()
+        self.assertNotIn(perf.production_title, self.director.perfomances)
+        self.assertEqual(
+            len(self.director.perfomances),
+            len(self.director.years),
+        )
+        self.assertEqual(
+            len(self.director.perfomances),
+            len(self.director.team_name),
+        )
 
     def test_director_name_visible_in_afisha_but_cast_hidden(self):
         from my_app1.serializers import PerfomanceSerializer
