@@ -1,6 +1,8 @@
 from datetime import timedelta, date
+from importlib import import_module
 
-from django.test import TestCase
+from django.db import connection
+from django.test import TestCase, TransactionTestCase
 from django.core.management import call_command
 from django.utils import timezone
 
@@ -9,7 +11,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate, APIClient
 from my_app1.models import (
     Perfomances, Actors, PerformanceShow, PerformanceCast, User,
     Review, ReviewReaction, DirectorsTheatre, Archive, News,
-    EmailVerification, promote_performance,
+    Achievements, EmailVerification, promote_performance,
 )
 from my_app1.serializers import ActorsSerializer, PerfomanceSerializer
 from my_app1.actor_gender import actor_role_label, infer_actor_gender
@@ -33,6 +35,71 @@ def make_performance(title='Спектакль', afisha=True, description='Оп�
         description=description,
         afisha=afisha,
     )
+
+
+class AchievementApiTests(TestCase):
+    def test_create_without_gallery_uses_empty_list(self):
+        response = APIClient().post(
+            '/achievements/',
+            {'achievement': 'Диплом первой степени', 'image_url': ''},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['images_list'], [])
+        self.assertEqual(
+            Achievements.objects.get(pk=response.data['id']).images_list,
+            [],
+        )
+
+
+class AchievementSchemaRepairTests(TransactionTestCase):
+    def test_repair_is_idempotent_and_preserves_existing_rows(self):
+        achievement = Achievements.objects.create(
+            achievement='Существующее достижение',
+            image_url='',
+        )
+        migration = import_module(
+            'my_app1.migrations.0019_reconcile_achievements_images_list'
+        )
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                'ALTER TABLE public.achievements DROP COLUMN images_list'
+            )
+            cursor.execute(migration.ENSURE_ACHIEVEMENT_IMAGES_LIST_SQL)
+            cursor.execute(
+                """
+                UPDATE public.achievements
+                SET images_list = ARRAY[%s]::character varying(500)[]
+                WHERE id = %s
+                """,
+                ['https://example.com/diploma.jpg', achievement.pk],
+            )
+            cursor.execute(migration.ENSURE_ACHIEVEMENT_IMAGES_LIST_SQL)
+            cursor.execute(
+                """
+                SELECT format_type(attribute.atttypid, attribute.atttypmod),
+                       attribute.attnotnull,
+                       default_value.adbin IS NOT NULL
+                FROM pg_attribute AS attribute
+                LEFT JOIN pg_attrdef AS default_value
+                  ON default_value.adrelid = attribute.attrelid
+                 AND default_value.adnum = attribute.attnum
+                WHERE attribute.attrelid = 'public.achievements'::regclass
+                  AND attribute.attname = 'images_list'
+                  AND NOT attribute.attisdropped
+                """
+            )
+            column = cursor.fetchone()
+            cursor.execute(
+                'SELECT images_list FROM public.achievements WHERE id = %s',
+                [achievement.pk],
+            )
+            images_list = cursor.fetchone()[0]
+
+        self.assertEqual(column, ('character varying(500)[]', True, False))
+        self.assertEqual(images_list, ['https://example.com/diploma.jpg'])
 
 
 class ActorGenderTests(TestCase):
