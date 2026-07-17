@@ -5,6 +5,20 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
+ENSURE_ACHIEVEMENT_IMAGES_LIST_SQL = """
+ALTER TABLE public.achievements
+    ADD COLUMN IF NOT EXISTS images_list character varying(500)[];
+ALTER TABLE public.achievements
+    ALTER COLUMN images_list TYPE character varying(500)[]
+    USING images_list::character varying(500)[];
+UPDATE public.achievements
+SET images_list = ARRAY[]::character varying(500)[]
+WHERE images_list IS NULL;
+ALTER TABLE public.achievements
+    ALTER COLUMN images_list SET NOT NULL;
+"""
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -42,10 +56,20 @@ class Migration(migrations.Migration):
                 'ordering': ['section', 'order', 'id'],
             },
         ),
-        migrations.AddField(
-            model_name='achievements',
-            name='images_list',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.URLField(max_length=500), blank=True, default=list, size=None),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql=ENSURE_ACHIEVEMENT_IMAGES_LIST_SQL,
+                    reverse_sql=migrations.RunSQL.noop,
+                ),
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name='achievements',
+                    name='images_list',
+                    field=django.contrib.postgres.fields.ArrayField(base_field=models.URLField(max_length=500), blank=True, default=list, size=None),
+                ),
+            ],
         ),
         migrations.AddField(
             model_name='performancecast',
