@@ -55,7 +55,8 @@ function parseProductionTeamMember(raw: string): { label: string; value: string 
         return { label: 'Участник', value: '' };
     }
     // Пробельные разделители и двоеточие — не одиночный «-» внутри слова.
-    const separators = [' — ', ' - ', ': ', '—', ':'];
+    // Поддерживаем em-dash —, en-dash – и обычный дефис с пробелами.
+    const separators = [' — ', ' – ', ' - ', ': ', '—', '–', ':'];
     for (const sep of separators) {
         const idx = trimmed.indexOf(sep);
         if (idx > 0) {
