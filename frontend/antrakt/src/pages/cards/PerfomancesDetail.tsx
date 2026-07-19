@@ -41,6 +41,51 @@ const CFaExpand = chakra(FaExpand as any)
 const MotionBox = motion(Box);
 const MotionImage = motion(Image);
 
+type CastMember = {
+    id?: number;
+    actor?: number | null;
+    actor_name?: string;
+    role: string;
+};
+
+/** Разделить «должность - имя», не ломая должности с дефисом (Хореограф-постановщик). */
+function parseProductionTeamMember(raw: string): { label: string; value: string } {
+    const trimmed = (raw || '').trim();
+    if (!trimmed) {
+        return { label: 'Участник', value: '' };
+    }
+    // Пробельные разделители и двоеточие — не одиночный «-» внутри слова.
+    const separators = [' — ', ' - ', ': ', '—', ':'];
+    for (const sep of separators) {
+        const idx = trimmed.indexOf(sep);
+        if (idx > 0) {
+            const label = trimmed.slice(0, idx).trim();
+            const value = trimmed.slice(idx + sep.length).trim();
+            if (label && value) {
+                return { label, value };
+            }
+        }
+    }
+    return { label: 'Участник', value: trimmed };
+}
+
+/** Группировка актёров по роли с сохранением порядка первого появления роли. */
+function groupCastByRole(cast: CastMember[]): { role: string; actors: CastMember[] }[] {
+    const groups: { role: string; actors: CastMember[] }[] = [];
+    const indexByRole = new Map<string, number>();
+    for (const member of cast) {
+        const role = (member.role || '').trim() || 'Роль';
+        const existing = indexByRole.get(role);
+        if (existing === undefined) {
+            indexByRole.set(role, groups.length);
+            groups.push({ role, actors: [member] });
+        } else {
+            groups[existing].actors.push(member);
+        }
+    }
+    return groups;
+}
+
 interface Performance {
     id: number;
     title: string;
@@ -51,7 +96,7 @@ interface Performance {
     premiere_date: string | null;
     production_team: string[] | null;
     director_name?: string | null;
-    cast: { id?: number; actor?: number | null; actor_name?: string; role: string }[] | null;
+    cast: CastMember[] | null;
     shows: { id?: number; show_datetime: string; ticket_url?: string | null }[] | null;
     description: string;
     afisha: boolean;
@@ -384,9 +429,7 @@ const PerformanceDetail: React.FC = () => {
                                                 <VStack align="stretch" spacing={2} w="full">
                                                     {performance.production_team.map((member, i) => {
                                                         const raw = (member || '').trim();
-                                                        const sep = raw.includes(':') ? ':' : (raw.includes('—') ? '—' : (raw.includes('-') ? '-' : null));
-                                                        const [left, ...rest] = sep ? raw.split(sep) : [raw];
-                                                        const right = rest.join(sep || '').trim();
+                                                        const { label, value } = parseProductionTeamMember(raw);
                                                         return (
                                                             <Flex
                                                                 key={`${raw}-${i}`}
@@ -402,10 +445,10 @@ const PerformanceDetail: React.FC = () => {
                                                                     color="#ffffff"
                                                                     minW={{ base: "120px", md: "180px" }}
                                                                 >
-                                                                    {right ? left.trim() : 'Участник'}
+                                                                    {label}
                                                                 </Text>
                                                                 <Text color="#a0a0a0">—</Text>
-                                                                <Text color="#c9c9c9">{right || left.trim()}</Text>
+                                                                <Text color="#c9c9c9">{value}</Text>
                                                             </Flex>
                                                         );
                                                     })}
@@ -418,25 +461,34 @@ const PerformanceDetail: React.FC = () => {
                                                     <b>Актёрский состав:</b>
                                                 </Text>
                                                 <VStack align="stretch" spacing={2} w="full">
-                                                    {performance.cast.map((c, i) => (
+                                                    {groupCastByRole(performance.cast).map((group, i) => (
                                                         <Flex
-                                                            key={c.id ?? i}
-                                                            align="baseline"
+                                                            key={`${group.role}-${i}`}
+                                                            align="center"
                                                             gap={2}
                                                             borderLeft="2px solid"
                                                             borderColor="#3a3a3a"
                                                             pl={3}
                                                             py={1}
                                                         >
-                                                            <Text
-                                                                fontWeight="semibold"
-                                                                color="#ffffff"
+                                                            <VStack
+                                                                align="start"
+                                                                spacing={0}
                                                                 minW={{ base: "120px", md: "160px" }}
                                                             >
-                                                                {c.actor_name || 'Актёр'}
-                                                            </Text>
-                                                            <Text color="#a0a0a0">—</Text>
-                                                            <Text color="#c9c9c9">{c.role}</Text>
+                                                                {group.actors.map((actor, actorIdx) => (
+                                                                    <Text
+                                                                        key={actor.id ?? `${actor.actor_name}-${actorIdx}`}
+                                                                        fontWeight="semibold"
+                                                                        color="#ffffff"
+                                                                        lineHeight="1.35"
+                                                                    >
+                                                                        {actor.actor_name || 'Актёр'}
+                                                                    </Text>
+                                                                ))}
+                                                            </VStack>
+                                                            <Text color="#a0a0a0" flexShrink={0}>—</Text>
+                                                            <Text color="#c9c9c9">{group.role}</Text>
                                                         </Flex>
                                                     ))}
                                                 </VStack>
