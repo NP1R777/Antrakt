@@ -21,6 +21,7 @@ import { FaTimes, FaSave } from 'react-icons/fa';
 import axios from 'axios';
 import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
 import { API_URL } from '../../../config';
+import { emptyStringsToNull } from '../../../utils/adminPayload';
 
 const CFaTimes = chakra(FaTimes as any);
 const CFaSave = chakra(FaSave as any);
@@ -117,11 +118,11 @@ export const UserForm: React.FC<UserFormProps> = ({
 
         setIsSubmitting(true);
         try {
-            const userData: Partial<User> = {
+            const userData: Partial<User> = emptyStringsToNull({
                 email: user.email,
                 phone_number: user.phone_number,
                 is_superuser: user.is_superuser
-            };
+            } as Record<string, unknown>, ['email', 'phone_number']) as Partial<User>;
 
             // Добавляем пароль только если он был введён
             if (user.password) {

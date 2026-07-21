@@ -40,6 +40,7 @@ import { chakra, useToast } from '@chakra-ui/react';
 import ImageUpload from '../../../components/ImageUpload';
 import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
 import { API_URL } from '../../../config';
+import { emptyStringsToNull } from '../../../utils/adminPayload';
 
 const MotionButton = motion(Button);
 const MotionBox = motion(Box);
@@ -74,7 +75,7 @@ export const NewsForm: React.FC<{
         is_published: false,
         deleted_at: null,
         images_list: [],
-        date_publish: '' // Инициализация поля даты
+        date_publish: undefined,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isGalleryUploading, setIsGalleryUploading] = useState(false);
@@ -133,10 +134,15 @@ export const NewsForm: React.FC<{
         }));
     };
 
+    const buildNewsPayload = () => emptyStringsToNull(
+        { ...currentNews } as Record<string, unknown>,
+        ['date_publish', 'deleted_at'],
+    );
+
     const handleCreateNews = async () => {
         setIsSubmitting(true);
         try {
-            await axios.post(`${API_URL}/news/`, currentNews);
+            await axios.post(`${API_URL}/news/`, buildNewsPayload());
             toast({
                 title: 'Успешно',
                 description: 'Новость создана',
@@ -164,7 +170,7 @@ export const NewsForm: React.FC<{
 
         setIsSubmitting(true);
         try {
-            await axios.put(`${API_URL}/news${currentNews.id}/`, currentNews);
+            await axios.put(`${API_URL}/news${currentNews.id}/`, buildNewsPayload());
             toast({
                 title: 'Успешно',
                 description: 'Новость обновлена',

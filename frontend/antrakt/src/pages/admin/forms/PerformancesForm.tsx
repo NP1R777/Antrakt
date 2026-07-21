@@ -48,6 +48,7 @@ import { chakra, useToast } from '@chakra-ui/react';
 import ImageUpload from '../../../components/ImageUpload';
 import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
 import { API_URL } from '../../../config';
+import { emptyStringsToNull } from '../../../utils/adminPayload';
 
 const MotionButton = motion(Button);
 const MotionTag = motion(Tag);
@@ -375,10 +376,23 @@ export const PerformanceForm: React.FC<{
         }));
     };
 
+    const buildPerformancePayload = () => emptyStringsToNull(
+        { ...currentPerformance } as Record<string, unknown>,
+        [
+            'duration',
+            'premiere_date',
+            'ticket_url',
+            'performances_image',
+            'deleted_at',
+            'director',
+            'production_year',
+        ],
+    );
+
     const handleCreatePerformance = async () => {
         setIsSubmitting(true);
         try {
-            await axios.post(`${API_URL}/perfomances/`, currentPerformance);
+            await axios.post(`${API_URL}/perfomances/`, buildPerformancePayload());
             toast({
                 title: 'Успех!',
                 description: 'Спектакль успешно добавлен',
@@ -406,7 +420,7 @@ export const PerformanceForm: React.FC<{
 
         setIsSubmitting(true);
         try {
-            await axios.put(`${API_URL}/perfomance${currentPerformance.id}/`, currentPerformance);
+            await axios.put(`${API_URL}/perfomance${currentPerformance.id}/`, buildPerformancePayload());
             toast({
                 title: 'Успех!',
                 description: 'Спектакль успешно обновлён',

@@ -37,6 +37,7 @@ import ImageUpload from '../../../components/ImageUpload';
 import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
 import { chakra } from '@chakra-ui/react';
 import { API_URL } from '../../../config';
+import { emptyStringsToNull } from '../../../utils/adminPayload';
 import {
     ActorGender,
     getActorRoleLabel,
@@ -187,10 +188,15 @@ export const ActorForm: React.FC<{
         }));
     };
 
+    const buildActorPayload = () => emptyStringsToNull(
+        { ...currentActor } as Record<string, unknown>,
+        ['joined_at', 'left_at', 'deleted_at', 'gender_override'],
+    );
+
     const handleCreateActor = async () => {
         setIsSubmitting(true);
         try {
-            const response = await axios.post(`${API_URL}/actors/`, currentActor);
+            await axios.post(`${API_URL}/actors/`, buildActorPayload());
             toast({
                 title: 'Успех!',
                 description: 'Актёр успешно добавлен',
@@ -218,7 +224,7 @@ export const ActorForm: React.FC<{
 
         setIsSubmitting(true);
         try {
-            await axios.put(`${API_URL}/actor${currentActor.id}/`, currentActor);
+            await axios.put(`${API_URL}/actor${currentActor.id}/`, buildActorPayload());
             toast({
                 title: 'Успех!',
                 description: 'Актёр успешно обновлён',
