@@ -348,10 +348,17 @@ const TeamPage: React.FC = () => {
                         <MotionGrid
                             templateColumns={{
                                 base: "1fr",
-                                md: directors.length === 1 ? "minmax(260px, 450px)" : "repeat(2, 1fr)"
+                                // 1 режиссёр — одна колонка по центру; 2+ — по две в ряд.
+                                md: directors.length === 1
+                                    ? "minmax(260px, 450px)"
+                                    : "repeat(2, minmax(260px, 450px))"
                             }}
                             gap={8}
-                            justifyContent="center" // Центрирование карточек
+                            justifyContent="center"
+                            justifyItems="center"
+                            w="100%"
+                            maxW="960px"
+                            mx="auto"
                             initial="hidden"
                             animate="visible"
                             variants={{
@@ -366,6 +373,8 @@ const TeamPage: React.FC = () => {
                                 <MotionGridItem
                                     key={director.id}
                                     minW="0"
+                                    w="100%"
+                                    maxW="450px"
                                     variants={{
                                         hidden: { opacity: 0, y: 30 },
                                         visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
@@ -387,7 +396,7 @@ const TeamPage: React.FC = () => {
                                         transition={{
                                             duration: 0.3
                                         }}
-                                        maxWidth="450px" // Уменьшение ширины карточки
+                                        w="100%"
                                         h="100%"
                                         display="flex"
                                         flexDirection="column"
