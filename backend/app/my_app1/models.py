@@ -104,6 +104,9 @@ class Perfomances(ImageUploadMixin, models.Model): # Спектакли
     director_propagated = models.BooleanField(default=False) # Был ли спектакль уже добавлен на страницу
                                                              # режиссёра (отдельный флаг, чтобы работал
                                                              # "докат", если режиссёра задали позже).
+    # После ручного возврата в «Афишу» без будущих показов авто-промоут не должен
+    # сразу вернуть спектакль в «Спектакли». Снимается, когда появляется будущий показ.
+    afisha_hold = models.BooleanField(default=False)
     image_url = models.URLField(null=False, blank=True)
     performances_image = models.URLField(null=True, blank=True) # Изображение для раздела "Спектакли"
     images_list = ArrayField(
@@ -585,6 +588,7 @@ def promote_performance(performance):
         # Спектакль становится прошедшим — состав должен появиться у актёров.
         perf.afisha = False
         perf.roles_propagated = True
+        perf.afisha_hold = False
         # Билеты больше не нужны: спектакль уже сыгран.
         perf.ticket_url = None
 
@@ -626,7 +630,7 @@ def promote_performance(performance):
         perf.afisha = False
         perf.updated_at = timezone.now()
         perf.save(update_fields=[
-            'afisha', 'roles_propagated', 'director_propagated',
+            'afisha', 'roles_propagated', 'director_propagated', 'afisha_hold',
             'ticket_url', 'updated_at',
         ])
         # Ссылки на билеты у отдельных показов тоже очищаем.
@@ -638,6 +642,30 @@ def promote_performance(performance):
         return perf
 
 
+def refresh_afisha_hold(performance):
+    """Обновить afisha_hold: держать в афише, пока нет будущих показов.
+
+    Нужно, чтобы ручной возврат прошедшего спектакля в «Афишу» не отменялся
+    сразу же вызовом promote_past_performances(). Как только появляется будущий
+    показ — hold снимается, и после его окончания сработает обычный автоперенос.
+    """
+    if not performance.afisha:
+        if performance.afisha_hold:
+            performance.afisha_hold = False
+            performance.updated_at = timezone.now()
+            performance.save(update_fields=['afisha_hold', 'updated_at'])
+        return performance
+
+    now = timezone.now()
+    has_future = performance.shows.filter(show_datetime__gt=now).exists()
+    hold = not has_future
+    if performance.afisha_hold != hold:
+        performance.afisha_hold = hold
+        performance.updated_at = timezone.now()
+        performance.save(update_fields=['afisha_hold', 'updated_at'])
+    return performance
+
+
 def promote_past_performances():
     """Перевести все спектакли, у которых последний показ уже прошёл."""
     from django.db.models import Max
@@ -645,7 +673,7 @@ def promote_past_performances():
     now = timezone.now()
     candidates = (
         Perfomances.objects
-        .filter(afisha=True, deleted_at__isnull=True)
+        .filter(afisha=True, deleted_at__isnull=True, afisha_hold=False)
         .annotate(last_show=Max('shows__show_datetime'))
         .filter(last_show__isnull=False, last_show__lte=now)
         .order_by('id')

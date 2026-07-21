@@ -12,6 +12,7 @@ from my_app1.models import (
     Perfomances, Actors, PerformanceShow, PerformanceCast, User,
     Review, ReviewReaction, DirectorsTheatre, Archive, News,
     Achievements, EmailVerification, promote_performance,
+    promote_past_performances, refresh_afisha_hold,
 )
 from my_app1.serializers import ActorsSerializer, PerfomanceSerializer
 from my_app1.actor_gender import actor_role_label, infer_actor_gender
@@ -693,3 +694,82 @@ class MultiRoleCastSyncTests(TestCase):
 
         data = ActorsSerializer(actor).data
         self.assertEqual(data['perfomances'].count(perf.title), 1)
+
+
+class ReturnToAfishaTests(TestCase):
+    def setUp(self):
+        self.now = timezone.now()
+        self.client = APIClient()
+        self.admin = User.objects.create(
+            email='afisha-admin@test.com', is_superuser=True, is_staff=True,
+            phone_number='+7-000-000-00-99', profile_photo='',
+        )
+        self.admin.set_password('Teatr2026!')
+        self.admin.save()
+        self.client.force_authenticate(user=self.admin)
+
+    def test_manual_return_to_afisha_stays_despite_past_shows(self):
+        actor = make_actor()
+        perf = make_performance(afisha=False, title='Возврат в афишу')
+        PerformanceShow.objects.create(
+            performance=perf, show_datetime=self.now - timedelta(days=3)
+        )
+        PerformanceCast.objects.create(performance=perf, actor=actor, role='Роль')
+        promote_performance(perf)
+        actor.refresh_from_db()
+        self.assertIn(perf.title, actor.perfomances)
+
+        resp = self.client.put(
+            f'/perfomance{perf.id}/',
+            {
+                'title': perf.title,
+                'author': perf.author,
+                'genre': perf.genre,
+                'age_limit': perf.age_limit,
+                'description': perf.description,
+                'afisha': True,
+                'shows': [{
+                    'show_datetime': (self.now - timedelta(days=3)).isoformat(),
+                }],
+                'cast': [{
+                    'actor': actor.id,
+                    'role': 'Роль',
+                    'actor_name': actor.name,
+                }],
+            },
+            format='json',
+        )
+        self.assertEqual(resp.status_code, 200, resp.data)
+        perf.refresh_from_db()
+        self.assertTrue(perf.afisha)
+        self.assertTrue(perf.afisha_hold)
+        self.assertFalse(perf.roles_propagated)
+
+        # Авто-промоут не должен сразу выкинуть спектакль обратно.
+        promote_past_performances()
+        perf.refresh_from_db()
+        self.assertTrue(perf.afisha)
+
+        actor.refresh_from_db()
+        self.assertNotIn(perf.title, actor.perfomances or [])
+
+    def test_future_show_clears_hold_and_allows_promote(self):
+        perf = make_performance(afisha=True, title='С будущим показом')
+        PerformanceShow.objects.create(
+            performance=perf, show_datetime=self.now - timedelta(days=1)
+        )
+        refresh_afisha_hold(perf)
+        perf.refresh_from_db()
+        self.assertTrue(perf.afisha_hold)
+
+        PerformanceShow.objects.create(
+            performance=perf, show_datetime=self.now + timedelta(days=2)
+        )
+        refresh_afisha_hold(perf)
+        perf.refresh_from_db()
+        self.assertFalse(perf.afisha_hold)
+
+        # Пока есть будущий показ — не продвигаем.
+        promote_past_performances()
+        perf.refresh_from_db()
+        self.assertTrue(perf.afisha)

@@ -282,6 +282,7 @@ export default function Navigation() {
                                 <Avatar
                                     size="sm"
                                     name={user?.email || "User"}
+                                    src={user?.profile_photo || undefined}
                                     bg={primaryColor}
                                     color="#0a0a0a"
                                     cursor="pointer"

@@ -10,7 +10,8 @@ from .models import (User, Perfomances, Actors, DirectorsTheatre,
                      SiteReview,
                      sync_performance_cast_to_actors,
                      sync_actor_roles_to_performances,
-                     coalesce_actor_performance_arrays)
+                     coalesce_actor_performance_arrays,
+                     refresh_afisha_hold)
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .actor_gender import actor_role_label
 
@@ -251,6 +252,7 @@ class PerfomanceSerializer(serializers.ModelSerializer):
             performance = Perfomances.objects.create(**validated_data)
             self._sync_shows(performance, shows_data)
             self._sync_cast(performance, cast_data)
+            refresh_afisha_hold(performance)
             # Синхронизируем состав с карточками актёров (для afisha=False).
             sync_performance_cast_to_actors(performance)
         return performance
@@ -261,6 +263,7 @@ class PerfomanceSerializer(serializers.ModelSerializer):
         if 'director' in validated_data and validated_data.get('director') is not None:
             validated_data['guest_director_name'] = ''
         with transaction.atomic():
+            previous_afisha = instance.afisha
             # Актёры, состоявшие в спектакле до изменения, — чтобы корректно
             # убрать роль у тех, кого удалили из состава.
             previous_actor_ids = list(
@@ -269,6 +272,10 @@ class PerfomanceSerializer(serializers.ModelSerializer):
             )
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
+            # Ручной возврат в «Афишу»: роли снова раздадутся при следующем
+            # автопереносе в «Спектакли».
+            if instance.afisha and not previous_afisha:
+                instance.roles_propagated = False
             instance.save()
             # Полная замена дочерних записей при их наличии в запросе.
             if shows_data is not None:
@@ -277,6 +284,7 @@ class PerfomanceSerializer(serializers.ModelSerializer):
             if cast_data is not None:
                 instance.cast_members.all().delete()
                 self._sync_cast(instance, cast_data)
+            refresh_afisha_hold(instance)
             sync_performance_cast_to_actors(instance, previous_actor_ids)
         return instance
 

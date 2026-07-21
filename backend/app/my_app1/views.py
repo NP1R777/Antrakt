@@ -432,7 +432,8 @@ class VerifyTokenView(APIView):
                 "id": request.user.id,
                 "email": request.user.email,
                 "phone_number": request.user.phone_number,
-                "is_superuser": request.user.is_superuser
+                "is_superuser": request.user.is_superuser,
+                "profile_photo": request.user.profile_photo or '',
             }
         })
 

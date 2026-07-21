@@ -16,7 +16,7 @@ interface NewsItem {
     title: string;
     image_url: string;
     summary: string;
-    date_publish: string;
+    date_publish: string | null;
     description: string;
 }
 
@@ -43,7 +43,8 @@ export default function NewsSection() {
     }, []);
 
     // Функция для форматирования даты
-    const formatDate = (dateString: string) => {
+    const formatDate = (dateString: string | null | undefined) => {
+        if (!dateString) return '';
         const date = new Date(dateString);
         const options: Intl.DateTimeFormatOptions = {
             day: 'numeric',
@@ -172,7 +173,7 @@ export default function NewsSection() {
     );
 }
 
-function NewsCard({ news, formatDate }: { news: NewsItem; formatDate: (date: string) => string }) {
+function NewsCard({ news, formatDate }: { news: NewsItem; formatDate: (date: string | null | undefined) => string }) {
     return (
         <MotionBox
             bg="rgba(25, 25, 25, 0.8)"
@@ -213,9 +214,11 @@ function NewsCard({ news, formatDate }: { news: NewsItem; formatDate: (date: str
             </Box>
 
             <Box p={6} flex="1" display="flex" flexDirection="column">
-                <Text color="gray.400" fontSize="sm" mb={2}>
-                    {formatDate(news.date_publish)}
-                </Text>
+                {news.date_publish && (
+                    <Text color="gray.400" fontSize="sm" mb={2}>
+                        {formatDate(news.date_publish)}
+                    </Text>
+                )}
 
                 <Heading as="h3" fontSize="xl" color="white" mb={4} lineHeight="tall">
                     {news.title}
