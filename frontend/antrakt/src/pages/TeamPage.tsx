@@ -22,7 +22,8 @@ import PageFetchError from "../components/PageFetchError";
 import { FaTheaterMasks, FaCrown, FaFilm } from "react-icons/fa";
 import { ChevronRightIcon, CalendarIcon } from "@chakra-ui/icons";
 import { yearDeclension, performanceDeclension } from "../utils/declension";
-import { API_URL } from '../config';
+import { API_URL } from '../config'
+import { getImageUrl } from '../utils/imageUrl';
 
 // Стилизованные компоненты для иконок
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
@@ -191,8 +192,9 @@ const TeamPage: React.FC = () => {
             >
                 <Box position="relative">
                     <Image
-                        src={actor.imageUrl}
+                        src={getImageUrl(actor.imageUrl)}
                         alt={actor.name}
+                        fallbackSrc={getImageUrl()}
                         width="100%"
                         height="auto"
                         maxHeight="300px"
@@ -392,8 +394,9 @@ const TeamPage: React.FC = () => {
                                     >
                                         <Box position="relative">
                                             <Image
-                                                src={director.imageUrl}
+                                                src={getImageUrl(director.imageUrl)}
                                                 alt={director.name}
+                                                fallbackSrc={getImageUrl()}
                                                 width="100%"
                                                 height="auto"
                                                 maxHeight="300px"

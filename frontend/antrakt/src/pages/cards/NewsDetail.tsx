@@ -28,7 +28,8 @@ import ReviewsSection from "../../components/ReviewsSection";
 import PageFetchError from "../../components/PageFetchError";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { FaNewspaper, FaCalendarAlt, FaExpand } from "react-icons/fa";
-import { API_URL } from '../../config';
+import { API_URL } from '../../config'
+import { getImageUrl } from '../../utils/imageUrl';
 
 const MotionBox = motion(Box);
 const MotionImage = motion(Image);
@@ -224,7 +225,8 @@ const NewsDetail: React.FC = () => {
                     >
                         <GridItem>
                             <Image
-                                src={news.image_url}
+                                src={getImageUrl(news.image_url)}
+                                fallbackSrc={getImageUrl()}
                                 alt={news.title}
                                 width={{ base: "100%", md: "280px" }}
                                 height="auto"

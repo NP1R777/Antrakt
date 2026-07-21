@@ -17,6 +17,7 @@ import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks } from "react-icons/fa";
+import { getImageUrl } from '../../utils/imageUrl';
 
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
 
@@ -121,7 +122,8 @@ const AfishaDetail: React.FC = () => {
                     >
                         <GridItem>
                             <Image
-                                src={item.image_url || "/placeholder-image.jpg"}
+                                src={getImageUrl(item.image_url)}
+                                fallbackSrc={getImageUrl()}
                                 alt={item.title}
                                 width={{ base: "100%", md: "280px" }}
                                 height="auto"

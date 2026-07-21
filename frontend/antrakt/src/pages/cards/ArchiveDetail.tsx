@@ -21,7 +21,8 @@ import PageFetchError from "../../components/PageFetchError";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaProjectDiagram } from "react-icons/fa";
 import { Image as ChakraImage } from "@chakra-ui/react";
-import { API_URL } from '../../config';
+import { API_URL } from '../../config'
+import { getImageUrl } from '../../utils/imageUrl';
 
 const MotionBox = motion(Box);
 const MotionImage = motion(ChakraImage);
@@ -133,7 +134,8 @@ const ArchiveDetail: React.FC = () => {
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.6 }}
-                                src={project.image_url}
+                                src={getImageUrl(project.image_url)}
+                                fallbackSrc={getImageUrl()}
                                 alt={project.title}
                                 width={{ base: "100%", md: "280px" }}
                                 height="auto"

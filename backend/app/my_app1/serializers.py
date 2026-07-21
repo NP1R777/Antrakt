@@ -9,7 +9,8 @@ from .models import (User, Perfomances, Actors, DirectorsTheatre,
                      SiteContent, BirthdayGreeting, ActorBirthday,
                      SiteReview,
                      sync_performance_cast_to_actors,
-                     sync_actor_roles_to_performances)
+                     sync_actor_roles_to_performances,
+                     coalesce_actor_performance_arrays)
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .actor_gender import actor_role_label
 
@@ -300,14 +301,37 @@ class ActorsSerializer(serializers.ModelSerializer):
     def get_role_label(self, obj):
         return actor_role_label(obj.name, obj.gender_override)
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        titles, roles = coalesce_actor_performance_arrays(
+            data.get('perfomances'), data.get('role_in_perfomances')
+        )
+        data['perfomances'] = titles
+        data['role_in_perfomances'] = roles
+        return data
+
     def create(self, validated_data):
         with transaction.atomic():
+            if 'perfomances' in validated_data or 'role_in_perfomances' in validated_data:
+                titles, roles = coalesce_actor_performance_arrays(
+                    validated_data.get('perfomances'),
+                    validated_data.get('role_in_perfomances'),
+                )
+                validated_data['perfomances'] = titles
+                validated_data['role_in_perfomances'] = roles
             actor = Actors.objects.create(**validated_data)
             sync_actor_roles_to_performances(actor)
         return actor
 
     def update(self, instance, validated_data):
         with transaction.atomic():
+            if 'perfomances' in validated_data or 'role_in_perfomances' in validated_data:
+                titles, roles = coalesce_actor_performance_arrays(
+                    validated_data.get('perfomances', instance.perfomances),
+                    validated_data.get('role_in_perfomances', instance.role_in_perfomances),
+                )
+                validated_data['perfomances'] = titles
+                validated_data['role_in_perfomances'] = roles
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
             instance.save()

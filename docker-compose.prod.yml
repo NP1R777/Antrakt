@@ -78,6 +78,7 @@ services:
       CORS_ALLOW_ALL_ORIGINS: "False"
       CORS_ALLOWED_ORIGINS: https://${DOMAIN}
       CSRF_TRUSTED_ORIGINS: https://${DOMAIN},https://api.${DOMAIN}
+      PLACEHOLDER_IMAGE_URL: ${PLACEHOLDER_IMAGE_URL:-https://s3.${DOMAIN}/${MINIO_BUCKET_NAME:-antrakt-images}/zaglushka.jpg}
     depends_on:
       db:
         condition: service_healthy
@@ -136,6 +137,7 @@ services:
       args:
         REACT_APP_API_URL: https://api.${DOMAIN}
         REACT_APP_MEDIA_URL: https://s3.${DOMAIN}
+        REACT_APP_PLACEHOLDER_IMAGE_URL: https://s3.${DOMAIN}/${MINIO_BUCKET_NAME:-antrakt-images}/zaglushka.jpg
     depends_on:
       - backend
     restart: unless-stopped

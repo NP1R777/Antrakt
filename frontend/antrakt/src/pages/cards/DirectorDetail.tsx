@@ -29,7 +29,8 @@ import Navigation from "../../components/Navigation";
 import PageFetchError from "../../components/PageFetchError";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaQuoteLeft, FaUserTie, FaBook, FaUser, FaPaintBrush, FaVideo, FaMusic } from "react-icons/fa";
-import { API_URL } from '../../config';
+import { API_URL } from '../../config'
+import { getImageUrl } from '../../utils/imageUrl';
 
 
 // Стилизованные компоненты для иконок
@@ -236,7 +237,8 @@ const DirectorDetail: React.FC = () => {
                     >
                         <GridItem>
                             <Image
-                                src={director.image_url}
+                                src={getImageUrl(director.image_url)}
+                                fallbackSrc={getImageUrl()}
                                 alt={director.name}
                                 width={{ base: "100%", md: "280px" }}
                                 height="auto"

@@ -20,6 +20,7 @@ import Footer from "../components/Footer";
 import PageFetchError from "../components/PageFetchError";
 import { ChevronRightIcon } from "@chakra-ui/icons";
 import { API_URL } from '../config';
+import { getImageUrl } from '../utils/imageUrl';
 
 const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
@@ -211,12 +212,12 @@ const AfishaPage: React.FC = () => {
                                     >
                                         <Box position="relative" h={{ base: "240px", sm: "300px", md: "380px" }}>
                                             <Image
-                                                src={item.image_url || "/placeholder-image.jpg"}
+                                                src={getImageUrl(item.image_url)}
                                                 alt={item.title}
                                                 h="100%"
                                                 w="100%"
                                                 objectFit="contain"
-                                                fallbackSrc="/placeholder-image.jpg"
+                                                fallbackSrc={getImageUrl()}
                                             />
                                             <Box
                                                 position="absolute"

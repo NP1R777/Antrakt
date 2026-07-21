@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Box, Container, Heading, Text, Image, VStack } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import { API_URL } from '../config';
+import { API_URL } from '../config'
+import { getImageUrl } from '../utils/imageUrl';
 import PageFetchError from '../components/PageFetchError';
 
 const MotionBox = motion(Box);
@@ -80,25 +81,24 @@ const BirthdaySection: React.FC = () => {
                             Сегодня день рождения
                         </Text>
 
-                        {data.actor_image && (
-                            <MotionBox
-                                initial={{ scale: 0.8, opacity: 0 }}
-                                whileInView={{ scale: 1, opacity: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.6, delay: 0.1 }}
-                            >
-                                <Image
-                                    src={data.actor_image}
-                                    alt={data.actor_name}
-                                    boxSize={{ base: '150px', md: '190px' }}
-                                    objectFit="cover"
-                                    borderRadius="full"
-                                    border="3px solid #ffffff"
-                                    boxShadow="0 0 40px rgba(255,255,255,0.28)"
-                                    objectPosition={"top center"}
-                                />
-                            </MotionBox>
-                        )}
+                        <MotionBox
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            whileInView={{ scale: 1, opacity: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6, delay: 0.1 }}
+                        >
+                            <Image
+                                src={getImageUrl(data.actor_image)}
+                                alt={data.actor_name}
+                                fallbackSrc={getImageUrl()}
+                                boxSize={{ base: '150px', md: '190px' }}
+                                objectFit="cover"
+                                borderRadius="full"
+                                border="3px solid #ffffff"
+                                boxShadow="0 0 40px rgba(255,255,255,0.28)"
+                                objectPosition={"top center"}
+                            />
+                        </MotionBox>
 
                         <Heading
                             as="h2"

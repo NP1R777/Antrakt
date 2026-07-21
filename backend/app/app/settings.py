@@ -312,5 +312,9 @@ VK_ACCESS_TOKEN = config('VK_ACCESS_TOKEN', default='')
 VK_API_VERSION = config('VK_API_VERSION', default='5.199')
 VK_GROUP_DOMAIN = config('VK_GROUP_DOMAIN', default='tc_antrakt')
 
+# URL картинки-заглушки (например, https://s3.example.com/antrakt-images/zaglushka.jpg),
+# подставляется вместо пустой основной фотографии сущностей.
+PLACEHOLDER_IMAGE_URL = config('PLACEHOLDER_IMAGE_URL', default='')
+
 # Настройки для работы с разными типами БД
 print("Используется PostgreSQL с полной функциональностью")

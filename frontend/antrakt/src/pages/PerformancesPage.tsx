@@ -19,6 +19,7 @@ import Footer from "../components/Footer";
 import PageFetchError from "../components/PageFetchError";
 import { ChevronRightIcon } from "@chakra-ui/icons";
 import { API_URL } from '../config';
+import { getImageUrl } from '../utils/imageUrl';
 
 const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
@@ -30,6 +31,7 @@ interface Performance {
     author: string;
     premiere_date: string | null;
     performances_image: string | null;
+    image_url?: string | null;
     afisha: boolean;
     age_limit: string;
 }
@@ -191,11 +193,11 @@ const PerformancesPage: React.FC = () => {
                                         flexDirection="column"
                                     >
                                         <Image
-                                            src={performance.performances_image || "/placeholder-image.jpg"}
+                                            src={getImageUrl(performance.performances_image, performance.image_url)}
                                             alt={performance.title}
                                             height={{ base: "220px", md: "300px" }}
                                             objectFit="cover"
-                                            fallbackSrc="/placeholder-image.jpg"
+                                            fallbackSrc={getImageUrl()}
                                             w="100%"
                                         />
                                         <Box

@@ -25,6 +25,7 @@ pycryptodome==3.23.0
 PyJWT==2.9.0
 python-dateutil==2.9.0.post0
 python-decouple==3.8
+pytrovich==0.2.0
 pytz==2025.2
 PyYAML==6.0.2
 s3transfer==0.13.0

@@ -19,7 +19,8 @@ import { useNavigate } from "react-router-dom";
 import Navigation from "../components/Navigation";
 import Footer from "../components/Footer";
 import PageFetchError from "../components/PageFetchError";
-import { API_URL } from '../config';
+import { API_URL } from '../config'
+import { getImageUrl } from '../utils/imageUrl';
 
 const MotionBox = motion(Box);
 const MotionButton = motion(Button);
@@ -206,27 +207,14 @@ const NewsPage: React.FC = () => {
                                         flexDirection="column"
                                         h="100%"
                                     >
-                                        {item.image_url ? (
-                                            <Image
-                                                src={item.image_url}
-                                                alt={item.title}
-                                                height={{ base: "180px", md: "200px" }}
-                                                objectFit="cover"
-                                                fallbackSrc="/placeholder-image.jpg"
-                                                w="100%"
-                                            />
-                                        ) : (
-                                            <Box
-                                                bgGradient="linear(to-r, gray.700, #2a2a2a10)"
-                                                h="200px"
-                                                display="flex"
-                                                alignItems="center"
-                                                justifyContent="center"
-                                                bg="rgba(255, 255, 255, 0.07)"
-                                            >
-                                                <Text color={grayText}>Изображение отсутствует</Text>
-                                            </Box>
-                                        )}
+                                        <Image
+                                            src={getImageUrl(item.image_url)}
+                                            alt={item.title}
+                                            height={{ base: "180px", md: "200px" }}
+                                            objectFit="cover"
+                                            fallbackSrc={getImageUrl()}
+                                            w="100%"
+                                        />
 
                                         <Box
                                             p={6}

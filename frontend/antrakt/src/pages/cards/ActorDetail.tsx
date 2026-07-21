@@ -22,7 +22,8 @@ import PageFetchError from "../../components/PageFetchError";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaQuoteLeft, FaUserTie, FaBook, FaUser, FaPaintBrush, FaVideo, FaMusic } from "react-icons/fa";
 import { yearDeclension, performanceDeclension } from "../../utils/declension";
-import { API_URL } from '../../config';
+import { API_URL } from '../../config'
+import { getImageUrl } from '../../utils/imageUrl';
 
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
 const CFaFilm = chakra(FaFilm as any);
@@ -61,6 +62,34 @@ interface Performance {
     author: string;
     genre: string;
     age_limit: string;
+}
+
+/** Одна плашка на спектакль: несколько ролей склеиваются через « / ». */
+function groupActorPerformances(
+    titles: string[] | null | undefined,
+    roles: string[] | null | undefined,
+): { title: string; role: string }[] {
+    const list = titles || [];
+    const roleList = roles || [];
+    const grouped = new Map<string, string[]>();
+    const order: string[] = [];
+    for (let i = 0; i < list.length; i += 1) {
+        const title = list[i];
+        if (!grouped.has(title)) {
+            grouped.set(title, []);
+            order.push(title);
+        }
+        const role = (roleList[i] || '').trim();
+        if (!role) continue;
+        for (const part of role.split(' / ').map((p) => p.trim()).filter(Boolean)) {
+            const bucket = grouped.get(title)!;
+            if (!bucket.includes(part)) bucket.push(part);
+        }
+    }
+    return order.map((title) => ({
+        title,
+        role: (grouped.get(title) || []).join(' / '),
+    }));
 }
 
 const ActorDetail: React.FC = () => {
@@ -200,7 +229,8 @@ const ActorDetail: React.FC = () => {
                     >
                         <GridItem minW="0">
                             <Image
-                                src={actor.image_url}
+                                src={getImageUrl(actor.image_url)}
+                                fallbackSrc={getImageUrl()}
                                 alt={actor.name}
                                 width={{ base: "100%", md: "280px" }}
                                 height="auto"
@@ -283,9 +313,9 @@ const ActorDetail: React.FC = () => {
                                             Роли в спектаклях
                                         </Heading>
                                         <Grid templateColumns="repeat(auto-fill, minmax(250px, 1fr))" gap={4}>
-                                            {actor.perfomances.map((perfomance, idx) => (
+                                            {groupActorPerformances(actor.perfomances, actor.role_in_perfomances).map((item) => (
                                                 <MotionBox
-                                                    key={idx}
+                                                    key={item.title}
                                                     p={3}
                                                     border="1px solid"
                                                     borderColor="gray.800"
@@ -294,11 +324,11 @@ const ActorDetail: React.FC = () => {
                                                     cursor="pointer"
                                                     whileHover={{ y: -4, boxShadow: "0 8px 16px rgba(255, 255, 255, 0.12)", scale: 1.02, transition: { duration: 0.2 } }}
                                                     whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
-                                                    onClick={() => handlePerformanceClick(perfomance)}
+                                                    onClick={() => handlePerformanceClick(item.title)}
                                                 >
-                                                    <Text fontWeight="bold" color="white" fontSize="sm">{perfomance}</Text>
-                                                    {actor.role_in_perfomances?.[idx] && (
-                                                        <Text fontSize="xs" color="gray.400" mt={1}>Роль: {actor.role_in_perfomances[idx]}</Text>
+                                                    <Text fontWeight="bold" color="white" fontSize="sm">{item.title}</Text>
+                                                    {item.role && (
+                                                        <Text fontSize="xs" color="gray.400" mt={1}>Роль: {item.role}</Text>
                                                     )}
                                                 </MotionBox>
                                             ))}
