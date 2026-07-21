@@ -21,7 +21,8 @@ import Footer from "../../components/Footer";
 import PageFetchError from "../../components/PageFetchError";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTrophy, FaCalendarAlt } from "react-icons/fa";
-import { API_URL } from '../../config';
+import { API_URL } from '../../config'
+import { getImageUrl } from '../../utils/imageUrl';
 
 const MotionBox = motion(Box);
 const CFaTrophy = chakra(FaTrophy as any);
@@ -146,7 +147,8 @@ const AchievementDetail: React.FC = () => {
                     >
                         <GridItem>
                             <Image
-                                src={achievement.image_url}
+                                src={getImageUrl(achievement.image_url)}
+                                fallbackSrc={getImageUrl()}
                                 alt="Achievement Image"
                                 w="100%"
                                 h="auto"

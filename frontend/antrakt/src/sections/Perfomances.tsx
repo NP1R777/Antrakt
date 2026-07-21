@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { API_URL } from '../config';
+import { API_URL } from '../config'
+import { getImageUrl } from '../utils/imageUrl';
 import PageFetchError from "../components/PageFetchError";
 
 const MotionBox = motion(Box);
@@ -166,7 +167,7 @@ function PerformanceCard({ performance }: { performance: Performance }) {
                 position="relative"
             >
                 <Image
-                    src={performance.image_url || "/images/placeholder.jpg"}
+                    src={getImageUrl(performance.image_url)}
                     alt={performance.title}
                     w="100%"
                     h="100%"

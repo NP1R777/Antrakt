@@ -28,7 +28,8 @@ import ReviewsSection from "../../components/ReviewsSection";
 import PageFetchError from "../../components/PageFetchError";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaUserTie, FaClock, FaUsers, FaExpand } from "react-icons/fa";
-import { API_URL } from '../../config';
+import { API_URL } from '../../config'
+import { getImageUrl } from '../../utils/imageUrl';
 
 // Стилизованные компоненты для иконок
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
@@ -339,7 +340,8 @@ const PerformanceDetail: React.FC = () => {
                     >
                         <GridItem>
                             <Image
-                                src={performance.image_url}
+                                src={getImageUrl(performance.image_url)}
+                                fallbackSrc={getImageUrl()}
                                 alt={performance.title}
                                 width="300px"
                                 height="auto"
@@ -404,16 +406,48 @@ const PerformanceDetail: React.FC = () => {
                                             </Text>
                                         )}
                                         {performance.shows && performance.shows.length > 0 && (
-                                            <Text fontSize="md" color="#e0e0e0">
-                                                <b>Показы:</b>{' '}
-                                                {performance.shows
-                                                    .map(s => new Date(s.show_datetime).toLocaleString('ru-RU', {
-                                                        day: '2-digit', month: '2-digit', year: 'numeric',
-                                                        hour: '2-digit', minute: '2-digit',
-                                                        timeZone: 'Asia/Krasnoyarsk',
-                                                    }))
-                                                    .join('; ')}
-                                            </Text>
+                                            <Box w="full">
+                                                <Text fontSize="md" color="#e0e0e0" mb={2}>
+                                                    <b>Показы:</b>
+                                                </Text>
+                                                <VStack align="stretch" spacing={2} w="full">
+                                                    {performance.shows.map((s, i) => {
+                                                        const dt = new Date(s.show_datetime);
+                                                        const dateLabel = dt.toLocaleDateString('ru-RU', {
+                                                            day: '2-digit',
+                                                            month: '2-digit',
+                                                            year: 'numeric',
+                                                            timeZone: 'Asia/Krasnoyarsk',
+                                                        });
+                                                        const timeLabel = dt.toLocaleTimeString('ru-RU', {
+                                                            hour: '2-digit',
+                                                            minute: '2-digit',
+                                                            timeZone: 'Asia/Krasnoyarsk',
+                                                        });
+                                                        return (
+                                                            <Flex
+                                                                key={s.id ?? i}
+                                                                align="baseline"
+                                                                gap={2}
+                                                                borderLeft="2px solid"
+                                                                borderColor="#3a3a3a"
+                                                                pl={3}
+                                                                py={1}
+                                                            >
+                                                                <Text
+                                                                    fontWeight="semibold"
+                                                                    color="#ffffff"
+                                                                    minW={{ base: "120px", md: "160px" }}
+                                                                >
+                                                                    {dateLabel}
+                                                                </Text>
+                                                                <Text color="#a0a0a0">—</Text>
+                                                                <Text color="#c9c9c9">{timeLabel}</Text>
+                                                            </Flex>
+                                                        );
+                                                    })}
+                                                </VStack>
+                                            </Box>
                                         )}
                                     </VStack>
 

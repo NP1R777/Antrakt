@@ -858,6 +858,7 @@ class AfishaList(APIView):
             'id', 'title', 'description', 'premiere_date', 'age_limit', 'image_url'
         )
 
+        from .image_utils import resolve_image_url
         performances_list = [
             {
                 'type': 'performance',
@@ -866,7 +867,9 @@ class AfishaList(APIView):
                 'description': p.description,
                 'premiere_date': p.premiere_date,
                 'age_limit': p.age_limit,
-                'image_url': p.image_url,
+                # На афише предпочитаем постер (image_url); если его нет —
+                # фото спектакля, иначе общая заглушка.
+                'image_url': resolve_image_url(p.image_url or p.performances_image),
                 'genre': p.genre,
                 'ticket_url': p.ticket_url,
                 'director': p.director_id,
@@ -892,7 +895,7 @@ class AfishaList(APIView):
                 'description': a['description'],
                 'premiere_date': a['premiere_date'],
                 'age_limit': a['age_limit'],
-                'image_url': a['image_url']
+                'image_url': resolve_image_url(a['image_url']),
             } for a in archives
         ]
 
@@ -1316,16 +1319,21 @@ class BirthdayTodayView(APIView):
         greetings = list(BirthdayGreeting.objects
                          .filter(is_active=True).order_by('id'))
         greeting = ''
+        name = bday.person_name
         if greetings:
             # Детерминированный выбор варианта — не «прыгает» в течение дня.
-            greeting = greetings[today.toordinal() % len(greetings)].text
-        name = bday.person_name
-        greeting = greeting.replace('{name}', name)
+            template = greetings[today.toordinal() % len(greetings)].text
+            gender = None
+            if bday.actor_id:
+                gender = bday.actor.gender_override or None
+            from .name_declension import format_greeting
+            greeting = format_greeting(template, name, gender)
+        from .image_utils import resolve_image_url
         return Response({
             "active": True,
             "actor_id": bday.actor_id or bday.director_id,
             "actor_name": name,
-            "actor_image": bday.person_image,
+            "actor_image": resolve_image_url(bday.person_image),
             "birth_date": bday.birth_date,
             "greeting": greeting,
         })

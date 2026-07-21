@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { API_URL } from '../config';
+import { API_URL } from '../config'
+import { getImageUrl } from '../utils/imageUrl';
 import PageFetchError from "../components/PageFetchError";
 
 const MotionBox = motion(Box);
@@ -191,26 +192,16 @@ function NewsCard({ news, formatDate }: { news: NewsItem; formatDate: (date: str
             flexDirection="column"
         >
             <Box h="200px" overflow="hidden" position="relative">
-                {news.image_url ? (
-                    <Image
-                        src={news.image_url}
-                        alt={news.title}
-                        w="100%"
-                        h="100%"
-                        objectFit="cover"
-                        transition="transform 0.5s ease"
-                        _hover={{ transform: "scale(1.05)" }}
-                        fallback={
-                            <Center h="100%" bg="gray.700">
-                                <Text color="gray.400">Изображение отсутствует</Text>
-                            </Center>
-                        }
-                    />
-                ) : (
-                    <Center h="100%" bg="gray.700">
-                        <Text color="gray.400">Изображение отсутствует</Text>
-                    </Center>
-                )}
+                <Image
+                    src={getImageUrl(news.image_url)}
+                    alt={news.title}
+                    w="100%"
+                    h="100%"
+                    objectFit="cover"
+                    transition="transform 0.5s ease"
+                    _hover={{ transform: "scale(1.05)" }}
+                    fallbackSrc={getImageUrl()}
+                />
                 <Box
                     position="absolute"
                     bottom={0}

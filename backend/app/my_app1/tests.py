@@ -637,3 +637,59 @@ class ActorActiveFilterTests(TestCase):
         self.assertIn(departed.id, ids_all)
         self.assertNotIn(departed.id, ids_active)
         self.assertIn(active.id, ids_active)
+
+
+class NameDeclensionTests(TestCase):
+    def test_male_accusative_and_genitive(self):
+        from my_app1.name_declension import format_greeting, decline_full_name
+        from pytrovich.enums import Case
+
+        self.assertEqual(
+            decline_full_name('Илья Захаров', Case.ACCUSATIVE),
+            'Илью Захарова',
+        )
+        self.assertEqual(
+            decline_full_name('Захаров Илья', Case.ACCUSATIVE),
+            'Захарова Илью',
+        )
+        greeting = format_greeting(
+            'Поздравляем с днём рождения {name}',
+            'Илья Захаров',
+        )
+        self.assertIn('Илью Захарова', greeting)
+
+    def test_female_placeholders(self):
+        from my_app1.name_declension import format_greeting
+
+        text = format_greeting(
+            'Сегодня день рождения у {name_gen}! Поздравляем {name_acc}!',
+            'Елена Курченкова',
+            'female',
+        )
+        self.assertIn('Елены Курченковой', text)
+        self.assertIn('Елену Курченкову', text)
+
+
+class MultiRoleCastSyncTests(TestCase):
+    def test_two_roles_same_performance_one_badge(self):
+        from my_app1.models import sync_performance_cast_to_actors
+
+        actor = make_actor('Тестов Тест')
+        perf = make_performance(title='Дюймовочка', afisha=False)
+        PerformanceCast.objects.create(performance=perf, actor=actor, role='Жаб-сын Гисли')
+        PerformanceCast.objects.create(
+            performance=perf, actor=actor, role='Майский жук Ингемар'
+        )
+
+        sync_performance_cast_to_actors(perf)
+        actor.refresh_from_db()
+
+        self.assertEqual(actor.perfomances.count(perf.title), 1)
+        idx = actor.perfomances.index(perf.title)
+        role = actor.role_in_perfomances[idx]
+        self.assertIn('Жаб-сын Гисли', role)
+        self.assertIn('Майский жук Ингемар', role)
+        self.assertIn(' / ', role)
+
+        data = ActorsSerializer(actor).data
+        self.assertEqual(data['perfomances'].count(perf.title), 1)

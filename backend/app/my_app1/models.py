@@ -375,6 +375,52 @@ class PerformanceCast(models.Model): # Состав спектакля: актё
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+# Разделитель нескольких ролей одного актёра в одном спектакле на карточке.
+ACTOR_ROLE_SEPARATOR = ' / '
+
+
+def split_actor_roles(role_value):
+    """Разбить объединённую строку ролей обратно на отдельные роли."""
+    text = (role_value or '').strip()
+    if not text:
+        return []
+    if ACTOR_ROLE_SEPARATOR in text:
+        return [part.strip() for part in text.split(ACTOR_ROLE_SEPARATOR) if part.strip()]
+    return [text]
+
+
+def join_actor_roles(roles):
+    """Склеить роли одного спектакля в одну строку без дублей."""
+    seen = set()
+    ordered = []
+    for role in roles or []:
+        for part in split_actor_roles(role):
+            if part not in seen:
+                seen.add(part)
+                ordered.append(part)
+    return ACTOR_ROLE_SEPARATOR.join(ordered)
+
+
+def coalesce_actor_performance_arrays(titles, roles):
+    """Свести дубли названий спектаклей к одной плашке с несколькими ролями."""
+    titles = list(titles or [])
+    roles = list(roles or [])
+    grouped = {}
+    order = []
+    for i, title in enumerate(titles):
+        key = title or ''
+        if key not in grouped:
+            grouped[key] = []
+            order.append(key)
+        grouped[key].append(roles[i] if i < len(roles) else '')
+    new_titles = []
+    new_roles = []
+    for title in order:
+        new_titles.append(title)
+        new_roles.append(join_actor_roles(grouped[title]))
+    return new_titles, new_roles
+
+
 def sync_performance_cast_to_actors(perf, previous_actor_ids=()):
     """Синхронизировать состав спектакля с карточками актёров.
 
@@ -383,6 +429,9 @@ def sync_performance_cast_to_actors(perf, previous_actor_ids=()):
     перезаписываются по актуальному составу: старые записи по этому спектаклю
     удаляются, актуальные — добавляются. Благодаря этому карточка актёра всегда
     отражает то, что задано в спектакле (и наоборот при удалении из состава).
+
+    Если у актёра в одном спектакле несколько ролей, на карточке остаётся
+    одна плашка, а роли склеиваются через « / ».
 
     Роли показываются только для прошедших спектаклей (`afisha=False`); пока
     спектакль в «Афише», состав скрыт, поэтому в карточки актёров он не попадает.
@@ -414,9 +463,11 @@ def sync_performance_cast_to_actors(perf, previous_actor_ids=()):
                 continue  # убираем все прежние записи по этому спектаклю
             new_titles.append(t)
             new_roles.append(roles[i] if i < len(roles) else '')
-        for role in current.get(actor_id, []):
+        actor_roles = current.get(actor_id, [])
+        if actor_roles:
             new_titles.append(title)
-            new_roles.append(role)
+            new_roles.append(join_actor_roles(actor_roles))
+        new_titles, new_roles = coalesce_actor_performance_arrays(new_titles, new_roles)
         actor.perfomances = new_titles
         actor.role_in_perfomances = new_roles
         actor.updated_at = timezone.now()
@@ -471,6 +522,7 @@ def sync_actor_roles_to_performances(actor):
     """
     titles = list(actor.perfomances or [])
     roles = list(actor.role_in_perfomances or [])
+    titles, roles = coalesce_actor_performance_arrays(titles, roles)
     desired = {}  # performance_id -> [roles]
     for i, raw_title in enumerate(titles):
         title = (raw_title or '').strip()
@@ -482,7 +534,7 @@ def sync_actor_roles_to_performances(actor):
             or perfs.order_by('id').first()
         if not perf:
             continue
-        desired.setdefault(perf.id, []).append(role)
+        desired.setdefault(perf.id, []).extend(split_actor_roles(role) or [''])
 
     existing = list(
         PerformanceCast.objects.filter(actor=actor).select_related('performance')

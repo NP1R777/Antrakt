@@ -16,7 +16,8 @@ import Navigation from "../components/Navigation";
 import Footer from "../components/Footer";
 import PageFetchError from "../components/PageFetchError";
 import axios from "axios";
-import { API_URL } from '../config';
+import { API_URL } from '../config'
+import { getImageUrl } from '../utils/imageUrl';
 
 const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
@@ -172,14 +173,14 @@ const AchievementsPage: React.FC = () => {
                                     >
                                         <Box>
                                             <Image
-                                                src={achievement.image_url}
+                                                src={getImageUrl(achievement.image_url)}
                                                 alt={achievement.achievement}
                                                 w="100%"
                                                 h={{ base: "160px", md: "200px" }}
                                                 objectFit="cover"
                                                 borderRadius="lg"
                                                 mb={4}
-                                                fallbackSrc="/placeholder-image.jpg"
+                                                fallbackSrc={getImageUrl()}
                                             />
                                             <Text
                                                 fontSize="md"

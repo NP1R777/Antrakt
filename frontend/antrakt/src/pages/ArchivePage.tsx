@@ -16,7 +16,8 @@ import { motion } from "framer-motion";
 import Navigation from "../components/Navigation";
 import Footer from "../components/Footer";
 import PageFetchError from "../components/PageFetchError";
-import { API_URL } from '../config';
+import { API_URL } from '../config'
+import { getImageUrl } from '../utils/imageUrl';
 
 const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
@@ -28,6 +29,7 @@ interface ArchiveProject {
     author: string;
     premiere_date: string | null;
     archive_image: string | null;
+    image_url?: string | null;
     afisha: boolean;
     age_limit: string;
 }
@@ -208,11 +210,11 @@ const ArchivePage: React.FC = () => {
                                         onClick={() => navigate(`/archive/${project.id}`)}
                                     >
                                         <Image
-                                            src={project.archive_image || "/placeholder-image.jpg"}
+                                            src={getImageUrl(project.archive_image, project.image_url)}
                                             alt={project.title}
                                             height={{ base: "220px", md: "300px" }}
                                             objectFit="cover"
-                                            fallbackSrc="/placeholder-image.jpg"
+                                            fallbackSrc={getImageUrl()}
                                             w="100%"
                                         />
 
