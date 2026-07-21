@@ -773,3 +773,47 @@ class ReturnToAfishaTests(TestCase):
         promote_past_performances()
         perf.refresh_from_db()
         self.assertTrue(perf.afisha)
+
+
+class BlankOptionalFieldsCreateTests(TestCase):
+    """Пустые строки в опциональных полях не должны ломать create."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.admin = User.objects.create(
+            email='blank-admin@test.com', is_superuser=True, is_staff=True,
+            phone_number='+7-111-111-11-11', profile_photo='',
+        )
+        self.client.force_authenticate(user=self.admin)
+
+    def test_news_create_with_empty_date_publish(self):
+        resp = self.client.post('/news/', {
+            'title': 'Новость без даты',
+            'description': 'Описание новости достаточно длинное',
+            'date_publish': '',
+            'is_published': False,
+            'images_list': [],
+            'image_url': '',
+        }, format='json')
+        self.assertEqual(resp.status_code, 201, resp.data)
+        self.assertIsNone(resp.data.get('date_publish'))
+
+    def test_users_create_with_empty_phone_twice(self):
+        r1 = self.client.post('/users/', {
+            'email': 'u1@test.com',
+            'password': 'Teatr2026!',
+            'phone_number': '',
+            'is_superuser': False,
+            'profile_photo': '',
+        }, format='json')
+        self.assertEqual(r1.status_code, 201, r1.data)
+        r2 = self.client.post('/users/', {
+            'email': 'u2@test.com',
+            'password': 'Teatr2026!',
+            'phone_number': '',
+            'is_superuser': False,
+            'profile_photo': '',
+        }, format='json')
+        self.assertEqual(r2.status_code, 201, r2.data)
+        self.assertIsNone(User.objects.get(email='u1@test.com').phone_number)
+        self.assertIsNone(User.objects.get(email='u2@test.com').phone_number)

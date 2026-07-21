@@ -39,6 +39,7 @@ import { chakra, useToast } from '@chakra-ui/react';
 import ImageUpload from '../../../components/ImageUpload';
 import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
 import { API_URL } from '../../../config';
+import { emptyStringsToNull } from '../../../utils/adminPayload';
 
 const MotionButton = motion(Button);
 const MotionBox = motion(Box);
@@ -136,7 +137,11 @@ export const ArchiveForm: React.FC<{
                 ? `${API_URL}/archive${currentArchive.id}/`
                 : `${API_URL}/archive/`;
 
-            await axios[method](url, currentArchive);
+            const payload = emptyStringsToNull(
+                { ...currentArchive } as Record<string, unknown>,
+                ['premiere_date', 'age_limit', 'archive_image', 'deleted_at'],
+            );
+            await axios[method](url, payload);
 
             toast({
                 title: 'Успех',

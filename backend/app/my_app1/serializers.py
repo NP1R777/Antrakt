@@ -16,8 +16,24 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .actor_gender import actor_role_label
 
 
-class UserSerializer(serializers.ModelSerializer):
+class BlankToNullMixin:
+    """Пустые строки в указанных полях превращаем в None до валидации DRF."""
+    blank_to_null_fields = ()
+
+    def to_internal_value(self, data):
+        if hasattr(data, 'copy'):
+            data = data.copy()
+        else:
+            data = dict(data)
+        for field in getattr(self, 'blank_to_null_fields', ()):
+            if data.get(field) == '':
+                data[field] = None
+        return super().to_internal_value(data)
+
+
+class UserSerializer(BlankToNullMixin, serializers.ModelSerializer):
     is_superuser = serializers.BooleanField(default=False)
+    blank_to_null_fields = ('phone_number', 'email', 'deleted_at')
 
     class Meta:
         model = User
@@ -41,8 +57,8 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         is_superuser = validated_data.pop('is_superuser', False)
         password = validated_data.pop('password')
-        email = validated_data.pop('email', None)
-        phone_number = validated_data.pop('phone_number', None)
+        email = validated_data.pop('email', None) or None
+        phone_number = validated_data.pop('phone_number', None) or None
 
         if is_superuser:
             user = User.objects.create_superuser(
@@ -204,12 +220,16 @@ class PerformanceCastSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class PerfomanceSerializer(serializers.ModelSerializer):
+class PerfomanceSerializer(BlankToNullMixin, serializers.ModelSerializer):
     afisha = serializers.BooleanField(default=True)
     shows = PerformanceShowSerializer(many=True, required=False)
     cast = PerformanceCastSerializer(many=True, required=False, source='cast_members')
     # Имя режиссёра видно всегда (в т.ч. когда спектакль в "Афише").
     director_name = serializers.SerializerMethodField()
+    blank_to_null_fields = (
+        'duration', 'premiere_date', 'ticket_url', 'performances_image',
+        'deleted_at', 'director', 'production_year',
+    )
 
     class Meta:
         model = Perfomances
@@ -289,12 +309,13 @@ class PerfomanceSerializer(serializers.ModelSerializer):
         return instance
 
 
-class ActorsSerializer(serializers.ModelSerializer):
+class ActorsSerializer(BlankToNullMixin, serializers.ModelSerializer):
     deleted_at = serializers.DateTimeField(required=False, allow_null=True, default=None)
     # Вычисляемые поля: стаж в студии считается из joined_at/left_at.
     time_in_theatre = serializers.SerializerMethodField()
     is_active = serializers.SerializerMethodField()
     role_label = serializers.SerializerMethodField()
+    blank_to_null_fields = ('joined_at', 'left_at', 'deleted_at', 'gender_override')
 
     class Meta:
         model = Actors
@@ -356,15 +377,18 @@ class DirectorsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class NewsSerializer(serializers.ModelSerializer):
+class NewsSerializer(BlankToNullMixin, serializers.ModelSerializer):
     is_published = serializers.BooleanField(default=False)
+    blank_to_null_fields = ('date_publish', 'deleted_at')
 
     class Meta:
         model = News
         fields = '__all__'
 
 
-class ArchiveSerializer(serializers.ModelSerializer):
+class ArchiveSerializer(BlankToNullMixin, serializers.ModelSerializer):
+    blank_to_null_fields = ('premiere_date', 'deleted_at', 'age_limit', 'archive_image')
+
     class Meta:
         model = Archive
         fields = '__all__'
