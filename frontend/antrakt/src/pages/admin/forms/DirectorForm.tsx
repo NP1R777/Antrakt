@@ -9,8 +9,10 @@ import {
     Textarea,
     Text,
     Grid,
-    Box,
-    IconButton,
+    Wrap,
+    Tag,
+    TagLabel,
+    TagCloseButton,
     Modal,
     ModalOverlay,
     ModalContent,
@@ -37,7 +39,7 @@ import RequiredFieldsHint from '../../../components/admin/RequiredFieldsHint';
 import { API_URL } from '../../../config';
 
 const MotionButton = motion(Button);
-const MotionBox = motion(Box);
+const MotionTag = motion(Tag);
 const CFaPlus = chakra(FaPlus as any);
 const CFaUser = chakra(FaUser as any);
 const CFaUsers = chakra(FaUsers as any);
@@ -159,33 +161,6 @@ export const DirectorForm: React.FC<{
             team_name: teams,
             years
         }));
-    };
-
-    const handlePerfomanceFieldChange = (
-        index: number,
-        field: 'title' | 'team' | 'year',
-        value: string
-    ) => {
-        setCurrentDirector(prev => {
-            const perfomances = [...(prev.perfomances || [])];
-            const teams = [...(prev.team_name || [])];
-            const years = [...(prev.years || [])];
-
-            while (perfomances.length <= index) perfomances.push('');
-            while (teams.length <= index) teams.push('');
-            while (years.length <= index) years.push(0);
-
-            if (field === 'title') {
-                perfomances[index] = value;
-            } else if (field === 'team') {
-                teams[index] = value;
-            } else {
-                const parsed = parseInt(value, 10);
-                years[index] = Number.isNaN(parsed) ? 0 : parsed;
-            }
-
-            return { ...prev, perfomances, team_name: teams, years };
-        });
     };
 
     const handleImageUpload = (imageUrl: string) => {
@@ -354,86 +329,31 @@ export const DirectorForm: React.FC<{
                             Добавить спектакль
                         </Button>
 
-                        <VStack spacing={2} align="stretch" mb={4} maxH="420px" overflowY="auto">
+                        <Wrap spacing={2} minH="50px" mb={4}>
                             <AnimatePresence>
                                 {currentDirector.perfomances?.map((perfomance, index) => (
-                                    <MotionBox
-                                        key={`perf-${index}`}
-                                        initial={{ opacity: 0, y: 6 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -6 }}
-                                        p={3}
-                                        bg="#333333"
-                                        borderRadius="md"
-                                        border="1px solid"
-                                        borderColor="#444444"
+                                    <MotionTag
+                                        key={index}
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.8 }}
+                                        size="md"
+                                        variant="solid"
+                                        bg="#444444"
+                                        borderRadius="full"
+                                        px={3}
+                                        py={1}
                                     >
-                                        <Flex align="flex-start" gap={2}>
-                                            <VStack flex="1" minW={0} spacing={2} align="stretch">
-                                                <FormControl>
-                                                    <FormLabel fontSize="xs" mb={1} color="#AAAAAA">
-                                                        Название
-                                                    </FormLabel>
-                                                    <Input
-                                                        size="sm"
-                                                        value={perfomance}
-                                                        onChange={(e) =>
-                                                            handlePerfomanceFieldChange(index, 'title', e.target.value)
-                                                        }
-                                                        bg="#2a2a2a"
-                                                        borderColor="#555555"
-                                                        _hover={{ borderColor: '#666666' }}
-                                                        whiteSpace="normal"
-                                                    />
-                                                </FormControl>
-                                                <FormControl>
-                                                    <FormLabel fontSize="xs" mb={1} color="#AAAAAA">
-                                                        Коллектив
-                                                    </FormLabel>
-                                                    <Input
-                                                        size="sm"
-                                                        value={currentDirector.team_name?.[index] || ''}
-                                                        onChange={(e) =>
-                                                            handlePerfomanceFieldChange(index, 'team', e.target.value)
-                                                        }
-                                                        bg="#2a2a2a"
-                                                        borderColor="#555555"
-                                                        _hover={{ borderColor: '#666666' }}
-                                                        placeholder='Например: Труппа…/Образцовый коллектив…'
-                                                    />
-                                                </FormControl>
-                                                <FormControl maxW="140px">
-                                                    <FormLabel fontSize="xs" mb={1} color="#AAAAAA">
-                                                        Год
-                                                    </FormLabel>
-                                                    <Input
-                                                        size="sm"
-                                                        type="number"
-                                                        value={currentDirector.years?.[index] || ''}
-                                                        onChange={(e) =>
-                                                            handlePerfomanceFieldChange(index, 'year', e.target.value)
-                                                        }
-                                                        bg="#2a2a2a"
-                                                        borderColor="#555555"
-                                                        _hover={{ borderColor: '#666666' }}
-                                                    />
-                                                </FormControl>
-                                            </VStack>
-                                            <IconButton
-                                                aria-label="Удалить спектакль"
-                                                icon={<CFaTimes />}
-                                                size="sm"
-                                                variant="ghost"
-                                                colorScheme="red"
-                                                flexShrink={0}
-                                                mt={6}
-                                                onClick={() => handleRemovePerfomance(index)}
-                                            />
-                                        </Flex>
-                                    </MotionBox>
+                                        <TagLabel>
+                                            {perfomance}
+                                            {currentDirector.team_name?.[index] && ` (${currentDirector.team_name[index]})`}
+                                            {currentDirector.years?.[index] && `, ${currentDirector.years[index]} год`}
+                                        </TagLabel>
+                                        <TagCloseButton onClick={() => handleRemovePerfomance(index)} />
+                                    </MotionTag>
                                 ))}
                             </AnimatePresence>
-                        </VStack>
+                        </Wrap>
                     </FormControl>
                 </VStack>
             </Grid>

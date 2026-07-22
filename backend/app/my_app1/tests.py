@@ -543,6 +543,36 @@ class DirectorPromotionTests(TestCase):
         # Название спектакля (title) не попадает, т.к. задано production_title.
         self.assertNotIn(perf.title, self.director.perfomances)
 
+    def test_editing_collective_updates_director_page(self):
+        from my_app1.models import sync_director_performance_entry
+
+        perf = self._perf(afisha=True)
+        perf.production_title = 'Лазарет'
+        perf.production_collective = Perfomances.DEFAULT_COLLECTIVE
+        perf.production_year = 2025
+        perf.save()
+        PerformanceShow.objects.create(
+            performance=perf, show_datetime=self.now - timedelta(days=1)
+        )
+        perf = promote_performance(perf)
+        self.director.refresh_from_db()
+        idx = self.director.perfomances.index('Лазарет')
+        self.assertEqual(self.director.team_name[idx], Perfomances.DEFAULT_COLLECTIVE)
+
+        # Как при сохранении формы спектакля в админке: меняем коллектив.
+        new_collective = (
+            'Труппа норильского народного театра/'
+            'Образцовый коллектив - театральная студия «ДА»'
+        )
+        perf.production_collective = new_collective
+        perf.save(update_fields=['production_collective'])
+        perf.refresh_from_db()
+        sync_director_performance_entry(perf, previous_title='Лазарет')
+
+        self.director.refresh_from_db()
+        idx = self.director.perfomances.index('Лазарет')
+        self.assertEqual(self.director.team_name[idx], new_collective)
+
     def test_deleting_performance_removes_it_from_director(self):
         perf = self._perf(afisha=True)
         perf.production_title = 'Удаляемая постановка'
