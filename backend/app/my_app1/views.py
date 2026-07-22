@@ -500,6 +500,11 @@ class PerfomanceDetail(APIView):
     @swagger_auto_schema(request_body=PerfomanceSerializer)
     def put(self, request, id, format=None):
         perfomance = get_object_or_404(self.model_class, id=id)
+        # Название до сохранения — чтобы найти запись на странице режиссёра,
+        # если production_title/title поменяли.
+        previous_director_title = (
+            (perfomance.production_title or '').strip() or perfomance.title
+        )
         serializer = self.serializer_class(perfomance, data=request.data, partial=True,
                                            context={'request': request})
         if serializer.is_valid():
@@ -510,6 +515,11 @@ class PerfomanceDetail(APIView):
             # если его назначили уже после перевода спектакля.
             if not instance.afisha:
                 instance = promote_performance(instance)
+                # Обновить коллектив/год/название на странице режиссёра,
+                # если спектакль уже был туда добавлен ранее.
+                sync_director_performance_entry(
+                    instance, previous_title=previous_director_title
+                )
             serializer = self.serializer_class(instance, context={'request': request})
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

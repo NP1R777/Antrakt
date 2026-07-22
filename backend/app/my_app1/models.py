@@ -530,6 +530,79 @@ def remove_performance_from_director(perf):
         ])
 
 
+def _director_entry_year(perf):
+    """Год постановки для записи на странице режиссёра."""
+    if perf.production_year:
+        return perf.production_year
+    if perf.premiere_date:
+        return perf.premiere_date.year
+    last_show = perf.shows.order_by('-show_datetime').first()
+    return last_show.show_datetime.year if last_show else timezone.now().year
+
+
+def sync_director_performance_entry(perf, *, previous_title=None):
+    """Обновить запись спектакля на странице режиссёра после правки в админке.
+
+    Коллектив / название / год на карточке режиссёра берутся из полей спектакля
+    (`production_collective`, `production_title`, год). Раньше они записывались
+    только при первом promote — при последующем редактировании не обновлялись.
+    """
+    if not perf.director_id or not perf.director_propagated:
+        return
+
+    production_title = (perf.production_title or '').strip() or perf.title
+    collective = ((perf.production_collective or '').strip()
+                  or Perfomances.DEFAULT_COLLECTIVE)
+    year = _director_entry_year(perf)
+    lookup_titles = []
+    for candidate in (
+        (previous_title or '').strip(),
+        production_title,
+        (perf.title or '').strip(),
+    ):
+        if candidate and candidate not in lookup_titles:
+            lookup_titles.append(candidate)
+
+    with transaction.atomic():
+        try:
+            director = DirectorsTheatre.objects.select_for_update().get(
+                pk=perf.director_id
+            )
+        except DirectorsTheatre.DoesNotExist:
+            return
+
+        titles = list(director.perfomances or [])
+        years = list(director.years or [])
+        teams = list(director.team_name or [])
+
+        index = None
+        for candidate in lookup_titles:
+            try:
+                index = titles.index(candidate)
+                break
+            except ValueError:
+                continue
+        if index is None:
+            return
+
+        while len(years) < len(titles):
+            years.append(year)
+        while len(teams) < len(titles):
+            teams.append(collective)
+
+        titles[index] = production_title
+        years[index] = year
+        teams[index] = collective
+
+        director.perfomances = titles
+        director.years = years
+        director.team_name = teams
+        director.updated_at = timezone.now()
+        director.save(update_fields=[
+            'perfomances', 'years', 'team_name', 'updated_at',
+        ])
+
+
 def sync_actor_roles_to_performances(actor):
     """Синхронизировать массивы ролей актёра с таблицей `PerformanceCast`.
 
