@@ -279,7 +279,7 @@ const DirectorDetail: React.FC = () => {
                                             <CFaTheaterMasks mr={2} color="#d9d9d9" />
                                             Поставленные спектакли
                                         </Heading>
-                                        <Grid templateColumns="repeat(auto-fill, minmax(220px, 1fr))" gap={4}>
+                                        <Grid templateColumns="repeat(auto-fill, minmax(260px, 1fr))" gap={4}>
                                             {director.perfomances.map((perfomance, idx) => (
                                                 <MotionBox
                                                     key={idx}
@@ -292,7 +292,7 @@ const DirectorDetail: React.FC = () => {
                                                     bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(255, 255, 255, 0.05))"
                                                     cursor="pointer"
                                                     whileHover={{
-                                                        scale: 1.05,
+                                                        scale: 1.03,
                                                         boxShadow: "0 10px 25px rgba(255, 255, 255, 0.12)",
                                                         transition: { duration: 0.3 }
                                                     }}
@@ -308,26 +308,29 @@ const DirectorDetail: React.FC = () => {
                                                         color="white"
                                                         fontSize="sm"
                                                         whiteSpace="normal"
-                                                        overflowWrap="anywhere"
                                                         wordBreak="break-word"
                                                     >
                                                         {perfomance}
                                                     </Text>
-                                                    {director.years?.[idx] && (
+                                                    {director.years?.[idx] != null && director.years[idx] !== 0 && (
                                                         <Text fontSize="xs" color="gray.400" mt={1}>
                                                             Год: {director.years[idx]}
                                                         </Text>
                                                     )}
-                                                    {director.team_name?.[idx] && (
+                                                    {!!director.team_name?.[idx] && (
                                                         <Text
+                                                            as="div"
                                                             fontSize="xs"
                                                             color="gray.400"
                                                             mt={1}
-                                                            whiteSpace="normal"
-                                                            overflowWrap="anywhere"
+                                                            whiteSpace="pre-wrap"
                                                             wordBreak="break-word"
+                                                            overflow="visible"
                                                         >
-                                                            Коллектив: {director.team_name[idx]}
+                                                            Коллектив:{' '}
+                                                            <Text as="span" color="gray.300">
+                                                                {String(director.team_name[idx])}
+                                                            </Text>
                                                         </Text>
                                                     )}
                                                 </MotionBox>
