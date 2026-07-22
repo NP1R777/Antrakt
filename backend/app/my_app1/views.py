@@ -1087,7 +1087,7 @@ class DirectorReviewList(APIView):
 
 
 class ArchiveReviewList(APIView):
-    """Отзывы к архивному мероприятию (только для раздела «Архив», afisha=False)."""
+    """Отзывы к проекту (раздел «Проекты», afisha=False)."""
 
     def get_permissions(self):
         if self.request.method == 'POST':
@@ -1105,10 +1105,10 @@ class ArchiveReviewList(APIView):
 
     def post(self, request, id, format=None):
         archive = get_object_or_404(Archive, id=id)
-        # Комментарии разрешены только для прошедших мероприятий (раздел «Архив»).
+        # Комментарии разрешены только для проектов вне афиши (раздел «Проекты»).
         if archive.afisha:
             return Response(
-                {"error": "Комментарии доступны только для прошедших мероприятий"},
+                {"error": "Комментарии доступны только для проектов вне афиши"},
                 status=status.HTTP_400_BAD_REQUEST)
         text = (request.data.get('text') or '').strip()
         if not text:

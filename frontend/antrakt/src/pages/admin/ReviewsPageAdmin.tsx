@@ -45,7 +45,7 @@ const SUBJECT_META: Record<string, { label: string; color: string }> = {
     performance: { label: 'Спектакль', color: 'purple' },
     actor: { label: 'Актёр', color: 'teal' },
     director: { label: 'Режиссёр', color: 'orange' },
-    archive: { label: 'Архив', color: 'blue' },
+    archive: { label: 'Проекты', color: 'blue' },
     news: { label: 'Новость', color: 'pink' },
 };
 

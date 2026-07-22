@@ -118,10 +118,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             active: location.pathname.includes('/admin/achievements')
         },
         {
-            label: 'Архив',
+            label: 'Проекты',
             icon: CFaArchive,
-            path: '/admin/archive',
-            active: location.pathname.includes('/admin/archive')
+            path: '/admin/projects',
+            active: location.pathname.includes('/admin/projects') || location.pathname.includes('/admin/archive')
         },
         {
             label: 'Пользователи',

@@ -247,6 +247,13 @@ class Actors(ImageUploadMixin, models.Model):
 
 
 class DirectorsTheatre(ImageUploadMixin, models.Model): # Режиссёры театра
+    SECTION_ARTISTIC = 'artistic_director'
+    SECTION_DIRECTOR = 'director'
+    SECTION_CHOICES = [
+        (SECTION_ARTISTIC, 'Художественные руководители'),
+        (SECTION_DIRECTOR, 'Режиссёры'),
+    ]
+
     class Meta:
         db_table = 'directors_theatre'
     
@@ -255,6 +262,13 @@ class DirectorsTheatre(ImageUploadMixin, models.Model): # Режиссёры т�
     deleted_at = models.DateTimeField(null=True)
     name = models.CharField(max_length=50, null=False)
     description = models.CharField(max_length=2000, null=False)
+    # Секция на странице «Команда»: худрук или режиссёр.
+    team_section = models.CharField(
+        max_length=32,
+        choices=SECTION_CHOICES,
+        default=SECTION_ARTISTIC,
+        help_text='В какую секцию на странице «Команда» попадает человек.',
+    )
     perfomances = ArrayField(
         models.CharField(max_length=200),
         blank=True,
@@ -297,7 +311,7 @@ class News(ImageUploadMixin, models.Model):
     ) # Карусель фотографий для новости.
 
 
-class Archive(ImageUploadMixin, models.Model): # Архив
+class Archive(ImageUploadMixin, models.Model): # Проекты (бывший «Архив»)
     class Meta:
         db_table = 'archive'
     
@@ -308,10 +322,10 @@ class Archive(ImageUploadMixin, models.Model): # Архив
     description = models.CharField(max_length=2000, null=False)
     age_limit = models.CharField(max_length=5, null=True, blank=True)
     premiere_date = models.DateField(null=True)
-    afisha = models.BooleanField(default=True) # Если False -> то нужно отображать в разделе "Архив",
-                                                # если True -> то отображать в разделе "Афиша".
+    afisha = models.BooleanField(default=True) # Если False -> отображать в разделе «Проекты»,
+                                                # если True -> отображать в разделе «Афиша».
     image_url = models.URLField(null=False, blank=True)
-    archive_image = models.URLField(null=True, blank=True) # Изображение со спектакля для раздела "Архив".
+    archive_image = models.URLField(null=True, blank=True) # Изображение для карточки в разделе «Проекты».
     images_list = ArrayField(
         models.URLField(null=True),
         blank=True,

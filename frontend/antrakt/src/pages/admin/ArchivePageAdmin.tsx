@@ -91,10 +91,10 @@ const ArchivePageAdmin: React.FC = () => {
             setArchives(response.data);
             setIsLoading(false);
         } catch (error) {
-            console.error('Ошибка при загрузке архива:', error);
+            console.error('Ошибка при загрузке проектов:', error);
             toast({
                 title: 'Ошибка',
-                description: 'Не удалось загрузить архивные записи',
+                description: 'Не удалось загрузить проекты',
                 status: 'error',
                 duration: 3000,
                 isClosable: true,
@@ -108,9 +108,9 @@ const ArchivePageAdmin: React.FC = () => {
         try {
             await axios.delete(`${API_URL}/archive${deleteId}/?hard=1`);
             setArchives(archives.filter(a => a.id !== deleteId));
-            toast({ title: 'Удалено навсегда', description: 'Запись архива полностью удалена из базы', status: 'info', duration: 2000, isClosable: true });
+            toast({ title: 'Удалено навсегда', description: 'Запись проекта полностью удалена из базы', status: 'info', duration: 2000, isClosable: true });
         } catch (error) {
-            console.error('Ошибка при удалении записи архива:', error);
+            console.error('Ошибка при удалении проекта:', error);
             toast({ title: 'Ошибка', description: 'Не удалось удалить запись', status: 'error', duration: 3000, isClosable: true });
         } finally {
             onDeleteClose();
@@ -130,16 +130,16 @@ const ArchivePageAdmin: React.FC = () => {
             ));
             toast({
                 title: 'Успех!',
-                description: 'Запись архива удалена',
+                description: 'Проект удалён',
                 status: 'success',
                 duration: 2000,
                 isClosable: true,
             });
         } catch (error) {
-            console.error('Ошибка при удалении записи архива:', error);
+            console.error('Ошибка при удалении проекта:', error);
             toast({
                 title: 'Ошибка',
-                description: 'Не удалось удалить запись архива',
+                description: 'Не удалось удалить проект',
                 status: 'error',
                 duration: 3000,
                 isClosable: true,
@@ -160,16 +160,16 @@ const ArchivePageAdmin: React.FC = () => {
             ));
             toast({
                 title: 'Успех!',
-                description: 'Запись архива успешно восстановлена',
+                description: 'Проект успешно восстановлен',
                 status: 'success',
                 duration: 2000,
                 isClosable: true,
             });
         } catch (error) {
-            console.error('Ошибка при восстановлении записи архива:', error);
+            console.error('Ошибка при восстановлении проекта:', error);
             toast({
                 title: 'Ошибка',
-                description: 'Не удалось восстановить запись архива',
+                description: 'Не удалось восстановить проект',
                 status: 'error',
                 duration: 3000,
                 isClosable: true,
@@ -208,7 +208,7 @@ const ArchivePageAdmin: React.FC = () => {
         if (archives.length === 0) {
             return (
                 <Text textAlign="center" fontSize="lg" color="#AAAAAA">
-                    Архивные записи не найдены
+                    Проекты не найдены
                 </Text>
             );
         }
@@ -292,7 +292,7 @@ const ArchivePageAdmin: React.FC = () => {
 
                             <VStack align="start" spacing={2} mb={4}>
                                 <Badge colorScheme={archive.afisha ? "green" : "purple"}>
-                                    {archive.afisha ? "В афише" : "В архиве"}
+                                    {archive.afisha ? "В афише" : "В проектах"}
                                 </Badge>
 
                                 <Text fontWeight="bold" fontSize="sm" color="#CCCCCC">
@@ -317,7 +317,7 @@ const ArchivePageAdmin: React.FC = () => {
                                         colorScheme="blue"
                                         variant="ghost"
                                         onClick={() => openEditForm(archive)}
-                                        aria-label="Редактировать запись архива"
+                                        aria-label="Редактировать проект"
                                         isDisabled={!!archive.deleted_at}
                                     />
                                 </Tooltip>
@@ -330,7 +330,7 @@ const ArchivePageAdmin: React.FC = () => {
                                             colorScheme="green"
                                             variant="ghost"
                                             onClick={() => handleRestoreArchive(archive.id)}
-                                            aria-label="Восстановить запись архива"
+                                            aria-label="Восстановить проект"
                                         />
                                     </Tooltip>
                                 ) : (
@@ -341,7 +341,7 @@ const ArchivePageAdmin: React.FC = () => {
                                             colorScheme="red"
                                             variant="ghost"
                                             onClick={() => confirmDelete(archive.id)}
-                                            aria-label="Удалить запись архива"
+                                            aria-label="Удалить проект"
                                         />
                                     </Tooltip>
                                 )}
@@ -359,10 +359,10 @@ const ArchivePageAdmin: React.FC = () => {
                 <Flex justify="space-between" align="center" mb={8} flexWrap="wrap">
                     <VStack align="start" spacing={2} mb={{ base: 4, md: 0 }}>
                         <Heading fontSize="3xl" fontFamily="Playfair Display" textShadow={`0 0 15px ${primaryColor}50`}>
-                            Управление архивом
+                            Управление проектами
                         </Heading>
                         <Text color="#AAAAAA">
-                            Архивные записи спектаклей Норильского народного театра
+                            Проекты Норильского народного театра
                         </Text>
                     </VStack>
 
@@ -387,7 +387,7 @@ const ArchivePageAdmin: React.FC = () => {
                 <ModalOverlay bg="blackAlpha.700" />
                 <ModalContent bg="#222222" color="white">
                     <ModalHeader borderBottom="1px solid #333333" fontFamily="Playfair Display">
-                        {currentArchive ? 'Редактировать запись архива' : 'Добавить новую запись в архив'}
+                        {currentArchive ? 'Редактировать проект' : 'Добавить новый проект'}
                     </ModalHeader>
                     <ModalCloseButton />
                     <ModalBody py={6} overflowY="auto">
@@ -408,8 +408,8 @@ const ArchivePageAdmin: React.FC = () => {
             <DeleteConfirmDialog
                 isOpen={isDeleteOpen}
                 onClose={onDeleteClose}
-                title="Удаление записи архива"
-                itemLabel="эту запись архива"
+                title="Удаление проекта"
+                itemLabel="этот проект"
                 onSoftDelete={handleSoftDelete}
                 onHardDelete={handleHardDelete}
             />

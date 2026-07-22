@@ -37,7 +37,7 @@ const NAV_ITEMS = [
     { label: "Спектакли", href: "performances" },
     { label: "Достижения", href: "achievements" },
     { label: "О театре", href: "about" },
-    { label: "Проекты", href: "archive" },
+    { label: "Проекты", href: "projects" },
 ];
 
 export default function Navigation() {

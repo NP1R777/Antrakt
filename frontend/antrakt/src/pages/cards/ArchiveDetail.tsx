@@ -52,7 +52,7 @@ const ArchiveDetail: React.FC = () => {
                 const response = await axios.get(`${API_URL}/archive${id}/`);
                 setProject(response.data);
             } catch (e) {
-                setError("Ошибка загрузки архива");
+                setError("Ошибка загрузки проекта");
                 console.error(e);
             } finally {
                 setLoading(false);

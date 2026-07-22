@@ -37,7 +37,7 @@ const variants = {
     }),
 };
 
-/** Галерея, единая для спектаклей и архивных мероприятий. */
+/** Галерея, единая для спектаклей и проектов. */
 const PhotoGallery: React.FC<PhotoGalleryProps> = ({ images, altPrefix }) => {
     const cleanImages = useMemo(() => images.filter(Boolean), [images]);
     const [galleryIndex, setGalleryIndex] = useState(0);
