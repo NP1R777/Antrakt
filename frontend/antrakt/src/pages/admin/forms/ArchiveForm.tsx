@@ -146,8 +146,8 @@ export const ArchiveForm: React.FC<{
             toast({
                 title: 'Успех',
                 description: currentArchive.id
-                    ? 'Архивная запись обновлена'
-                    : 'Архивная запись создана',
+                    ? 'Проект обновлён'
+                    : 'Проект создан',
                 status: 'success',
                 duration: 3000,
                 isClosable: true,
@@ -252,7 +252,7 @@ export const ArchiveForm: React.FC<{
                             colorScheme="green"
                         />
                         <Text ml={3} color={currentArchive.afisha ? "green.300" : "purple.300"}>
-                            {currentArchive.afisha ? "В афише" : "В архиве"}
+                            {currentArchive.afisha ? "В афише" : "В проектах"}
                         </Text>
                     </FormControl>
 

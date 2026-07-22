@@ -45,7 +45,7 @@ export default function Footer() {
         { label: "Спектакли", url: "performances" },
         { label: "Достижения", url: "achievements" },
         { label: "О театре", url: "about" },
-        { label: "Архив", url: "archive" },
+        { label: "Проекты", url: "projects" },
     ];
 
     return (

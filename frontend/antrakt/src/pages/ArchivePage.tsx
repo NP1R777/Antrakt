@@ -53,7 +53,7 @@ const ArchivePage: React.FC = () => {
                 const pastProjects = response.data.filter((proj: ArchiveProject) => proj.afisha === false);
                 setProjects(pastProjects);
             } catch (err) {
-                setError("Ошибка загрузки данных архива");
+                setError("Ошибка загрузки данных проектов");
                 console.error(err);
             } finally {
                 setLoading(false);
@@ -155,7 +155,7 @@ const ArchivePage: React.FC = () => {
                                 borderRadius: "full"
                             }}
                         >
-                            Архив проектов
+                            Проекты
                         </Heading>
                         <Text fontSize="md" color={grayText} maxW="2xl" mx="auto">
                             История наших творческих свершений и постановок
@@ -207,7 +207,7 @@ const ArchivePage: React.FC = () => {
                                         display="flex"
                                         flexDirection="column"
                                         h="100%"
-                                        onClick={() => navigate(`/archive/${project.id}`)}
+                                        onClick={() => navigate(`/projects/${project.id}`)}
                                     >
                                         <Image
                                             src={getImageUrl(project.archive_image, project.image_url)}
@@ -255,7 +255,7 @@ const ArchivePage: React.FC = () => {
                         </MotionGrid>
                     ) : (
                         <Text color="gray.400" textAlign="center">
-                            Нет данных об архивных проектах
+                            Нет данных о проектах
                         </Text>
                     )}
                 </Container>

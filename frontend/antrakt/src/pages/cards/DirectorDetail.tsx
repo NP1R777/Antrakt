@@ -54,6 +54,7 @@ interface ServerDirector {
     perfomances: string[] | null;
     years: number[] | null;
     team_name: string[] | null;
+    team_section?: 'artistic_director' | 'director';
 }
 
 // Интерфейс для спектакля
@@ -257,7 +258,9 @@ const DirectorDetail: React.FC = () => {
                                 </Heading>
 
                                 <Text color="whiteAlpha.800" fontSize="sm">
-                                    Режиссёр
+                                    {director.team_section === 'director'
+                                        ? 'Режиссёр'
+                                        : 'Художественный руководитель'}
                                 </Text>
 
                                 <Box w="full">
@@ -281,6 +284,8 @@ const DirectorDetail: React.FC = () => {
                                                 <MotionBox
                                                     key={idx}
                                                     p={4}
+                                                    minW={0}
+                                                    overflow="visible"
                                                     border="1px solid"
                                                     borderColor="rgba(255, 255, 255, 0.12)"
                                                     borderRadius="md"
@@ -298,7 +303,14 @@ const DirectorDetail: React.FC = () => {
                                                     initial={{ scale: 1, boxShadow: "0 5px 20px rgba(0, 0, 0, 0.5)" }}
                                                     onClick={() => handlePerformanceClick(perfomance)}
                                                 >
-                                                    <Text fontWeight="bold" color="white" fontSize="sm">
+                                                    <Text
+                                                        fontWeight="bold"
+                                                        color="white"
+                                                        fontSize="sm"
+                                                        whiteSpace="normal"
+                                                        overflowWrap="anywhere"
+                                                        wordBreak="break-word"
+                                                    >
                                                         {perfomance}
                                                     </Text>
                                                     {director.years?.[idx] && (
@@ -307,7 +319,14 @@ const DirectorDetail: React.FC = () => {
                                                         </Text>
                                                     )}
                                                     {director.team_name?.[idx] && (
-                                                        <Text fontSize="xs" color="gray.400" mt={1}>
+                                                        <Text
+                                                            fontSize="xs"
+                                                            color="gray.400"
+                                                            mt={1}
+                                                            whiteSpace="normal"
+                                                            overflowWrap="anywhere"
+                                                            wordBreak="break-word"
+                                                        >
                                                             Коллектив: {director.team_name[idx]}
                                                         </Text>
                                                     )}

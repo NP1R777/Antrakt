@@ -139,10 +139,11 @@ const PerformancesPage: React.FC = () => {
                                 borderRadius: "full"
                             }}
                         >
-                            Прошедшие спектакли
+                            Спектакли
                         </Heading>
                         <Text fontSize="md" color="gray.400" maxW="2xl" mx="auto">
-                            Архив наших постановок, наполненных эмоциями и искусством
+                            Репертуар театра: постановки, которые продолжают жить на сцене
+                            и могут снова появиться в афише
                         </Text>
                     </MotionBox>
 

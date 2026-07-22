@@ -45,6 +45,7 @@ interface TeamMember {
     color: string;
     accentColor: string;
     imageUrl: string;
+    teamSection?: 'artistic_director' | 'director';
 }
 
 interface ServerDirector {
@@ -55,6 +56,7 @@ interface ServerDirector {
     years: number[] | null;
     team_name: string[] | null;
     image_url: string;
+    team_section?: 'artistic_director' | 'director';
 }
 
 interface ServerActor {
@@ -97,18 +99,24 @@ const TeamPage: React.FC = () => {
             try {
                 setLoading(true);
 
-                // Загрузка режиссеров
+                // Загрузка режиссёров / худруков
                 const directorsRes = await axios.get(`${API_URL}/directors`);
-                const transformedDirectors = directorsRes.data.map((director: ServerDirector, index: number) => ({
-                    id: director.id,
-                    name: director.name,
-                    role: "Режиссёр",
-                    experience: director.years?.length || 0,
-                    productions: director.perfomances?.length || 0,
-                    isDirector: true,
-                    ...directorColors[index % directorColors.length],
-                    imageUrl: director.image_url
-                }));
+                const transformedDirectors = directorsRes.data.map((director: ServerDirector, index: number) => {
+                    const section = director.team_section || 'artistic_director';
+                    return {
+                        id: director.id,
+                        name: director.name,
+                        role: section === 'director'
+                            ? 'Режиссёр'
+                            : 'Художественный руководитель',
+                        experience: director.years?.length || 0,
+                        productions: director.perfomances?.length || 0,
+                        isDirector: true,
+                        teamSection: section as 'artistic_director' | 'director',
+                        ...directorColors[index % directorColors.length],
+                        imageUrl: director.image_url
+                    };
+                });
                 setDirectors(transformedDirectors);
 
                 // Загрузка актеров
@@ -162,6 +170,158 @@ const TeamPage: React.FC = () => {
 
     const activeActors = actors.filter((a) => a.isActive);
     const departedActors = actors.filter((a) => !a.isActive);
+    const artisticDirectors = directors.filter(
+        (d) => (d.teamSection || 'artistic_director') === 'artistic_director'
+    );
+    const stageDirectors = directors.filter((d) => d.teamSection === 'director');
+
+    const renderDirectorCard = (director: TeamMember) => (
+        <MotionGridItem
+            key={director.id}
+            minW="0"
+            w="100%"
+            maxW="450px"
+            variants={{
+                hidden: { opacity: 0, y: 30 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+            }}
+        >
+            <MotionBox
+                bg="linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.12))"
+                borderRadius="xl"
+                overflow="hidden"
+                border="1px solid"
+                borderColor="rgba(255, 255, 255, 0.15)"
+                boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
+                whileHover={{
+                    scale: 1.03,
+                    boxShadow: `0 10px 20px rgba(255, 255, 255, 0.12)`,
+                    background: "linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.12))",
+                    transition: { duration: 0.3 }
+                }}
+                transition={{
+                    duration: 0.3
+                }}
+                w="100%"
+                h="100%"
+                display="flex"
+                flexDirection="column"
+            >
+                <Box position="relative">
+                    <Image
+                        src={getImageUrl(director.imageUrl)}
+                        alt={director.name}
+                        fallbackSrc={getImageUrl()}
+                        width="100%"
+                        height="auto"
+                        maxHeight="300px"
+                        objectFit="contain"
+                        transition="all 0.5s ease"
+                    />
+                    <Box
+                        position="absolute"
+                        bottom={0}
+                        left={0}
+                        right={0}
+                        h="40%"
+                        bgGradient="linear(to-t, rgba(0,0,0,0.9), transparent)"
+                    />
+                    <Box position="absolute" bottom={5} left={5} right={5}>
+                        <Heading as="h3" size="md" color="white">
+                            {director.name}
+                        </Heading>
+                        <Text color="whiteAlpha.800" fontSize="sm">
+                            {director.role}
+                        </Text>
+                    </Box>
+                </Box>
+                <Box p={8} flex="1">
+                    <Flex align="center" mb={4}>
+                        <CFaFilm mr={2} color={director.accentColor} />
+                        <Text color="gray.400" fontSize="sm">
+                            {director.productions} {performanceDeclension(director.productions)}
+                        </Text>
+                    </Flex>
+                    <Button
+                        variant="outline"
+                        color={primaryColor}
+                        _hover={{ color: "#e2e2e2", borderColor: "#e2e2e2" }}
+                        size="sm"
+                        rightIcon={<ChevronRightIcon />}
+                        w="full"
+                        fontSize="sm"
+                        onClick={() => navigate(`/director/${director.id}`)}
+                    >
+                        Подробнее
+                    </Button>
+                </Box>
+            </MotionBox>
+        </MotionGridItem>
+    );
+
+    const renderDirectorSection = (title: string, members: TeamMember[], isFirstVisible: boolean) => {
+        if (members.length === 0) {
+            return null;
+        }
+
+        return (
+            <MotionBox
+                mt={isFirstVisible ? 0 : 16}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+            >
+                <Heading
+                    as="h2"
+                    fontSize={{ base: "xl", md: "2xl" }}
+                    color="white"
+                    mb={8}
+                    textAlign="center"
+                    position="relative"
+                    _after={{
+                        content: '""',
+                        position: "absolute",
+                        bottom: "-10px",
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        width: "60px",
+                        height: "3px",
+                        bg: primaryColor,
+                        borderRadius: "full"
+                    }}
+                >
+                    {title}
+                </Heading>
+
+                <MotionGrid
+                    templateColumns={{
+                        base: "1fr",
+                        md: members.length === 1
+                            ? "minmax(260px, 450px)"
+                            : "repeat(2, minmax(260px, 450px))"
+                    }}
+                    gap={8}
+                    justifyContent="center"
+                    justifyItems="center"
+                    w="100%"
+                    maxW="960px"
+                    mx="auto"
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                        hidden: { opacity: 0 },
+                        visible: {
+                            opacity: 1,
+                            transition: { staggerChildren: 0.2 }
+                        }
+                    }}
+                >
+                    {members.map(renderDirectorCard)}
+                </MotionGrid>
+            </MotionBox>
+        );
+    };
 
     const renderActorCard = (actor: TeamMember) => (
         <MotionGridItem
@@ -316,144 +476,16 @@ const TeamPage: React.FC = () => {
                         </Text>
                     </MotionBox>
 
-                    {/* Секция режиссеров */}
-                    <MotionBox
-                        initial={{ opacity: 0 }}
-                        whileInView={{ opacity: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5 }}
-                    >
-                        <Heading
-                            as="h2"
-                            fontSize={{ base: "xl", md: "2xl" }}
-                            color="white"
-                            mb={8}
-                            textAlign="center"
-                            position="relative"
-                            _after={{
-                                content: '""',
-                                position: "absolute",
-                                bottom: "-10px",
-                                left: "50%",
-                                transform: "translateX(-50%)",
-                                width: "60px",
-                                height: "3px",
-                                bg: primaryColor,
-                                borderRadius: "full"
-                            }}
-                        >
-                            Художественные руководители
-                        </Heading>
-
-                        <MotionGrid
-                            templateColumns={{
-                                base: "1fr",
-                                // 1 режиссёр — одна колонка по центру; 2+ — по две в ряд.
-                                md: directors.length === 1
-                                    ? "minmax(260px, 450px)"
-                                    : "repeat(2, minmax(260px, 450px))"
-                            }}
-                            gap={8}
-                            justifyContent="center"
-                            justifyItems="center"
-                            w="100%"
-                            maxW="960px"
-                            mx="auto"
-                            initial="hidden"
-                            animate="visible"
-                            variants={{
-                                hidden: { opacity: 0 },
-                                visible: {
-                                    opacity: 1,
-                                    transition: { staggerChildren: 0.2 }
-                                }
-                            }}
-                        >
-                            {directors.map((director) => (
-                                <MotionGridItem
-                                    key={director.id}
-                                    minW="0"
-                                    w="100%"
-                                    maxW="450px"
-                                    variants={{
-                                        hidden: { opacity: 0, y: 30 },
-                                        visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
-                                    }}
-                                >
-                                    <MotionBox
-                                        bg="linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.12))" // Монохромный градиент
-                                        borderRadius="xl"
-                                        overflow="hidden"
-                                        border="1px solid"
-                                        borderColor="rgba(255, 255, 255, 0.15)" // Монохромная граница
-                                        boxShadow="0 5px 20px rgba(0, 0, 0, 0.5)"
-                                        whileHover={{
-                                            scale: 1.03,
-                                            boxShadow: `0 10px 20px rgba(255, 255, 255, 0.12)`,
-                                            background: "linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.12))",
-                                            transition: { duration: 0.3 }
-                                        }}
-                                        transition={{
-                                            duration: 0.3
-                                        }}
-                                        w="100%"
-                                        h="100%"
-                                        display="flex"
-                                        flexDirection="column"
-                                    >
-                                        <Box position="relative">
-                                            <Image
-                                                src={getImageUrl(director.imageUrl)}
-                                                alt={director.name}
-                                                fallbackSrc={getImageUrl()}
-                                                width="100%"
-                                                height="auto"
-                                                maxHeight="300px"
-                                                objectFit="contain"
-                                                transition="all 0.5s ease"
-                                            />
-                                            <Box
-                                                position="absolute"
-                                                bottom={0}
-                                                left={0}
-                                                right={0}
-                                                h="40%"
-                                                bgGradient="linear(to-t, rgba(0,0,0,0.9), transparent)"
-                                            />
-                                            <Box position="absolute" bottom={5} left={5} right={5}>
-                                                <Heading as="h3" size="md" color="white">
-                                                    {director.name}
-                                                </Heading>
-                                                <Text color="whiteAlpha.800" fontSize="sm">
-                                                    {director.role}
-                                                </Text>
-                                            </Box>
-                                        </Box>
-                                        <Box p={8} flex="1">
-                                            <Flex align="center" mb={4}>
-                                                <CFaFilm mr={2} color={director.accentColor} />
-                                                <Text color="gray.400" fontSize="sm">
-                                                    {director.productions} {performanceDeclension(director.productions)}
-                                                </Text>
-                                            </Flex>
-                                            <Button
-                                                variant="outline"
-                                                color={primaryColor}
-                                                _hover={{ color: "#e2e2e2", borderColor: "#e2e2e2" }}
-                                                size="sm"
-                                                rightIcon={<ChevronRightIcon />}
-                                                w="full"
-                                                fontSize="sm"
-                                                onClick={() => navigate(`/director/${director.id}`)}
-                                            >
-                                                Подробнее
-                                            </Button>
-                                        </Box>
-                                    </MotionBox>
-                                </MotionGridItem>
-                            ))}
-                        </MotionGrid>
-                    </MotionBox>
+                    {renderDirectorSection(
+                        'Художественные руководители',
+                        artisticDirectors,
+                        true
+                    )}
+                    {renderDirectorSection(
+                        'Режиссёры',
+                        stageDirectors,
+                        artisticDirectors.length === 0
+                    )}
 
                     {/* Секция актеров */}
                     <MotionBox

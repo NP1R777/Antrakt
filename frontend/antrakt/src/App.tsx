@@ -24,7 +24,7 @@ import AdminLayout from "./components/admin/AdminLayout";
 import ArchivePageAadmin from "./pages/admin/ArchivePageAdmin";
 import AchievementsPageAdmin from './pages/admin/AchievementsPageAdmin'
 import PerformancesPageAdmin from './pages/admin/PerformancesPageAdmin'
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 
 // Добавленные импорты
 import TeamPage from "./pages/TeamPage";
@@ -43,6 +43,12 @@ import PerformancesPage from "./pages/PerformancesPage";
 import DirectorDetail from "./pages/cards/DirectorDetail";
 import AchievementDetail from "./pages/cards/AchievementDetail";
 import PerformanceDetail from "./pages/cards/PerfomancesDetail";
+
+/** Старые ссылки /archive/:id → /projects/:id */
+const LegacyArchiveRedirect: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={id ? `/projects/${id}` : '/projects'} replace />;
+};
 
 // Главная страница сайта
 const MainPage = () => (
@@ -107,9 +113,11 @@ function App() {
             <Route path="/news" element={<NewsPage />} />
             <Route path="/news/:id" element={<NewsDetail />} />
             <Route path="/afisha" element={<AfishaPage />} />
+            <Route path="/projects" element={<ArchivePage />} />
+            <Route path="/projects/:id" element={<ArchiveDetail />} />
+            <Route path="/archive" element={<Navigate to="/projects" replace />} />
+            <Route path="/archive/:id" element={<LegacyArchiveRedirect />} />
             <Route path="/:type/:id" element={<AfishaDetail />} />
-            <Route path="/archive" element={<ArchivePage />} />
-            <Route path="/archive/:id" element={<ArchiveDetail />} />
             <Route path="/profile/:id" element={<ProfilePage />} />
 
             {/* Админ-панель */}
@@ -181,7 +189,7 @@ function App() {
             />
 
             <Route
-              path="/admin/archive"
+              path="/admin/projects"
               element={
                 <ProtectedAdminRoute>
                   <AdminLayout>
@@ -190,6 +198,7 @@ function App() {
                 </ProtectedAdminRoute>
               }
             />
+            <Route path="/admin/archive" element={<Navigate to="/admin/projects" replace />} />
 
             <Route
               path="/admin/users"

@@ -204,7 +204,10 @@ const AfishaPage: React.FC = () => {
                                             boxShadow: "0 10px 25px rgba(255, 255, 255, 0.22)",
                                             transition: { duration: 0.3 }
                                         }}
-                                        onClick={() => navigate(`/${item.type}/${item.id}`, { state: { item, from: '/afisha' } })}
+                                        onClick={() => navigate(
+                                            `/${item.type === 'archive' ? 'projects' : item.type}/${item.id}`,
+                                            { state: { item, from: '/afisha' } }
+                                        )}
                                         cursor="pointer"
                                         display="flex"
                                         flexDirection="column"

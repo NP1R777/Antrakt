@@ -19,7 +19,8 @@ import {
     ModalHeader,
     ModalCloseButton,
     ModalBody,
-    ModalFooter
+    ModalFooter,
+    Select
 } from '@chakra-ui/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -58,6 +59,7 @@ interface Director {
     years: number[];
     team_name: string[];
     image_url: string;
+    team_section?: 'artistic_director' | 'director';
     deleted_at?: string | null;
 }
 
@@ -76,6 +78,7 @@ export const DirectorForm: React.FC<{
         perfomances: [],
         years: [],
         team_name: [],
+        team_section: 'artistic_director',
         deleted_at: null
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -87,7 +90,7 @@ export const DirectorForm: React.FC<{
     });
     const toast = useToast();
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setCurrentDirector(prev => ({ ...prev, [name]: value }));
     };
@@ -237,7 +240,7 @@ export const DirectorForm: React.FC<{
                     <FormControl>
                         <FormLabel display="flex" alignItems="center" gap={2}>
                             <CFaUser color={primaryColor} />
-                            <Text as="span" fontWeight="semibold">Имя режиссёра</Text>
+                            <Text as="span" fontWeight="semibold">Имя</Text>
                         </FormLabel>
                         <Input
                             name="name"
@@ -249,6 +252,29 @@ export const DirectorForm: React.FC<{
                             borderColor="#444444"
                             _hover={{ borderColor: '#555555' }}
                         />
+                    </FormControl>
+
+                    <FormControl>
+                        <FormLabel fontWeight="semibold">Секция на странице «Команда»</FormLabel>
+                        <Select
+                            name="team_section"
+                            value={currentDirector.team_section || 'artistic_director'}
+                            onChange={handleInputChange}
+                            focusBorderColor={primaryColor}
+                            bg="#333333"
+                            borderColor="#444444"
+                            _hover={{ borderColor: '#555555' }}
+                        >
+                            <option value="artistic_director" style={{ background: '#333' }}>
+                                Художественные руководители
+                            </option>
+                            <option value="director" style={{ background: '#333' }}>
+                                Режиссёры
+                            </option>
+                        </Select>
+                        <Text mt={1} fontSize="xs" color="#AAAAAA">
+                            Определяет, в какой секции человек появится на странице «Команда».
+                        </Text>
                     </FormControl>
 
                     <FormControl>
@@ -314,11 +340,22 @@ export const DirectorForm: React.FC<{
                                         size="md"
                                         variant="solid"
                                         bg="#444444"
-                                        borderRadius="full"
+                                        borderRadius="md"
                                         px={3}
-                                        py={1}
+                                        py={2}
+                                        h="auto"
+                                        whiteSpace="normal"
+                                        maxW={{ base: '100%', md: '360px' }}
                                     >
-                                        <TagLabel>
+                                        <TagLabel
+                                            maxW="100%"
+                                            whiteSpace="normal"
+                                            overflow="visible"
+                                            textOverflow="clip"
+                                            lineHeight="1.3"
+                                            overflowWrap="anywhere"
+                                            wordBreak="break-word"
+                                        >
                                             {perfomance}
                                             {currentDirector.team_name?.[index] && ` (${currentDirector.team_name[index]})`}
                                             {currentDirector.years?.[index] && `, ${currentDirector.years[index]} год`}
