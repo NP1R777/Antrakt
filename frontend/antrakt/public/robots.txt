@@ -1,3 +1,7 @@
-# https://www.robotstxt.org/robotstxt.html
+# На проде /robots.txt отдаёт Django (см. Caddyfile → backend).
+# Этот файл используется только в локальной разработке (npm start).
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin
+Disallow: /profile
+Sitemap: http://localhost:3000/sitemap.xml

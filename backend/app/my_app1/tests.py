@@ -847,3 +847,53 @@ class BlankOptionalFieldsCreateTests(TestCase):
         self.assertEqual(r2.status_code, 201, r2.data)
         self.assertIsNone(User.objects.get(email='u1@test.com').phone_number)
         self.assertIsNone(User.objects.get(email='u2@test.com').phone_number)
+
+
+class SitemapTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.director = DirectorsTheatre.objects.create(name='Реж', description='о')
+        self.actor = Actors.objects.create(
+            name='Актёр', favorite_quote='q', author_quote='a', image_url='',
+        )
+        self.perf = Perfomances.objects.create(
+            title='Спектакль', author='А', genre='Драма', age_limit='12+',
+            description='о', afisha=False, director=self.director,
+        )
+        News.objects.create(
+            title='Новость', description='длинное описание новости',
+            is_published=True, image_url='',
+        )
+        News.objects.create(
+            title='Черновик', description='длинное описание черновика',
+            is_published=False, image_url='',
+        )
+        Archive.objects.create(
+            title='Проект', description='д', afisha=False, image_url='',
+        )
+
+    def test_sitemap_contains_public_urls(self):
+        resp = self.client.get('/sitemap.xml')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('application/xml', resp['Content-Type'])
+        body = resp.content.decode('utf-8')
+        self.assertIn('/performance/', body)
+        self.assertIn(f'/director/{self.director.id}', body)
+        self.assertIn(f'/actor/{self.actor.id}', body)
+        self.assertIn('/news/', body)
+        self.assertIn('/projects/', body)
+        self.assertIn('/afisha', body)
+        # Неопубликованные новости не попадают в sitemap как отдельная детальная
+        # страница только если is_published=True — черновик не должен быть в списке
+        # детальных URL (проверяем, что опубликованная есть).
+        published = News.objects.get(title='Новость')
+        self.assertIn(f'/news/{published.id}', body)
+        draft = News.objects.get(title='Черновик')
+        self.assertNotIn(f'/news/{draft.id}', body)
+
+    def test_robots_points_to_sitemap(self):
+        resp = self.client.get('/robots.txt')
+        self.assertEqual(resp.status_code, 200)
+        body = resp.content.decode('utf-8')
+        self.assertIn('Sitemap:', body)
+        self.assertIn('sitemap.xml', body)
