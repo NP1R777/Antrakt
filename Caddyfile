@@ -5,7 +5,24 @@
 
 {$DOMAIN} {
 	encode gzip
-	reverse_proxy frontend:80
+
+	# Sitemap и robots отдаёт Django (динамически), Host — api.* (ALLOWED_HOSTS).
+	handle /sitemap.xml {
+		reverse_proxy backend:8000 {
+			header_up Host api.{$DOMAIN}
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+	handle /robots.txt {
+		reverse_proxy backend:8000 {
+			header_up Host api.{$DOMAIN}
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+
+	handle {
+		reverse_proxy frontend:80
+	}
 }
 
 api.{$DOMAIN} {

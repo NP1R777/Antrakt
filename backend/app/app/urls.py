@@ -15,6 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from my_app1 import views
+from my_app1.sitemap import RobotsTxtView, SitemapView
 from drf_yasg import openapi
 from django.contrib import admin
 from django.http import JsonResponse
@@ -45,6 +46,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
     path('health/', health_check, name='health-check'),
+    path('sitemap.xml', SitemapView.as_view(), name='sitemap'),
+    path('robots.txt', RobotsTxtView.as_view(), name='robots-txt'),
     path('users/', views.UserList.as_view(), name='user-list'),
     path('user<int:id>/', views.UserDetail.as_view(), name='user'),
     path('users-admin/', views.UserListAdmin.as_view(), name='user-list-admin'),

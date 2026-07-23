@@ -6,7 +6,9 @@
 Публичные адреса после запуска:
 - `https://<DOMAIN>` — сайт (React);
 - `https://api.<DOMAIN>` — backend (Django/DRF), админка Django: `https://api.<DOMAIN>/admin/`;
-- `https://s3.<DOMAIN>` — изображения (MinIO).
+- `https://s3.<DOMAIN>` — изображения (MinIO);
+- `https://<DOMAIN>/sitemap.xml` — динамическая карта сайта (Django через Caddy);
+- `https://<DOMAIN>/robots.txt` — robots с ссылкой на sitemap.
 
 ---
 
