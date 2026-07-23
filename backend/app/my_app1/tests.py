@@ -897,3 +897,13 @@ class SitemapTests(TestCase):
         body = resp.content.decode('utf-8')
         self.assertIn('Sitemap:', body)
         self.assertIn('sitemap.xml', body)
+
+    def test_sitemap_handles_date_lastmod(self):
+        """premiere_date — DateField; раньше давал 500 через timezone.is_aware(date)."""
+        from datetime import date
+        self.perf.premiere_date = date(2024, 5, 1)
+        self.perf.updated_at = None
+        self.perf.save(update_fields=['premiere_date', 'updated_at'])
+        resp = self.client.get('/sitemap.xml')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('2024-05-01', resp.content.decode('utf-8'))
