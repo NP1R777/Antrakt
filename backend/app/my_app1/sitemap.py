@@ -27,14 +27,15 @@ def _site_base() -> str:
 
 
 def _fmt_lastmod(value) -> str | None:
+    """Дата lastmod для sitemap: datetime или date → YYYY-MM-DD."""
     if value is None:
         return None
-    if timezone.is_aware(value):
-        value = timezone.localtime(value)
-    try:
+    # DateField (premiere_date, date_publish) — не datetime, is_aware падает.
+    if hasattr(value, 'utcoffset'):
+        if timezone.is_aware(value):
+            value = timezone.localtime(value)
         return value.date().isoformat()
-    except AttributeError:
-        return value.isoformat()[:10]
+    return value.isoformat()[:10]
 
 
 def _collect_urls():
