@@ -21,6 +21,7 @@ import Footer from "../components/Footer";
 import PageFetchError from "../components/PageFetchError";
 import { API_URL } from '../config'
 import { getImageUrl } from '../utils/imageUrl';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 const MotionBox = motion(Box);
 const MotionButton = motion(Button);
@@ -41,6 +42,11 @@ const NewsPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
+
+    usePageMeta(
+        'Новости',
+        'Новости Норильского народного театра: премьеры, события, закулисье и жизнь труппы.'
+    );
 
     const primaryColor = "#f2f2f2";
     const darkBg = "#0a0a0a";

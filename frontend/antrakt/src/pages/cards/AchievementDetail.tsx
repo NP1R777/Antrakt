@@ -23,6 +23,7 @@ import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTrophy, FaCalendarAlt } from "react-icons/fa";
 import { API_URL } from '../../config'
 import { getImageUrl } from '../../utils/imageUrl';
+import { truncateMeta, usePageMeta } from '../../hooks/usePageMeta';
 
 const MotionBox = motion(Box);
 const CFaTrophy = chakra(FaTrophy as any);
@@ -45,6 +46,17 @@ const AchievementDetail: React.FC = () => {
     const [achievement, setAchievement] = useState<Achievement | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    usePageMeta(
+        achievement?.achievement,
+        achievement
+            ? truncateMeta(
+                achievement.assigned
+                    ? `${achievement.achievement}. ${achievement.assigned}`
+                    : achievement.achievement
+              )
+            : null
+    );
 
     useEffect(() => {
         const fetchAchievement = async () => {

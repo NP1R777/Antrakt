@@ -18,6 +18,7 @@ import PageFetchError from "../components/PageFetchError";
 import axios from "axios";
 import { API_URL } from '../config'
 import { getImageUrl } from '../utils/imageUrl';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
@@ -37,6 +38,11 @@ const AchievementsPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const navigate = useNavigate();
+
+    usePageMeta(
+        'Достижения',
+        'Награды, дипломы и достижения Норильского народного театра на фестивалях и конкурсах.'
+    );
 
     useEffect(() => {
         const fetchAchievements = async () => {

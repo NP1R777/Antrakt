@@ -23,6 +23,7 @@ import { FaProjectDiagram } from "react-icons/fa";
 import { Image as ChakraImage } from "@chakra-ui/react";
 import { API_URL } from '../../config'
 import { getImageUrl } from '../../utils/imageUrl';
+import { truncateMeta, usePageMeta } from '../../hooks/usePageMeta';
 
 const MotionBox = motion(Box);
 const MotionImage = motion(ChakraImage);
@@ -44,6 +45,16 @@ const ArchiveDetail: React.FC = () => {
     const [project, setProject] = useState<ArchiveProject | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    usePageMeta(
+        project?.title,
+        project
+            ? truncateMeta(
+                project.description ||
+                `Проект «${project.title}» Норильского народного театра.`
+              )
+            : null
+    );
 
     useEffect(() => {
         const fetchProject = async () => {

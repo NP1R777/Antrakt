@@ -30,6 +30,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaUserTie, FaClock, FaUsers, FaExpand } from "react-icons/fa";
 import { API_URL } from '../../config'
 import { getImageUrl } from '../../utils/imageUrl';
+import { truncateMeta, usePageMeta } from '../../hooks/usePageMeta';
 
 // Стилизованные компоненты для иконок
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
@@ -119,6 +120,16 @@ const PerformanceDetail: React.FC = () => {
     const [direction, setDirection] = useState(1);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const [isManualNavigation, setIsManualNavigation] = useState(false);
+
+    usePageMeta(
+        performance?.title,
+        performance
+            ? truncateMeta(
+                performance.description ||
+                `${performance.title}${performance.author ? ` — ${performance.author}` : ''}${performance.genre ? `. ${performance.genre}` : ''}. Спектакль Норильского народного театра.`
+              )
+            : null
+    );
 
     useEffect(() => {
         const fetchPerformance = async () => {

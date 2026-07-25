@@ -20,6 +20,7 @@ import PageFetchError from "../components/PageFetchError";
 import { ChevronRightIcon } from "@chakra-ui/icons";
 import { API_URL } from '../config';
 import { getImageUrl } from '../utils/imageUrl';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
@@ -43,6 +44,11 @@ const PerformancesPage: React.FC = () => {
     const navigate = useNavigate();
 
     const primaryColor = "#f2f2f2";
+
+    usePageMeta(
+        'Спектакли',
+        'Репертуар Норильского народного театра: спектакли и постановки, которые продолжают жить на сцене.'
+    );
 
     useEffect(() => {
         const fetchPerformances = async () => {
