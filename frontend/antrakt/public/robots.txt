@@ -1,7 +1,26 @@
-# На проде /robots.txt отдаёт Django (см. Caddyfile → backend).
-# Этот файл используется только в локальной разработке (npm start).
+# robots.txt — Норильский народный театр
+# На проде этот путь отдаёт Django (Caddy → backend), см. RobotsTxtView.
+# Файл в public/ — для локальной разработки и как образец правил.
+
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /admin/
 Disallow: /profile
-Sitemap: http://localhost:3000/sitemap.xml
+Disallow: /profile/
+
+User-agent: Yandex
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /profile
+Disallow: /profile/
+
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /profile
+Disallow: /profile/
+
+Sitemap: https://nskfolktheatre.ru/sitemap.xml

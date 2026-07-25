@@ -894,7 +894,11 @@ class SitemapTests(TestCase):
     def test_robots_points_to_sitemap(self):
         resp = self.client.get('/robots.txt')
         self.assertEqual(resp.status_code, 200)
+        self.assertIn('text/plain', resp['Content-Type'])
         body = resp.content.decode('utf-8')
+        self.assertIn('User-agent: *', body)
+        self.assertIn('User-agent: Yandex', body)
+        self.assertIn('Disallow: /admin', body)
         self.assertIn('Sitemap:', body)
         self.assertIn('sitemap.xml', body)
 
