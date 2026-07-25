@@ -5,12 +5,18 @@ import Navigation from "../components/Navigation";
 import { Box, Flex, Heading, Text, VStack, Grid, GridItem, Image, Center } from "@chakra-ui/react";
 import { useSiteContent } from "../contexts/SiteContentContext";
 import { MEDIA_URL } from '../config';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 const MotionBox = motion(Box);
 
 const AboutTheatre: React.FC = () => {
     const primaryColor = "#f2f2f2";
     const { getText } = useSiteContent();
+
+    usePageMeta(
+        'О театре',
+        'История Норильского народного театра: от любительской студии до народного коллектива с богатой сценической традицией.'
+    );
 
     return (
         <Box bg="#0a0a0a" minH="100vh" display="flex" flexDirection="column" color="#ffffff">

@@ -21,6 +21,7 @@ import PageFetchError from "../components/PageFetchError";
 import { ChevronRightIcon } from "@chakra-ui/icons";
 import { API_URL } from '../config';
 import { getImageUrl } from '../utils/imageUrl';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 const MotionBox = motion(Box);
 const MotionGrid = motion(Grid);
@@ -46,6 +47,11 @@ const AfishaPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const navigate = useNavigate();
+
+    usePageMeta(
+        'Афиша',
+        'Афиша Норильского народного театра: ближайшие спектакли и мероприятия, даты показов и билеты.'
+    );
 
     useEffect(() => {
         const fetchAfishaItems = async () => {

@@ -24,6 +24,7 @@ import { FaTheaterMasks, FaFilm, FaQuoteLeft, FaUserTie, FaBook, FaUser, FaPaint
 import { yearDeclension, performanceDeclension } from "../../utils/declension";
 import { API_URL } from '../../config'
 import { getImageUrl } from '../../utils/imageUrl';
+import { truncateMeta, usePageMeta } from '../../hooks/usePageMeta';
 
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
 const CFaFilm = chakra(FaFilm as any);
@@ -100,6 +101,15 @@ const ActorDetail: React.FC = () => {
     const [performances, setPerformances] = useState<Performance[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    usePageMeta(
+        actor?.name,
+        actor
+            ? truncateMeta(
+                `${actor.role_label} Норильского народного театра${actor.place_of_work ? `. ${actor.place_of_work}` : ''}.`
+              )
+            : null
+    );
 
     useEffect(() => {
         const fetchData = async () => {

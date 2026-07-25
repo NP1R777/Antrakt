@@ -24,6 +24,7 @@ import { ChevronRightIcon, CalendarIcon } from "@chakra-ui/icons";
 import { yearDeclension, performanceDeclension } from "../utils/declension";
 import { API_URL } from '../config'
 import { getImageUrl } from '../utils/imageUrl';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 // Стилизованные компоненты для иконок
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
@@ -79,6 +80,11 @@ const TeamPage: React.FC = () => {
     const [actors, setActors] = useState<TeamMember[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    usePageMeta(
+        'Команда',
+        'Актёры, художественные руководители и режиссёры Норильского народного театра.'
+    );
 
     // Цветовые схемы, унифицированные с Navigation и Footer
     const primaryColor = "#f2f2f2";

@@ -18,6 +18,7 @@ import Footer from "../../components/Footer";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks } from "react-icons/fa";
 import { getImageUrl } from '../../utils/imageUrl';
+import { truncateMeta, usePageMeta } from '../../hooks/usePageMeta';
 
 const CFaTheaterMasks = chakra(FaTheaterMasks as any);
 
@@ -54,6 +55,16 @@ const AfishaDetail: React.FC = () => {
     const { state } = useLocation(); // Получаем данные из состояния навигации
     const navigate = useNavigate();
     const item: AfishaItem | undefined = state?.item; // Извлекаем переданный объект
+
+    usePageMeta(
+        item?.title,
+        item
+            ? truncateMeta(
+                item.description ||
+                `«${item.title}» в афише Норильского народного театра.`
+              )
+            : null
+    );
 
     // Если данные не переданы, показываем сообщение об ошибке
     if (!item) {

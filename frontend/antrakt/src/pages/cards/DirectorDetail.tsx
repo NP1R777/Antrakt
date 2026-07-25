@@ -31,6 +31,7 @@ import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaTheaterMasks, FaFilm, FaQuoteLeft, FaUserTie, FaBook, FaUser, FaPaintBrush, FaVideo, FaMusic } from "react-icons/fa";
 import { API_URL } from '../../config'
 import { getImageUrl } from '../../utils/imageUrl';
+import { truncateMeta, usePageMeta } from '../../hooks/usePageMeta';
 
 
 // Стилизованные компоненты для иконок
@@ -82,6 +83,21 @@ const DirectorDetail: React.FC = () => {
     const [error, setError] = useState("");
     const [notFoundPerformance, setNotFoundPerformance] = useState<string>("");
     const { isOpen, onOpen, onClose } = useDisclosure();
+
+    const sectionRole =
+        director?.team_section === 'artistic_director'
+            ? 'Художественный руководитель'
+            : 'Режиссёр';
+
+    usePageMeta(
+        director?.name,
+        director
+            ? truncateMeta(
+                director.description ||
+                `${sectionRole} Норильского народного театра${director.name ? ` — ${director.name}` : ''}.`
+              )
+            : null
+    );
 
     // Функция для извлечения названия из кавычек
     const extractTitleFromQuotes = (fullTitle: string): string => {

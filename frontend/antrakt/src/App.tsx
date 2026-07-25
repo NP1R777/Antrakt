@@ -43,6 +43,7 @@ import PerformancesPage from "./pages/PerformancesPage";
 import DirectorDetail from "./pages/cards/DirectorDetail";
 import AchievementDetail from "./pages/cards/AchievementDetail";
 import PerformanceDetail from "./pages/cards/PerfomancesDetail";
+import { usePageMeta } from "./hooks/usePageMeta";
 
 /** Старые ссылки /archive/:id → /projects/:id */
 const LegacyArchiveRedirect: React.FC = () => {
@@ -51,17 +52,24 @@ const LegacyArchiveRedirect: React.FC = () => {
 };
 
 // Главная страница сайта
-const MainPage = () => (
-  <Box bg="black" color="white" minH="100vh">
-    <Navigation />
-    <Hero />
-    <BirthdaySection />
-    <Performances />
-    <NewsSection />
-    <Testimonials />
-    <Footer />
-  </Box>
-);
+const MainPage: React.FC = () => {
+  usePageMeta(
+    'Афиша и спектакли',
+    'Норильский народный театр — афиша, спектакли, команда и новости. Официальный сайт театра в Норильске.'
+  );
+
+  return (
+    <Box bg="black" color="white" minH="100vh">
+      <Navigation />
+      <Hero />
+      <BirthdaySection />
+      <Performances />
+      <NewsSection />
+      <Testimonials />
+      <Footer />
+    </Box>
+  );
+};
 
 // Защищенный маршрут для админов
 const ProtectedAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {

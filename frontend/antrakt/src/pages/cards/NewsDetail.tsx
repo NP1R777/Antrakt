@@ -30,6 +30,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { FaNewspaper, FaCalendarAlt, FaExpand } from "react-icons/fa";
 import { API_URL } from '../../config'
 import { getImageUrl } from '../../utils/imageUrl';
+import { truncateMeta, usePageMeta } from '../../hooks/usePageMeta';
 
 const MotionBox = motion(Box);
 const MotionImage = motion(Image);
@@ -60,6 +61,11 @@ const NewsDetail: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [galleryIndex, setGalleryIndex] = useState(0);
     const [direction, setDirection] = useState(1);
+
+    usePageMeta(
+        news?.title,
+        news ? truncateMeta(news.summary || news.description || news.title) : null
+    );
 
     useEffect(() => {
         const fetchNews = async () => {
