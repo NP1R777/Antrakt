@@ -156,7 +156,7 @@ class SitemapView(APIView):
 
 
 class RobotsTxtView(APIView):
-    """GET /robots.txt — указывает на sitemap на основном домене."""
+    """GET /robots.txt — правила для поисковиков + ссылка на sitemap."""
 
     authentication_classes = []
     permission_classes = []
@@ -164,10 +164,30 @@ class RobotsTxtView(APIView):
     def get(self, request, format=None):
         base = _site_base()
         body = (
+            '# robots.txt — Норильский народный театр\n'
+            f'# {base}/robots.txt\n'
+            '\n'
             'User-agent: *\n'
             'Allow: /\n'
             'Disallow: /admin\n'
+            'Disallow: /admin/\n'
             'Disallow: /profile\n'
+            'Disallow: /profile/\n'
+            '\n'
+            'User-agent: Yandex\n'
+            'Allow: /\n'
+            'Disallow: /admin\n'
+            'Disallow: /admin/\n'
+            'Disallow: /profile\n'
+            'Disallow: /profile/\n'
+            '\n'
+            'User-agent: Googlebot\n'
+            'Allow: /\n'
+            'Disallow: /admin\n'
+            'Disallow: /admin/\n'
+            'Disallow: /profile\n'
+            'Disallow: /profile/\n'
+            '\n'
             f'Sitemap: {base}/sitemap.xml\n'
         )
         return HttpResponse(body, content_type='text/plain; charset=utf-8')
