@@ -54,3 +54,9 @@ superuser `np1r777@admin.com` has an unknown password.
 Frontend: `npx tsc --noEmit` (clean) and `npx eslint src --ext .js,.jsx,.ts,.tsx`
 (0 errors, ~66 pre-existing warnings). There is no dedicated `lint` npm script; ESLint also runs
 during `npm start`/`npm run build`.
+
+### Product backlog (do not forget)
+
+Agreed follow-up work lives in **`BACKLOG.md`** (prioritized UX / admin / SEO / tech-debt
+ideas, plus extras). When the owner asks to implement “those ideas” or start the next
+improvements, read `BACKLOG.md`, pick the next `todo` items, and update statuses there.
