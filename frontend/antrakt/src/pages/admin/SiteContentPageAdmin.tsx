@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import {
     Box,
     Container,
@@ -15,19 +15,29 @@ import {
     Divider,
     Flex,
     Badge,
+    Image,
+    HStack,
 } from '@chakra-ui/react';
 import axios from 'axios';
 import Footer from '../../components/Footer';
 import { SiteContentContext, useSiteContent, SiteContentItem } from '../../contexts/SiteContentContext';
-import { API_URL } from '../../config';
+import { API_URL, MEDIA_URL } from '../../config';
+import ImageService from '../../services/ImageService';
 
 const primaryColor = '#f2f2f2';
+
+/** Общая фотография главной и «О театре» — ключ в MinIO строго такой. */
+const SHARED_ABOUT_IMAGE_KEY = 'Общая.png';
+const sharedAboutImageUrl = () => `${MEDIA_URL}/antrakt-images/${SHARED_ABOUT_IMAGE_KEY}`;
 
 const SiteContentPageAdmin: React.FC = () => {
     const [items, setItems] = useState<SiteContentItem[]>([]);
     const [draft, setDraft] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [uploadingShared, setUploadingShared] = useState(false);
+    const [sharedPreview, setSharedPreview] = useState(() => `${sharedAboutImageUrl()}?t=${Date.now()}`);
+    const sharedFileRef = useRef<HTMLInputElement>(null);
     const toast = useToast();
     const { reload } = useSiteContent();
 
@@ -78,6 +88,48 @@ const SiteContentPageAdmin: React.FC = () => {
             toast({ title: 'Ошибка при сохранении', status: 'error', duration: 3000, isClosable: true });
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleSharedPhotoSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const validation = ImageService.validateImageFile(file);
+        if (!validation.isValid) {
+            toast({
+                title: 'Ошибка файла',
+                description: validation.error,
+                status: 'error',
+                duration: 4000,
+                isClosable: true,
+            });
+            if (sharedFileRef.current) sharedFileRef.current.value = '';
+            return;
+        }
+
+        setUploadingShared(true);
+        try {
+            // Всегда перезаписываем объект «Общая.png» — иначе главная и «О театре» не увидят фото.
+            await ImageService.uploadImage(file, 'images', SHARED_ABOUT_IMAGE_KEY);
+            setSharedPreview(`${sharedAboutImageUrl()}?t=${Date.now()}`);
+            toast({
+                title: 'Общая фотография обновлена',
+                description: `Файл сохранён как «${SHARED_ABOUT_IMAGE_KEY}» и используется на главной и на странице «О театре».`,
+                status: 'success',
+                duration: 4000,
+                isClosable: true,
+            });
+        } catch (e) {
+            toast({
+                title: 'Не удалось загрузить фотографию',
+                status: 'error',
+                duration: 4000,
+                isClosable: true,
+            });
+        } finally {
+            setUploadingShared(false);
+            if (sharedFileRef.current) sharedFileRef.current.value = '';
         }
     };
 
@@ -151,6 +203,69 @@ const SiteContentPageAdmin: React.FC = () => {
                                     )}
                                 </FormControl>
                             ))}
+
+                            {section === 'О театре' && (
+                                <FormControl>
+                                    <FormLabel color="gray.200" mb={1}>
+                                        Общая фотография
+                                        <Badge ml={2} bg="#2a2a2a" color="gray.400" fontWeight="normal">
+                                            {SHARED_ABOUT_IMAGE_KEY}
+                                        </Badge>
+                                    </FormLabel>
+                                    <Text color="gray.500" fontSize="sm" mb={3}>
+                                        Используется на главной (фон/герой) и на странице «О театре».
+                                        Файл всегда сохраняется под именем «{SHARED_ABOUT_IMAGE_KEY}» —
+                                        иначе сайт его не покажет.
+                                    </Text>
+                                    <HStack align="start" spacing={4} flexWrap="wrap">
+                                        <Image
+                                            src={sharedPreview}
+                                            alt="Общая фотография"
+                                            maxW={{ base: '100%', md: '280px' }}
+                                            maxH="200px"
+                                            objectFit="contain"
+                                            borderRadius="md"
+                                            border="1px solid #333"
+                                            bg="#0f0f0f"
+                                            fallback={
+                                                <Box
+                                                    w="280px"
+                                                    h="160px"
+                                                    bg="#0f0f0f"
+                                                    border="1px dashed #444"
+                                                    borderRadius="md"
+                                                    display="flex"
+                                                    alignItems="center"
+                                                    justifyContent="center"
+                                                >
+                                                    <Text color="gray.500" fontSize="sm">Нет фото</Text>
+                                                </Box>
+                                            }
+                                        />
+                                        <VStack align="stretch" spacing={2}>
+                                            <input
+                                                ref={sharedFileRef}
+                                                type="file"
+                                                accept="image/jpeg,image/png,image/webp,image/gif"
+                                                style={{ display: 'none' }}
+                                                onChange={handleSharedPhotoSelect}
+                                            />
+                                            <Button
+                                                bg={primaryColor}
+                                                color="#0a0a0a"
+                                                _hover={{ bg: '#ffffff' }}
+                                                isLoading={uploadingShared}
+                                                onClick={() => sharedFileRef.current?.click()}
+                                            >
+                                                Загрузить / заменить
+                                            </Button>
+                                            <Text color="gray.500" fontSize="xs">
+                                                JPEG, PNG, WebP или GIF, до 10 МБ. На сервере имя будет «{SHARED_ABOUT_IMAGE_KEY}».
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </FormControl>
+                            )}
                         </VStack>
                     </Box>
                 ))}

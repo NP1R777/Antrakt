@@ -911,3 +911,103 @@ class SitemapTests(TestCase):
         resp = self.client.get('/sitemap.xml')
         self.assertEqual(resp.status_code, 200)
         self.assertIn('2024-05-01', resp.content.decode('utf-8'))
+
+
+class ArchivePromoteTests(TestCase):
+    """Автоперенос мероприятий из «Афиши» в «Проекты» по premiere_date."""
+
+    def setUp(self):
+        from datetime import date, timedelta
+        from my_app1.models import promote_past_archives, refresh_archive_afisha_hold
+        self.date = date
+        self.timedelta = timedelta
+        self.promote_past_archives = promote_past_archives
+        self.refresh_archive_afisha_hold = refresh_archive_afisha_hold
+        self.today = timezone.localdate()
+
+    def test_past_premiere_moves_to_projects(self):
+        past = Archive.objects.create(
+            title='Прошедшее',
+            description='описание',
+            afisha=True,
+            premiere_date=self.today - self.timedelta(days=2),
+            image_url='',
+        )
+        future = Archive.objects.create(
+            title='Будущее',
+            description='описание',
+            afisha=True,
+            premiere_date=self.today + self.timedelta(days=5),
+            image_url='',
+        )
+        self.promote_past_archives()
+        past.refresh_from_db()
+        future.refresh_from_db()
+        self.assertFalse(past.afisha)
+        self.assertTrue(future.afisha)
+
+    def test_manual_return_sets_hold(self):
+        item = Archive.objects.create(
+            title='Вернули',
+            description='описание',
+            afisha=True,
+            premiere_date=self.today - self.timedelta(days=1),
+            image_url='',
+        )
+        self.refresh_archive_afisha_hold(item)
+        item.refresh_from_db()
+        self.assertTrue(item.afisha_hold)
+        self.promote_past_archives()
+        item.refresh_from_db()
+        self.assertTrue(item.afisha)
+
+
+class UserAdminToggleTests(TestCase):
+    """Переключатель «Администратор» в админке должен менять is_superuser."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.admin = User.objects.create(
+            email='toggle-admin@test.com', is_superuser=True, is_staff=True,
+            phone_number='+7-222-222-22-22', profile_photo='',
+        )
+        self.regular = User.objects.create(
+            email='toggle-user@test.com', is_superuser=False, is_staff=False,
+            phone_number='+7-333-333-33-33', profile_photo='',
+        )
+        self.client.force_authenticate(user=self.admin)
+
+    def test_admin_can_grant_superuser(self):
+        resp = self.client.put(
+            f'/user{self.regular.id}/',
+            {'is_superuser': True},
+            format='json',
+        )
+        self.assertEqual(resp.status_code, 200, resp.data)
+        self.regular.refresh_from_db()
+        self.assertTrue(self.regular.is_superuser)
+        self.assertTrue(self.regular.is_staff)
+
+    def test_admin_can_revoke_superuser(self):
+        self.regular.is_superuser = True
+        self.regular.is_staff = True
+        self.regular.save(update_fields=['is_superuser', 'is_staff'])
+        resp = self.client.put(
+            f'/user{self.regular.id}/',
+            {'is_superuser': False},
+            format='json',
+        )
+        self.assertEqual(resp.status_code, 200, resp.data)
+        self.regular.refresh_from_db()
+        self.assertFalse(self.regular.is_superuser)
+        self.assertFalse(self.regular.is_staff)
+
+    def test_cannot_revoke_own_superuser(self):
+        resp = self.client.put(
+            f'/user{self.admin.id}/',
+            {'is_superuser': False},
+            format='json',
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.admin.refresh_from_db()
+        self.assertTrue(self.admin.is_superuser)

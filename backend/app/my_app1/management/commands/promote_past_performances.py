@@ -12,12 +12,15 @@ from django.core.management.base import BaseCommand
 from django.db.models import Max
 from django.utils import timezone
 
-from my_app1.models import Perfomances, promote_performance, promote_past_performances
+from my_app1.models import (
+    Perfomances, promote_performance, promote_past_performances,
+    promote_past_archives,
+)
 
 
 class Command(BaseCommand):
     help = ('Переводит спектакли с прошедшими показами из "Афиши" в "Спектакли" '
-            'и добавляет роли актёрам.')
+            'и мероприятия из "Афиши" в "Проекты".')
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -59,3 +62,35 @@ class Command(BaseCommand):
         else:
             verb = 'Будет переведено' if dry_run else 'Переведено'
             self.stdout.write(self.style.SUCCESS(f'{verb} спектаклей: {promoted}'))
+
+        # Мероприятия (проекты): premiere_date уже в прошлом → из афиши в проекты.
+        if dry_run:
+            from my_app1.models import Archive
+            today = timezone.localdate()
+            archive_qs = Archive.objects.filter(
+                afisha=True,
+                deleted_at__isnull=True,
+                afisha_hold=False,
+                premiere_date__isnull=False,
+                premiere_date__lt=today,
+            )
+            for item in archive_qs:
+                self.stdout.write(
+                    f'[dry-run] Мероприятие в «Проекты»: #{item.id} "{item.title}" '
+                    f'(premiere_date: {item.premiere_date})'
+                )
+            self.stdout.write(
+                self.style.SUCCESS(f'Будет переведено мероприятий: {archive_qs.count()}')
+            )
+        else:
+            archives = promote_past_archives()
+            if not archives:
+                self.stdout.write('Нет мероприятий для перевода в «Проекты».')
+            else:
+                for item in archives:
+                    self.stdout.write(self.style.SUCCESS(
+                        f'Переведено в «Проекты»: #{item.id} "{item.title}"'
+                    ))
+                self.stdout.write(self.style.SUCCESS(
+                    f'Переведено мероприятий: {len(archives)}'
+                ))

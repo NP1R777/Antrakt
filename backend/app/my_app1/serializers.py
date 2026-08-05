@@ -79,7 +79,26 @@ class UserSerializer(BlankToNullMixin, serializers.ModelSerializer):
     def update(self, instance, validated_data):
         # Пароль хешируем, а не сохраняем в открытом виде.
         password = validated_data.pop('password', None)
-        validated_data.pop('is_superuser', None)  # роль через этот эндпоинт не меняем
+        new_is_superuser = validated_data.pop('is_superuser', None)
+
+        request = self.context.get('request')
+        requester = getattr(request, 'user', None) if request else None
+
+        # Менять роль может только суперпользователь (админ-панель «Пользователи»).
+        if new_is_superuser is not None:
+            if not (requester and requester.is_authenticated and requester.is_superuser):
+                raise serializers.ValidationError({
+                    'is_superuser': 'Недостаточно прав для изменения роли администратора.',
+                })
+            # Нельзя снять админку с самого себя — иначе можно остаться без доступа.
+            if instance.pk == requester.pk and not new_is_superuser:
+                raise serializers.ValidationError({
+                    'is_superuser': 'Нельзя снять права администратора с собственного аккаунта.',
+                })
+            instance.is_superuser = bool(new_is_superuser)
+            # Держим is_staff в синхроне с ролью админа сайта.
+            instance.is_staff = bool(new_is_superuser)
+
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         if password:
