@@ -99,7 +99,9 @@ class UserDetail(APIView):
         if not self._ensure_can_access(request, id):
             return Response({"error": "Недостаточно прав"}, status=status.HTTP_403_FORBIDDEN)
         user = get_object_or_404(self.model_class, id=id)
-        serializer = self.serializer_class(user, data=request.data, partial=True)
+        serializer = self.serializer_class(
+            user, data=request.data, partial=True, context={'request': request},
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -738,6 +740,10 @@ class ArchiveList(APIView):
 
 
     def get(self, request, format=None):
+        try:
+            promote_past_archives()
+        except Exception:
+            pass
         perfomance = self.model_class.objects.filter(deleted_at=None)
         serializer = self.serializer_class(perfomance, many=True)
         return Response(serializer.data)
@@ -747,8 +753,12 @@ class ArchiveList(APIView):
     def post(self, request, format=None):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            instance = serializer.save()
+            refresh_archive_afisha_hold(instance)
+            return Response(
+                self.serializer_class(instance).data,
+                status=status.HTTP_201_CREATED,
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -758,6 +768,10 @@ class ArchiveListAdmin(APIView):
 
 
     def get(self, request, format=None):
+        try:
+            promote_past_archives()
+        except Exception:
+            pass
         archive_data = self.model_class.objects.order_by('id')
         serializer = self.serializer_class(archive_data, many=True)
         return Response(serializer.data)
@@ -779,8 +793,10 @@ class ArchiveDetail(APIView):
         perfomance = get_object_or_404(self.model_class, id=id)
         serializer = self.serializer_class(perfomance, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
+            instance = serializer.save()
+            # Ручной возврат в афишу / смена даты — как у спектаклей с afisha_hold.
+            refresh_archive_afisha_hold(instance)
+            return Response(self.serializer_class(instance).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
@@ -869,6 +885,10 @@ class AfishaList(APIView):
             promote_past_performances()
         except Exception:
             pass
+        try:
+            promote_past_archives()
+        except Exception:
+            pass
         performances = Perfomances.objects.filter(
             afisha=True, deleted_at=None
         ).select_related('director').prefetch_related('shows')
@@ -937,6 +957,11 @@ def _minio_client():
     )
 
 
+# Фиксированные ключи объектов в бакете (перезапись при повторной загрузке).
+# «Общая.png» — общая фотография главной и страницы «О театре».
+ALLOWED_FIXED_IMAGE_KEYS = frozenset({'Общая.png'})
+
+
 class ImageUploadView(APIView):
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = [permissions.AllowAny]
@@ -946,20 +971,34 @@ class ImageUploadView(APIView):
             return Response({"success": False, "message": "Не найден файл 'image'"}, status=400)
         image = request.FILES['image']
         folder = request.data.get('folder', 'images')
+        fixed_key = (request.data.get('fixed_key') or '').strip()
 
         s3_client = _minio_client()
         bucket = settings.AWS_STORAGE_BUCKET_NAME
         extension = image.name.split('.')[-1].lower()
-        object_key = f"{folder}/{uuid.uuid4().hex}.{extension}"
+
+        extra_args = {
+            'ContentType': image.content_type or 'application/octet-stream',
+            'ACL': 'public-read',
+        }
+
+        if fixed_key:
+            if fixed_key not in ALLOWED_FIXED_IMAGE_KEYS:
+                return Response(
+                    {"success": False, "message": f"Недопустимое имя файла: {fixed_key}"},
+                    status=400,
+                )
+            # Общая фотография сайта всегда лежит как «Общая.png» в корне бакета.
+            object_key = fixed_key
+            extra_args['CacheControl'] = 'no-cache, must-revalidate'
+        else:
+            object_key = f"{folder}/{uuid.uuid4().hex}.{extension}"
 
         s3_client.upload_fileobj(
             image,
             bucket,
             object_key,
-            ExtraArgs={
-                'ContentType': image.content_type or 'application/octet-stream',
-                'ACL': 'public-read'
-            }
+            ExtraArgs=extra_args,
         )
 
         # Публичный URL строим из ПУБЛИЧНОГО адреса хранилища (MEDIA_URL),

@@ -18,11 +18,15 @@ class ImageService {
     /**
      * Загрузка изображения в MinIO
      */
-    async uploadImage(file: File, folder: string = 'images'): Promise<string> {
+    async uploadImage(file: File, folder: string = 'images', fixedKey?: string): Promise<string> {
         try {
             const formData = new FormData();
             formData.append('image', file);
             formData.append('folder', folder);
+            // Фиксированное имя в бакете (например «Общая.png») — перезапись, без uuid.
+            if (fixedKey) {
+                formData.append('fixed_key', fixedKey);
+            }
 
             const response: AxiosResponse<ImageUploadResponse> = await axios.post(
                 `${API_BASE_URL}/upload-image/`,

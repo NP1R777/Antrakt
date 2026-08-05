@@ -324,6 +324,8 @@ class Archive(ImageUploadMixin, models.Model): # Проекты (бывший «
     premiere_date = models.DateField(null=True)
     afisha = models.BooleanField(default=True) # Если False -> отображать в разделе «Проекты»,
                                                 # если True -> отображать в разделе «Афиша».
+    # Держит мероприятие в афише после ручного возврата, пока дата не станет будущей.
+    afisha_hold = models.BooleanField(default=False)
     image_url = models.URLField(null=False, blank=True)
     archive_image = models.URLField(null=True, blank=True) # Изображение для карточки в разделе «Проекты».
     images_list = ArrayField(
@@ -770,6 +772,61 @@ def promote_past_performances():
     promoted = []
     for performance in candidates:
         promoted.append(promote_performance(performance))
+    return promoted
+
+
+def promote_archive(archive):
+    """Перевести мероприятие из «Афиши» в «Проекты» (afisha=False)."""
+    with transaction.atomic():
+        item = Archive.objects.select_for_update().get(pk=archive.pk)
+        item.afisha = False
+        item.afisha_hold = False
+        item.updated_at = timezone.now()
+        item.save(update_fields=['afisha', 'afisha_hold', 'updated_at'])
+        return item
+
+
+def refresh_archive_afisha_hold(archive):
+    """Обновить afisha_hold для мероприятия (проекты / афиша).
+
+    Ручной возврат прошедшего мероприятия в афишу не должен сразу отменяться
+    promote_past_archives(). Hold снимается, когда premiere_date становится
+    будущей (или пустой — тогда автоперенос не трогает запись).
+    """
+    if not archive.afisha:
+        if archive.afisha_hold:
+            archive.afisha_hold = False
+            archive.updated_at = timezone.now()
+            archive.save(update_fields=['afisha_hold', 'updated_at'])
+        return archive
+
+    today = timezone.localdate()
+    # Hold нужен только если дата уже прошла (иначе автоперенос и так не сработает).
+    hold = bool(archive.premiere_date and archive.premiere_date < today)
+    if archive.afisha_hold != hold:
+        archive.afisha_hold = hold
+        archive.updated_at = timezone.now()
+        archive.save(update_fields=['afisha_hold', 'updated_at'])
+    return archive
+
+
+def promote_past_archives():
+    """Перевести мероприятия с прошедшей premiere_date из афиши в проекты."""
+    today = timezone.localdate()
+    candidates = (
+        Archive.objects
+        .filter(
+            afisha=True,
+            deleted_at__isnull=True,
+            afisha_hold=False,
+            premiere_date__isnull=False,
+            premiere_date__lt=today,
+        )
+        .order_by('id')
+    )
+    promoted = []
+    for archive in candidates:
+        promoted.append(promote_archive(archive))
     return promoted
 
 

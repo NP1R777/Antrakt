@@ -234,8 +234,11 @@ export const UserForm: React.FC<UserFormProps> = ({
                             <Switch
                                 id="is_superuser"
                                 name="is_superuser"
-                                isChecked={user.is_superuser}
-                                onChange={handleInputChange}
+                                isChecked={!!user.is_superuser}
+                                onChange={(e) => setUser(prev => ({
+                                    ...prev,
+                                    is_superuser: e.target.checked,
+                                }))}
                                 colorScheme="green"
                                 ml={2}
                             />
