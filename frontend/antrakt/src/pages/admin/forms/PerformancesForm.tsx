@@ -555,15 +555,15 @@ export const PerformanceForm: React.FC<{
                                 />
                                 <Button
                                     size="sm"
-                                    variant="outlineLight"
-                                    color="#f2f2f2"
-                                    borderColor="rgba(255, 255, 255, 0.6)"
-                                    bg="transparent"
                                     flexShrink={0}
-                                    _hover={{
-                                        bg: 'rgba(255, 255, 255, 0.08)',
-                                        borderColor: '#ffffff',
-                                    }}
+                                    variant="theater"
+                                    bg="#f2f2f2"
+                                    color="#0a0a0a"
+                                    border="1px solid #ffffff"
+                                    fontWeight="bold"
+                                    _hover={{ bg: '#ffffff', color: '#0a0a0a' }}
+                                    _active={{ bg: '#e0e0e0', color: '#0a0a0a' }}
+                                    _focusVisible={{ boxShadow: '0 0 0 2px #ffffff' }}
                                     onClick={() => {
                                         setDirectorIsOther(false);
                                         setCurrentPerformance(prev => ({
