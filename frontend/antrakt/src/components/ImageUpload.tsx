@@ -31,7 +31,7 @@ interface ImageUploadProps {
     currentImageUrl?: string;
     onImageUpload: (imageUrl: string) => void;
     onImageRemove?: () => void;
-    contentType: 'perfomances' | 'actors' | 'directors' | 'news' | 'archive' | 'achievements' | 'profile';
+    contentType: 'perfomances' | 'actors' | 'directors' | 'news' | 'archive' | 'achievements' | 'profile' | 'site';
     maxSize?: number; // в MB
     aspectRatio?: number; // соотношение сторон (например, 16/9)
     disabled?: boolean;
@@ -39,6 +39,8 @@ interface ImageUploadProps {
     // Множественная загрузка (для галерей): можно выбрать несколько фото за раз.
     multiple?: boolean;
     onImagesUpload?: (imageUrls: string[]) => void;
+    /** Фиксированное имя объекта в MinIO (например «Общая.png») — без uuid. */
+    fixedKey?: string;
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({
@@ -51,6 +53,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     disabled = false,
     multiple = false,
     onImagesUpload,
+    fixedKey,
 }) => {
     const [isUploading, setIsUploading] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -98,7 +101,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
             // Загружаем последовательно, показывая прогресс по числу файлов
             for (let i = 0; i < files.length; i++) {
-                const imageUrl = await ImageService.uploadImage(files[i], folder);
+                // fixedKey — только для одиночной загрузки (общая фотография сайта).
+                const key = !multiple && fixedKey ? fixedKey : undefined;
+                const imageUrl = await ImageService.uploadImage(files[i], folder, key);
                 uploadedUrls.push(imageUrl);
                 setUploadProgress(Math.round(((i + 1) / files.length) * 100));
             }
@@ -316,16 +321,14 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                     leftIcon={<CFaUpload />}
                     onClick={() => fileInputRef.current?.click()}
                     disabled={disabled || isUploading}
-                    colorScheme="blue"
-                    variant="outline"
+                    variant="theater"
                     w="100%"
                     h="60px"
-                    borderStyle="dashed"
-                    _hover={{
-                        borderColor: 'blue.400',
-                        bg: 'blue.50',
-                        _dark: { bg: 'blue.900' }
-                    }}
+                    bg="#f2f2f2"
+                    color="#0a0a0a"
+                    border="2px dashed #ffffff"
+                    _hover={{ bg: '#ffffff', borderColor: '#f2f2f2' }}
+                    _disabled={{ opacity: 0.6, cursor: 'not-allowed' }}
                 >
                     {isUploading ? (
                         <HStack>

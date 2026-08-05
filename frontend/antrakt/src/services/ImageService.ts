@@ -118,7 +118,9 @@ class ImageService {
             'directors': 'directors',
             'news': 'news',
             'archive': 'archive',
-            'achievements': 'achievements'
+            'achievements': 'achievements',
+            'site': 'images',
+            'profile': 'images',
         };
 
         return folderMap[contentType] || 'images';
