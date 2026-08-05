@@ -34,8 +34,7 @@ export default function Footer() {
     const socialLinks = [
         { icon: FaVk, url: "https://vk.com/tc_antrakt?from=groups", label: "ВКонтакте" },
         { icon: FaTelegram, url: "https://t.me/tsantrakt", label: "Telegram" },
-        { icon: FaInstagram, url: "https://instagram.com/tsantrakt", label: "Instagram" },
-        { icon: FaYoutube, url: "https://youtube.com/tsantrakt", label: "YouTube" }
+        { icon: FaInstagram, url: "https://www.instagram.com/tsantract?igsh=MTAzOTVhcjdiOXhpMA==", label: "Instagram" }
     ];
 
     const navLinks = [
