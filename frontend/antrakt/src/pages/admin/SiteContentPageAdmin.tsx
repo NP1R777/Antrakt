@@ -154,7 +154,8 @@ const SiteContentPageAdmin: React.FC = () => {
                 <Box>
                     <Heading size="lg" color="white">Тексты сайта</Heading>
                     <Text color="gray.400" fontSize="sm">
-                        Здесь можно редактировать надписи в шапке, футере, на главной и на странице «О театре».
+                        Здесь можно редактировать надписи в шапке, футере, на главной и на странице «О театре»,
+                        а также загрузить общую фотографию (блок сразу под кнопкой «Сохранить»).
                     </Text>
                 </Box>
                 <Button
@@ -171,6 +172,54 @@ const SiteContentPageAdmin: React.FC = () => {
             <Divider my={6} borderColor="#2a2a2a" />
 
             <VStack align="stretch" spacing={8}>
+                {/* Отдельный блок сверху — всегда виден, не зависит от названия секции. */}
+                <Box bg="#141414" borderRadius="xl" border="1px solid #2a2a2a" p={6}>
+                    <Heading size="md" color={primaryColor} mb={2}>
+                        Общая фотография
+                        <Badge ml={2} bg="#2a2a2a" color="gray.400" fontWeight="normal" verticalAlign="middle">
+                            {SHARED_ABOUT_IMAGE_KEY}
+                        </Badge>
+                    </Heading>
+                    <Text color="gray.400" fontSize="sm" mb={4}>
+                        Для главной страницы и раздела «О театре». Файл всегда сохраняется как «{SHARED_ABOUT_IMAGE_KEY}» —
+                        иначе сайт его не покажет.
+                    </Text>
+                    <HStack align="start" spacing={4} flexWrap="wrap">
+                        <Image
+                            src={sharedPreview}
+                            alt="Общая фотография"
+                            maxW={{ base: '100%', md: '280px' }}
+                            maxH="200px"
+                            objectFit="contain"
+                            borderRadius="md"
+                            border="1px solid #333"
+                            bg="#0f0f0f"
+                            fallbackSrc=""
+                        />
+                        <VStack align="stretch" spacing={2}>
+                            <input
+                                ref={sharedFileRef}
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp,image/gif"
+                                style={{ display: 'none' }}
+                                onChange={handleSharedPhotoSelect}
+                            />
+                            <Button
+                                bg={primaryColor}
+                                color="#0a0a0a"
+                                _hover={{ bg: '#ffffff' }}
+                                isLoading={uploadingShared}
+                                onClick={() => sharedFileRef.current?.click()}
+                            >
+                                Загрузить / заменить
+                            </Button>
+                            <Text color="gray.500" fontSize="xs">
+                                JPEG, PNG, WebP или GIF, до 10 МБ.
+                            </Text>
+                        </VStack>
+                    </HStack>
+                </Box>
+
                 {Object.entries(sections).map(([section, sectionItems]) => (
                     <Box key={section} bg="#141414" borderRadius="xl" border="1px solid #2a2a2a" p={6}>
                         <Heading size="md" color={primaryColor} mb={4}>{section}</Heading>
@@ -203,69 +252,6 @@ const SiteContentPageAdmin: React.FC = () => {
                                     )}
                                 </FormControl>
                             ))}
-
-                            {section === 'О театре' && (
-                                <FormControl>
-                                    <FormLabel color="gray.200" mb={1}>
-                                        Общая фотография
-                                        <Badge ml={2} bg="#2a2a2a" color="gray.400" fontWeight="normal">
-                                            {SHARED_ABOUT_IMAGE_KEY}
-                                        </Badge>
-                                    </FormLabel>
-                                    <Text color="gray.500" fontSize="sm" mb={3}>
-                                        Используется на главной (фон/герой) и на странице «О театре».
-                                        Файл всегда сохраняется под именем «{SHARED_ABOUT_IMAGE_KEY}» —
-                                        иначе сайт его не покажет.
-                                    </Text>
-                                    <HStack align="start" spacing={4} flexWrap="wrap">
-                                        <Image
-                                            src={sharedPreview}
-                                            alt="Общая фотография"
-                                            maxW={{ base: '100%', md: '280px' }}
-                                            maxH="200px"
-                                            objectFit="contain"
-                                            borderRadius="md"
-                                            border="1px solid #333"
-                                            bg="#0f0f0f"
-                                            fallback={
-                                                <Box
-                                                    w="280px"
-                                                    h="160px"
-                                                    bg="#0f0f0f"
-                                                    border="1px dashed #444"
-                                                    borderRadius="md"
-                                                    display="flex"
-                                                    alignItems="center"
-                                                    justifyContent="center"
-                                                >
-                                                    <Text color="gray.500" fontSize="sm">Нет фото</Text>
-                                                </Box>
-                                            }
-                                        />
-                                        <VStack align="stretch" spacing={2}>
-                                            <input
-                                                ref={sharedFileRef}
-                                                type="file"
-                                                accept="image/jpeg,image/png,image/webp,image/gif"
-                                                style={{ display: 'none' }}
-                                                onChange={handleSharedPhotoSelect}
-                                            />
-                                            <Button
-                                                bg={primaryColor}
-                                                color="#0a0a0a"
-                                                _hover={{ bg: '#ffffff' }}
-                                                isLoading={uploadingShared}
-                                                onClick={() => sharedFileRef.current?.click()}
-                                            >
-                                                Загрузить / заменить
-                                            </Button>
-                                            <Text color="gray.500" fontSize="xs">
-                                                JPEG, PNG, WebP или GIF, до 10 МБ. На сервере имя будет «{SHARED_ABOUT_IMAGE_KEY}».
-                                            </Text>
-                                        </VStack>
-                                    </HStack>
-                                </FormControl>
-                            )}
                         </VStack>
                     </Box>
                 ))}
