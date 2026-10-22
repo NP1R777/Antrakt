@@ -26,6 +26,9 @@ class AuthService {
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
   private refreshTimer: NodeJS.Timeout | null = null;
+  private refreshPromise: Promise<void> | null = null;
+  // Refresh failures must not enter the global 401 interceptor recursively.
+  private refreshClient = axios.create();
 
   constructor() {
     this.loadTokensFromStorage();
@@ -63,6 +66,8 @@ class AuthService {
     this.accessToken = null;
     this.refreshToken = null;
     this.stopAutoRefresh();
+    localStorage.removeItem('user');
+    window.dispatchEvent(new Event('auth:logout'));
   }
 
   /**
@@ -89,6 +94,7 @@ class AuthService {
    * Автоматическое обновление токенов
    */
   private startAutoRefresh(): void {
+    this.stopAutoRefresh();
     if (!this.accessToken) return;
 
     const expirationTime = this.getTokenExpirationTime(this.accessToken);
@@ -96,11 +102,11 @@ class AuthService {
 
     if (refreshTime > 0) {
       this.refreshTimer = setTimeout(() => {
-        this.refreshTokens();
+        void this.refreshTokens().catch(() => undefined);
       }, refreshTime);
     } else {
       // Токен уже истек или скоро истечет, обновляем сразу
-      this.refreshTokens();
+      void this.refreshTokens().catch(() => undefined);
     }
   }
 
@@ -117,25 +123,28 @@ class AuthService {
   /**
    * Обновление токенов
    */
-  private async refreshTokens(): Promise<void> {
+  private refreshTokens(): Promise<void> {
+    if (this.refreshPromise) return this.refreshPromise;
     if (!this.refreshToken) {
-      this.logout();
-      return;
+      this.clearTokens();
+      return Promise.reject(new Error('Сеанс завершён'));
     }
-
-    try {
-      const response: AxiosResponse<RefreshResponse> = await axios.post(
-        `${API_BASE_URL}/token/refresh/`,
-        { refresh: this.refreshToken }
-      );
-
-      const { access, refresh } = response.data;
-      this.saveTokensToStorage(access, refresh || this.refreshToken);
-      this.startAutoRefresh(); // Запускаем следующий цикл обновления
-    } catch (error) {
-      console.error('Ошибка обновления токенов:', error);
-      this.logout(); // Принудительный выход при ошибке
-    }
+    const refreshToken = this.refreshToken;
+    this.refreshPromise = this.refreshClient.post<RefreshResponse>(
+      `${API_BASE_URL}/token/refresh/`, { refresh: refreshToken }
+    ).then(({ data }) => {
+      // Do not restore a session if the user logged out or logged in again
+      // while this refresh request was in flight.
+      if (this.refreshToken !== refreshToken) throw new Error('Сеанс изменился');
+      this.saveTokensToStorage(data.access, data.refresh || refreshToken);
+      this.startAutoRefresh();
+    }).catch((error) => {
+      if (this.refreshToken === refreshToken) this.clearTokens();
+      throw error;
+    }).finally(() => {
+      this.refreshPromise = null;
+    });
+    return this.refreshPromise;
   }
 
   /**
@@ -159,7 +168,8 @@ class AuthService {
       async (error) => {
         const originalRequest = error.config as any;
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        const authEndpoint = /\/(login|logout|token\/refresh)\/?$/.test(originalRequest?.url || '');
+        if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !authEndpoint) {
           originalRequest._retry = true;
 
           try {
@@ -167,7 +177,6 @@ class AuthService {
             originalRequest.headers.Authorization = `Bearer ${this.accessToken}`;
             return axios(originalRequest);
           } catch (refreshError) {
-            this.logout();
             return Promise.reject(refreshError);
           }
         }
@@ -243,17 +252,18 @@ class AuthService {
    * Выход из системы
    */
   async logout(): Promise<void> {
-    if (this.refreshToken) {
+    const refresh = this.refreshToken;
+    const access = this.accessToken;
+    this.clearTokens();
+    if (refresh) {
       try {
-        await axios.post(`${API_BASE_URL}/logout/`, {
-          refresh_token: this.refreshToken
-        });
+        await this.refreshClient.post(`${API_BASE_URL}/logout/`, {
+          refresh_token: refresh,
+        }, { headers: { Authorization: `Bearer ${access}` } });
       } catch (error) {
         console.error('Ошибка при выходе:', error);
       }
     }
-
-    this.clearTokens();
   }
 
   /**

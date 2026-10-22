@@ -96,7 +96,7 @@ WSGI_APPLICATION = 'app.wsgi.application'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'my_app1.authentication.VersionedJWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'my_app1.permissions.ReadOnlyOrSuperUser',

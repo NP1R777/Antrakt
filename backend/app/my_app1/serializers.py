@@ -12,7 +12,11 @@ from .models import (User, Perfomances, Actors, DirectorsTheatre,
                      sync_actor_roles_to_performances,
                      coalesce_actor_performance_arrays,
                      refresh_afisha_hold)
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.exceptions import AuthenticationFailed
+from django.contrib.auth.models import update_last_login
+from .authentication import check_session
 from .actor_gender import actor_role_label
 
 
@@ -111,7 +115,12 @@ class UserSerializer(BlankToNullMixin, serializers.ModelSerializer):
             setattr(instance, attr, value)
         if password:
             instance.set_password(password)
-        instance.save()
+        update_fields = set(validated_data)
+        if password:
+            update_fields.add('password')
+        if new_is_superuser is not None:
+            update_fields.update({'is_superuser', 'is_staff'})
+        instance.save(update_fields=update_fields)
         return instance
 
 
@@ -166,36 +175,48 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['email'].required = False
+        self.fields['phone_number'] = serializers.CharField(required=False, write_only=True)
+
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
+        token['auth_version'] = user.auth_version
         token['email'] = user.email
         token['phone_number'] = user.phone_number
         return token
 
     def validate(self, attrs):
-        # Поддерживаем вход по email или номеру телефона
         email = attrs.get('email')
-        password = attrs.get('password')
-        phone_number = self.initial_data.get('phone_number')
-
-        if phone_number and not email:
-            try:
-                user = User.objects.get(phone_number=phone_number)
-            except User.DoesNotExist:
-                raise serializers.ValidationError("Неверные учетные данные")
-
-            if not user.check_password(password):
-                raise serializers.ValidationError("Неверные учетные данные")
-
-            data = {}
+        phone = attrs.get('phone_number')
+        if not email and not phone:
+            raise serializers.ValidationError('Укажите email или номер телефона.')
+        lookup = {'email': email} if email else {'phone_number': phone}
+        with transaction.atomic():
+            user = User.objects.select_for_update().filter(**lookup).first()
+            if user is None:
+                # Match the password-hasher cost of an unknown account.
+                User().set_password(attrs['password'])
+                raise AuthenticationFailed('Неверные учетные данные')
+            if not user.check_password(attrs['password']) or not user.is_active:
+                raise AuthenticationFailed('Неверные учетные данные')
+            self.user = user
             refresh = self.get_token(user)
-            data['refresh'] = str(refresh)
-            data['access'] = str(refresh.access_token)
-            return data
+            update_last_login(None, user)
+            return {'refresh': str(refresh), 'access': str(refresh.access_token)}
 
-        # По умолчанию поведение как у стандартного сериализатора (вход по email)
-        return super().validate(attrs)
+
+class VersionedTokenRefreshSerializer(TokenRefreshSerializer):
+    def validate(self, attrs):
+        token = RefreshToken(attrs['refresh'])
+        with transaction.atomic():
+            user = User.objects.select_for_update().filter(pk=token.get('user_id')).first()
+            if user is None:
+                raise AuthenticationFailed('Сеанс завершён. Войдите заново.')
+            check_session(user, token)
+            return super().validate(attrs)
 
 
 class PerformanceShowSerializer(serializers.ModelSerializer):

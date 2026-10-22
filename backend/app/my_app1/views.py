@@ -19,7 +19,7 @@ from django.shortcuts import get_object_or_404
 from botocore.client import Config as BotoConfig
 from rest_framework import status, generics, permissions
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -114,7 +114,7 @@ class UserDetail(APIView):
             user.delete()
         else:
             user.deleted_at = timezone.now()
-            user.save()
+            user.save(update_fields=['deleted_at'])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -167,7 +167,7 @@ class PasswordResetView(APIView):
         if not email:
             return Response({"error": "Укажите электронную почту"},
                             status=status.HTTP_400_BAD_REQUEST)
-        user = User.objects.filter(email__iexact=email).first()
+        user = User.objects.filter(email__iexact=email, deleted_at__isnull=True).first()
         if not user:
             return generic  # не раскрываем, есть ли такой аккаунт
         new_password = get_random_string(
@@ -339,62 +339,10 @@ class RegisterResendView(APIView):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
-    
-    
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        
-        if response.status_code == 200:
-            # Сохраняем токены в базе для пользователя
-            identifier_email = request.data.get('email')
-            identifier_phone = request.data.get('phone_number')
-            user = None
-            try:
-                if identifier_email:
-                    user = User.objects.filter(email=identifier_email).first()
-                if not user and identifier_phone:
-                    user = User.objects.filter(phone_number=identifier_phone).first()
-                if not user:
-                    # Последняя попытка: получить пользователя из access токена
-                    access = response.data.get('access')
-                    if access:
-                        token = AccessToken(access)
-                        user_id = token.payload.get('user_id')
-                        user = User.objects.filter(id=user_id).first()
-                if user:
-                    user.access_token = response.data['access']
-                    user.refresh_token = response.data['refresh']
-                    user.save()
-            except Exception:
-                pass
-                
-        return response
 
 
 class CustomTokenRefreshView(TokenRefreshView):
-    """
-    Кастомный view для обновления токенов
-    """
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-        
-        if response.status_code == 200:
-            # Обновляем access_token в базе
-            refresh_token = request.data.get('refresh')
-            try:
-                # Декодируем refresh токен чтобы получить user_id
-                token = RefreshToken(refresh_token)
-                user_id = token.payload.get('user_id')
-                user = User.objects.get(id=user_id)
-                user.access_token = response.data['access']
-                # Если есть новый refresh токен (при ROTATE_REFRESH_TOKENS=True)
-                if 'refresh' in response.data:
-                    user.refresh_token = response.data['refresh']
-                user.save()
-            except Exception:
-                pass
-                
-        return response
+    serializer_class = VersionedTokenRefreshSerializer
 
 
 class LogoutView(APIView):
@@ -414,7 +362,7 @@ class LogoutView(APIView):
             user = request.user
             user.access_token = None
             user.refresh_token = None
-            user.save()
+            user.save(update_fields=['access_token', 'refresh_token'])
             
             return Response(
                 {"message": "Успешный выход из системы"}, 
