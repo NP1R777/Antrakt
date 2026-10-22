@@ -52,6 +52,14 @@ class UserSerializer(BlankToNullMixin, serializers.ModelSerializer):
         phone_number = attrs.get('phone_number', getattr(self.instance, 'phone_number', None))
         if not email and not phone_number:
             raise serializers.ValidationError("Требуется email или номер телефона")
+        request = self.context.get('request')
+        if self.instance is not None and request and not request.user.is_superuser:
+            forbidden = {'deleted_at', 'created_at', 'password', 'is_superuser'} & attrs.keys()
+            if forbidden:
+                raise serializers.ValidationError({
+                    field: 'Это поле может менять только администратор.'
+                    for field in forbidden
+                })
         return attrs
 
     def create(self, validated_data):

@@ -144,6 +144,13 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     const handleRemoveImage = async () => {
         if (!currentImageUrl) return;
 
+        // Removing an avatar detaches it from the profile. Legacy files have no
+        // reliable owner metadata and must not be deleted through a public URL.
+        if (contentType === 'profile') {
+            onImageRemove?.();
+            return;
+        }
+
         try {
             const success = await ImageService.deleteImage(currentImageUrl);
             if (success) {
