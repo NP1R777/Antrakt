@@ -102,7 +102,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
     };
 
+    const onSessionEnded = () => updateUser(null);
+    window.addEventListener('auth:logout', onSessionEnded);
     initializeAuth();
+    return () => window.removeEventListener('auth:logout', onSessionEnded);
   }, []);
 
   const value: AuthContextType = {

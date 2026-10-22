@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.utils import timezone
 from .mixins import ImageUploadMixin
 from django.conf import settings
+from django.utils.crypto import salted_hmac
 
 # Условный импорт PostgreSQL полей
 try:
@@ -65,11 +66,43 @@ class User(AbstractBaseUser):
     profile_photo = models.URLField(null=False, blank=True)
     access_token = models.CharField(max_length=500, blank=True, null=True)
     refresh_token = models.CharField(max_length=500, blank=True, null=True)
+    auth_version = models.PositiveBigIntegerField(default=0, editable=False)
 
     # Оставляем email в качестве USERNAME_FIELD для совместимости с админкой
     USERNAME_FIELD = "email"
 
     objects = CustomUserManager()
+
+    @property
+    def is_active(self):
+        return self.deleted_at is None
+
+    def _get_session_auth_hash(self, secret=None):
+        # Django browser sessions must not revive after account restoration either.
+        return salted_hmac(
+            'my_app1.User.session', f'{self.password}:{self.auth_version}',
+            secret=secret, algorithm='sha256',
+        ).hexdigest()
+
+    def save(self, *args, **kwargs):
+        # Serialize lifecycle changes with token issuance/rotation. An increment
+        # also on restoration ensures sessions never revive with the account.
+        update_fields = kwargs.get('update_fields')
+        watched = {'deleted_at', 'password'}
+        if self._state.adding or (update_fields is not None and not watched.intersection(update_fields)):
+            return super().save(*args, **kwargs)
+        using = kwargs.get('using') or self._state.db or 'default'
+        with transaction.atomic(using=using):
+            previous = type(self).objects.using(using).select_for_update().get(pk=self.pk)
+            fields = watched if update_fields is None else watched.intersection(update_fields)
+            changed = any(getattr(previous, field) != getattr(self, field) for field in fields)
+            self.auth_version = previous.auth_version + int(changed)
+            if changed:
+                self.access_token = None
+                self.refresh_token = None
+                if update_fields is not None:
+                    kwargs['update_fields'] = set(update_fields) | {'auth_version', 'access_token', 'refresh_token'}
+            return super().save(*args, **kwargs)
 
 
 class Perfomances(ImageUploadMixin, models.Model): # Спектакли
