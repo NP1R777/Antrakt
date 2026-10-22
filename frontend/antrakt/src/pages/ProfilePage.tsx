@@ -368,10 +368,14 @@ export default function ProfilePage() {
                 ...profile,
                 email: data.email || profile.email,
                 phone_number: data.phone_number || profile.phone_number,
-                profile_photo: data.profile_photo || profile.profile_photo,
+                profile_photo: data.profile_photo === undefined ? profile.profile_photo : data.profile_photo,
             };
 
-            await axios.put(`${API_URL}/user${profile.id}/`, updatedData);
+            await axios.put(`${API_URL}/user${profile.id}/`, {
+                email: updatedData.email,
+                phone_number: updatedData.phone_number,
+                profile_photo: updatedData.profile_photo || '',
+            });
 
             updateUser({
                 ...user!,

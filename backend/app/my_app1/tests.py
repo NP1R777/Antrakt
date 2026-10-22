@@ -40,7 +40,9 @@ def make_performance(title='Спектакль', afisha=True, description='Оп�
 
 class AchievementApiTests(TestCase):
     def test_create_without_gallery_uses_empty_list(self):
-        response = APIClient().post(
+        client = APIClient()
+        client.force_authenticate(User.objects.create_superuser(password='p', email='achievement-admin@test.com'))
+        response = client.post(
             '/achievements/',
             {'achievement': 'Диплом первой степени', 'image_url': ''},
             format='json',
@@ -418,7 +420,7 @@ class ExtendedReviewTargetTests(TestCase):
         self.user = User.objects.create_user(
             password='Teatr2026!', email='ru@test.com', phone_number='+7-000-000-00-31')
         self.director = DirectorsTheatre.objects.create(name='Реж', description='о')
-        self.news = News.objects.create(title='Новость', description='о')
+        self.news = News.objects.create(is_published=True, title='Новость', description='о')
         self.archive_past = Archive.objects.create(title='Прошлое', description='о', afisha=False)
         self.archive_afisha = Archive.objects.create(title='Афиша', description='о', afisha=True)
 
@@ -587,6 +589,7 @@ class DirectorPromotionTests(TestCase):
         self.director.refresh_from_db()
         self.assertIn(perf.production_title, self.director.perfomances)
 
+        self.client.force_authenticate(User.objects.create_superuser(password='p', email='delete-admin@test.com'))
         response = self.client.delete(f'/perfomance{perf.id}/?hard=1')
 
         self.assertEqual(response.status_code, 204)
@@ -636,6 +639,7 @@ class SoftHardDeleteTests(TestCase):
         self.assertFalse(Review.objects.filter(id=self.review.id).exists())
 
     def test_actor_soft_then_hard(self):
+        self.client.force_authenticate(User.objects.create_superuser(password='p', email='actor-admin@test.com'))
         actor = make_actor('Удаляемый')
         self.client.delete(f'/actor{actor.id}/')  # мягко
         actor.refresh_from_db()

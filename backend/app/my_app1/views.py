@@ -3,6 +3,7 @@ import random
 import boto3
 from .models import *
 from .serializers import *
+from .permissions import IsSuperUser, ReadOnlyOrSuperUser, is_superuser
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
@@ -10,7 +11,7 @@ from django.core.mail import send_mail
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.db.models import Max
-from urllib.parse import urlparse
+from urllib.parse import urlparse, unquote
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
@@ -31,16 +32,13 @@ def is_hard_delete(request):
     return str(request.query_params.get('hard', '')).lower() in ('1', 'true', 'yes')
 
 
-class IsSuperUser(permissions.BasePermission):
-    """Доступ только суперпользователям (админам сайта).
-
-    В проекте роль «админ» определяется полем is_superuser (по нему пускает и
-    фронтенд/админ-панель), поэтому админские эндпоинты проверяют именно его,
-    а не is_staff (как в стандартном DRF IsAdminUser).
-    """
-    def has_permission(self, request, view):
-        user = request.user
-        return bool(user and user.is_authenticated and user.is_superuser)
+def public_object_or_404(model, request, **lookup):
+    queryset = model.objects.all()
+    if not is_superuser(request.user):
+        queryset = queryset.filter(deleted_at__isnull=True)
+        if model is News:
+            queryset = queryset.filter(is_published=True)
+    return get_object_or_404(queryset, **lookup)
 
 
 class UserList(APIView):
@@ -477,6 +475,7 @@ class PefomancesList(APIView):
 
 
 class PerfomancesListAdmin(APIView):
+    permission_classes = [IsSuperUser]
     model_class = Perfomances
     serializer_class = PerfomanceSerializer
 
@@ -494,7 +493,7 @@ class PerfomanceDetail(APIView):
 
 
     def get(self, request, id, format=None):
-        perfomance = get_object_or_404(self.model_class, id=id)
+        perfomance = public_object_or_404(self.model_class, request, id=id)
         serializer = self.serializer_class(perfomance, context={'request': request})
         return Response(serializer.data)
     
@@ -568,6 +567,7 @@ class ActorsList(APIView):
 
 
 class ActorsListAdmin(APIView):
+    permission_classes = [IsSuperUser]
     model_class = Actors
     serializer_class = ActorsSerializer
 
@@ -584,7 +584,7 @@ class ActorDetail(APIView):
 
 
     def get(self, request, id, format=None):
-        actor = get_object_or_404(self.model_class, id=id)
+        actor = public_object_or_404(self.model_class, request, id=id)
         serializer = self.serializer_class(actor)
         return Response(serializer.data)
     
@@ -630,6 +630,7 @@ class DirectorsList(APIView):
 
 
 class DirectorsListAdmin(APIView):
+    permission_classes = [IsSuperUser]
     model_class = DirectorsTheatre
     serializer_class = DirectorsSerializer
 
@@ -646,7 +647,7 @@ class DirectorDetail(APIView):
 
 
     def get(self, request, id, format=None):
-        directors = get_object_or_404(self.model_class, id=id)
+        directors = public_object_or_404(self.model_class, request, id=id)
         serializer = self.serializer_class(directors)
         return Response(serializer.data)
     
@@ -693,6 +694,7 @@ class NewsList(APIView):
 
 
 class NewsListAdmin(APIView):
+    permission_classes = [IsSuperUser]
     model_class = News
     serializer_class = NewsSerializer
 
@@ -709,7 +711,7 @@ class NewsDetail(APIView):
 
 
     def get(self, request, id, format=None):
-        news = get_object_or_404(self.model_class, id=id)
+        news = public_object_or_404(self.model_class, request, id=id)
         serializer = self.serializer_class(news)
         return Response(serializer.data)
     
@@ -763,6 +765,7 @@ class ArchiveList(APIView):
 
 
 class ArchiveListAdmin(APIView):
+    permission_classes = [IsSuperUser]
     model_class = Archive
     serializer_class = ArchiveSerializer
 
@@ -783,7 +786,7 @@ class ArchiveDetail(APIView):
 
 
     def get(self, request, id, format=None):
-        perfomance = get_object_or_404(self.model_class, id=id)
+        perfomance = public_object_or_404(self.model_class, request, id=id)
         serializer = self.serializer_class(perfomance)
         return Response(serializer.data)
     
@@ -831,6 +834,7 @@ class AchievementsList(APIView):
 
 
 class AchievementListAdmin(APIView):
+    permission_classes = [IsSuperUser]
     model_class = Achievements
     serializer_class = AchievementsSerializer
 
@@ -847,7 +851,7 @@ class AchievementDetail(APIView):
 
 
     def get(self, request, id, format=None):
-        achievement = get_object_or_404(self.model_class, id=id)
+        achievement = public_object_or_404(self.model_class, request, id=id)
         serializer = self.serializer_class(achievement)
         return Response(serializer.data)
     
@@ -964,7 +968,7 @@ ALLOWED_FIXED_IMAGE_KEYS = frozenset({'Общая.png'})
 
 class ImageUploadView(APIView):
     parser_classes = (MultiPartParser, FormParser)
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         if 'image' not in request.FILES:
@@ -972,6 +976,13 @@ class ImageUploadView(APIView):
         image = request.FILES['image']
         folder = request.data.get('folder', 'images')
         fixed_key = (request.data.get('fixed_key') or '').strip()
+
+        if not is_superuser(request.user):
+            if folder != 'profile' or fixed_key:
+                return Response({"error": "Можно загружать только свой аватар"}, status=403)
+            folder = f'profile/{request.user.pk}'
+        elif folder == 'profile':
+            folder = f'profile/{request.user.pk}'
 
         s3_client = _minio_client()
         bucket = settings.AWS_STORAGE_BUCKET_NAME
@@ -1013,27 +1024,24 @@ class ImageUploadView(APIView):
 
 
 class ImageDeleteView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def delete(self, request, *args, **kwargs):
         image_url = request.query_params.get('image_url')
         if not image_url:
-            return Response({"success": False, "message": "Параметр image_url обязателен"}, status=400)
+            return Response({"error": "Параметр image_url обязателен"}, status=400)
         parsed = urlparse(image_url)
-        # Expected format: http(s)://<endpoint>/<bucket>/<key>
-        path = parsed.path.lstrip('/')
-        # If custom domain used as <endpoint>/<bucket>, first segment is bucket
-        bucket = settings.AWS_STORAGE_BUCKET_NAME
-        if path.startswith(bucket + '/'):
-            object_key = path[len(bucket) + 1:]
-        else:
-            # fallback: whole path is key
-            object_key = path
-
-        s3_client = _minio_client()
-
+        base = urlparse(settings.MEDIA_URL)
+        prefix = base.path.rstrip('/') + '/'
+        if (parsed.scheme, parsed.netloc) != (base.scheme, base.netloc) or not parsed.path.startswith(prefix):
+            return Response({"error": "Недопустимый адрес изображения"}, status=400)
+        object_key = unquote(parsed.path[len(prefix):])
+        if not object_key or any(part in ('', '.', '..') for part in object_key.split('/')):
+            return Response({"error": "Недопустимый путь изображения"}, status=400)
+        if not is_superuser(request.user) and not object_key.startswith(f'profile/{request.user.pk}/'):
+            return Response({"error": "Нельзя удалять чужие изображения"}, status=403)
         try:
-            s3_client.delete_object(Bucket=bucket, Key=object_key)
+            _minio_client().delete_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=object_key)
             return Response({"success": True, "message": "Изображение удалено"})
         except Exception:
             return Response({"success": False, "message": "Не удалось удалить изображение"}, status=400)
@@ -1054,7 +1062,7 @@ class PerformanceReviewList(APIView):
         return [permissions.AllowAny()]
 
     def get(self, request, id, format=None):
-        performance = get_object_or_404(Perfomances, id=id)
+        performance = public_object_or_404(Perfomances, request, id=id)
         reviews = (performance.reviews
                    .filter(deleted_at__isnull=True)
                    .select_related('author')
@@ -1063,7 +1071,7 @@ class PerformanceReviewList(APIView):
         return Response(_serialize_reviews(reviews, request))
 
     def post(self, request, id, format=None):
-        performance = get_object_or_404(Perfomances, id=id)
+        performance = public_object_or_404(Perfomances, request, id=id)
         text = (request.data.get('text') or '').strip()
         if not text:
             return Response({"error": "Текст отзыва обязателен"},
@@ -1084,7 +1092,7 @@ class ActorReviewList(APIView):
         return [permissions.AllowAny()]
 
     def get(self, request, id, format=None):
-        actor = get_object_or_404(Actors, id=id)
+        actor = public_object_or_404(Actors, request, id=id)
         reviews = (actor.reviews
                    .filter(deleted_at__isnull=True)
                    .select_related('author')
@@ -1093,7 +1101,7 @@ class ActorReviewList(APIView):
         return Response(_serialize_reviews(reviews, request))
 
     def post(self, request, id, format=None):
-        actor = get_object_or_404(Actors, id=id)
+        actor = public_object_or_404(Actors, request, id=id)
         text = (request.data.get('text') or '').strip()
         if not text:
             return Response({"error": "Текст отзыва обязателен"},
@@ -1114,7 +1122,7 @@ class DirectorReviewList(APIView):
         return [permissions.AllowAny()]
 
     def get(self, request, id, format=None):
-        director = get_object_or_404(DirectorsTheatre, id=id)
+        director = public_object_or_404(DirectorsTheatre, request, id=id)
         reviews = (director.reviews
                    .filter(deleted_at__isnull=True)
                    .select_related('author')
@@ -1123,7 +1131,7 @@ class DirectorReviewList(APIView):
         return Response(_serialize_reviews(reviews, request))
 
     def post(self, request, id, format=None):
-        director = get_object_or_404(DirectorsTheatre, id=id)
+        director = public_object_or_404(DirectorsTheatre, request, id=id)
         text = (request.data.get('text') or '').strip()
         if not text:
             return Response({"error": "Текст отзыва обязателен"},
@@ -1144,7 +1152,7 @@ class ArchiveReviewList(APIView):
         return [permissions.AllowAny()]
 
     def get(self, request, id, format=None):
-        archive = get_object_or_404(Archive, id=id)
+        archive = public_object_or_404(Archive, request, id=id)
         reviews = (archive.reviews
                    .filter(deleted_at__isnull=True)
                    .select_related('author')
@@ -1153,7 +1161,7 @@ class ArchiveReviewList(APIView):
         return Response(_serialize_reviews(reviews, request))
 
     def post(self, request, id, format=None):
-        archive = get_object_or_404(Archive, id=id)
+        archive = public_object_or_404(Archive, request, id=id)
         # Комментарии разрешены только для проектов вне афиши (раздел «Проекты»).
         if archive.afisha:
             return Response(
@@ -1179,7 +1187,7 @@ class NewsReviewList(APIView):
         return [permissions.AllowAny()]
 
     def get(self, request, id, format=None):
-        news = get_object_or_404(News, id=id)
+        news = public_object_or_404(News, request, id=id)
         reviews = (news.reviews
                    .filter(deleted_at__isnull=True)
                    .select_related('author')
@@ -1188,7 +1196,7 @@ class NewsReviewList(APIView):
         return Response(_serialize_reviews(reviews, request))
 
     def post(self, request, id, format=None):
-        news = get_object_or_404(News, id=id)
+        news = public_object_or_404(News, request, id=id)
         text = (request.data.get('text') or '').strip()
         if not text:
             return Response({"error": "Текст отзыва обязателен"},
@@ -1209,7 +1217,7 @@ class ReviewDetail(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def delete(self, request, id, format=None):
-        review = get_object_or_404(Review, id=id)
+        review = get_object_or_404(Review, id=id, deleted_at__isnull=True)
         if review.author_id != request.user.id and not request.user.is_superuser:
             return Response({"error": "Недостаточно прав"},
                             status=status.HTTP_403_FORBIDDEN)
@@ -1226,7 +1234,7 @@ class ReviewReactionView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, id, format=None):
-        review = get_object_or_404(Review, id=id)
+        review = get_object_or_404(Review, id=id, deleted_at__isnull=True)
         reaction = request.data.get('reaction')
         if reaction not in dict(ReviewReaction.REACTION_CHOICES):
             return Response({"error": "Недопустимая реакция"},
@@ -1261,7 +1269,7 @@ class ReviewWarnView(APIView):
     permission_classes = [IsSuperUser]
 
     def post(self, request, id, format=None):
-        review = get_object_or_404(Review, id=id)
+        review = get_object_or_404(Review, id=id, deleted_at__isnull=True)
         message = (request.data.get('message') or '').strip()
         if not message:
             return Response({"error": "Текст письма обязателен"},
@@ -1320,7 +1328,7 @@ class ReviewListAdmin(APIView):
 class SiteContentList(APIView):
     """GET — все надписи (публично, для рендера сайта);
     PUT — массовое обновление значений (из админ-панели)."""
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [ReadOnlyOrSuperUser]
 
     def get(self, request, format=None):
         items = SiteContent.objects.all()
@@ -1398,7 +1406,7 @@ class BirthdayTodayView(APIView):
 
 
 class ActorBirthdayList(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsSuperUser]
 
     def get(self, request, format=None):
         items = ActorBirthday.objects.select_related('actor').all()
@@ -1413,7 +1421,7 @@ class ActorBirthdayList(APIView):
 
 
 class ActorBirthdayDetail(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsSuperUser]
 
     def get_object(self, id):
         return get_object_or_404(ActorBirthday, id=id)
@@ -1437,7 +1445,7 @@ class ActorBirthdayDetail(APIView):
 
 
 class BirthdayGreetingList(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsSuperUser]
 
     def get(self, request, format=None):
         items = BirthdayGreeting.objects.all()
@@ -1452,7 +1460,7 @@ class BirthdayGreetingList(APIView):
 
 
 class BirthdayGreetingDetail(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsSuperUser]
 
     def get_object(self, id):
         return get_object_or_404(BirthdayGreeting, id=id)
@@ -1501,7 +1509,7 @@ class SiteReviewList(APIView):
 
 class SiteReviewListAdmin(APIView):
     """Админ: все отзывы + ручное добавление."""
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsSuperUser]
 
     def get(self, request, format=None):
         items = SiteReview.objects.all().order_by('-review_date', '-id')
@@ -1516,7 +1524,7 @@ class SiteReviewListAdmin(APIView):
 
 
 class SiteReviewDetail(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsSuperUser]
 
     def get_object(self, id):
         return get_object_or_404(SiteReview, id=id)
@@ -1537,7 +1545,7 @@ class SiteReviewDetail(APIView):
 
 class VkReviewsParseView(APIView):
     """Запуск парсера отзывов ВК из админ-панели (кнопка «Обновить из ВК»)."""
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsSuperUser]
 
     def post(self, request, format=None):
         from .vk_parser import parse_reviews, VkParserError
