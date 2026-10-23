@@ -211,8 +211,7 @@ const ChangePasswordForm: React.FC<{
     onSuccess: () => void;
     onCancel: () => void;
 }> = ({ userId, onSuccess, onCancel }) => {
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
+    const { user } = useAuth();
     const [email, setEmail] = useState(user?.email || '');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const toast = useToast();
@@ -227,15 +226,13 @@ const ChangePasswordForm: React.FC<{
             await axios.post(`${API_URL}/password-reset/`, { email: email.trim() });
             toast({
                 title: 'Проверьте почту',
-                description: 'Новый пароль отправлен на указанную почту. Войдите с ним и при желании смените в кабинете.',
+                description: 'Если аккаунт с такой почтой существует, на неё отправлена ссылка восстановления. Текущий пароль пока не изменён.',
                 status: 'success',
                 duration: 5000,
                 isClosable: true,
             });
             onSuccess();
-            // После сброса пароля выходим, чтобы сразу войти с новым.
-            await logout();
-            navigate('/');
+            // Запрос письма не изменяет пароль и не завершает текущий сеанс.
         } catch (error: any) {
             const description = error?.response?.data?.error || 'Не удалось отправить письмо';
             toast({ title: 'Ошибка', description, status: 'error', duration: 4000, isClosable: true });
@@ -247,8 +244,8 @@ const ChangePasswordForm: React.FC<{
     return (
         <VStack spacing={6} align="stretch">
             <Text color="gray.400" fontSize="sm">
-                Старый пароль вводить не нужно. Укажите почту — мы отправим на неё новый
-                пароль, которым можно войти, а затем сменить его при необходимости.
+                Укажите почту — мы отправим ссылку для установки нового пароля.
+                Текущий пароль останется действующим, пока вы не сохраните новый.
             </Text>
             <FormControl>
                 <FormLabel color="gray.300">Электронная почта</FormLabel>
@@ -289,7 +286,7 @@ const ChangePasswordForm: React.FC<{
                     px={{ base: 3, sm: 5 }}
                     minH="44px"
                 >
-                    Отправить новый пароль
+                    Отправить ссылку
                 </Button>
             </Flex>
         </VStack>

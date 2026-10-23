@@ -241,7 +241,7 @@ class AuthService {
   }
 
   /**
-   * Восстановление пароля: на указанную почту приходит новый пароль.
+   * Восстановление пароля: на указанную почту приходит одноразовая ссылка.
    */
   async requestPasswordReset(email: string): Promise<boolean> {
     await axios.post(`${API_BASE_URL}/password-reset/`, { email });

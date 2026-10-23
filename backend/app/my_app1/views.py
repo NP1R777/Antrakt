@@ -9,7 +9,13 @@ from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.utils import timezone
-from django.utils.crypto import get_random_string
+import logging
+from urllib.parse import urlencode
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from .password_reset import reset_tokens, ResetRequestThrottle, ResetConfirmThrottle
 from django.db.models import Max
 from urllib.parse import urlparse, unquote
 from rest_framework.views import APIView
@@ -17,7 +23,7 @@ from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from django.shortcuts import get_object_or_404
 from botocore.client import Config as BotoConfig
-from rest_framework import status, generics, permissions
+from rest_framework import status, generics, permissions, serializers
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -134,64 +140,79 @@ class ChangePasswordView(APIView):
         return Response({"success": True, "message": "Пароль изменён"})
 
 
-def _send_new_password_email(email, password):
+def _send_password_reset_email(user):
+    params = urlencode({
+        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+        'token': reset_tokens.make_token(user),
+    })
+    link = f"{settings.FRONTEND_BASE_URL.rstrip('/')}/reset-password#{params}"
     send_mail(
-        subject='Новый пароль — Норильский народный театр',
-        message=(f'Вы запросили восстановление пароля на сайте '
-                 f'«Норильский народный театр».\n\n'
-                 f'Ваш новый пароль: {password}\n\n'
-                 f'Рекомендуем сразу войти и сменить его в личном кабинете.\n'
-                 f'Если вы не запрашивали смену пароля — просто проигнорируйте это письмо.'),
+        subject='Восстановление доступа — Норильский народный театр',
+        message=(f'Для установки нового пароля откройте ссылку:\n{link}\n\n'
+                 'Ссылка действует 30 минут и используется один раз.\n'
+                 'Если вы не запрашивали восстановление, проигнорируйте письмо. '
+                 'Ваш пароль останется прежним.'),
         from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[email],
-        fail_silently=False,
+        recipient_list=[user.email], fail_silently=False,
     )
 
 
 class PasswordResetView(APIView):
-    """Восстановление пароля по email.
-
-    Пользователь указывает почту — на неё отправляется НОВЫЙ сгенерированный
-    пароль (старый знать не нужно). Работает и со страницы входа («Забыли
-    пароль?»), и из личного кабинета. В целях безопасности ответ одинаков вне
-    зависимости от того, существует ли аккаунт с такой почтой.
-    """
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+    throttle_classes = [ResetRequestThrottle]
 
     def post(self, request, format=None):
-        email = (request.data.get('email') or '').strip()
-        generic = Response({
-            "message": "Если аккаунт с такой почтой существует, "
-                       "на неё отправлен новый пароль."
-        })
-        if not email:
-            return Response({"error": "Укажите электронную почту"},
-                            status=status.HTTP_400_BAD_REQUEST)
+        # Validate without revealing whether an account exists.
+        if not isinstance(request.data, dict):
+            return Response({'error': 'Ожидается объект с email'}, status=400)
+        field = serializers.EmailField()
+        try:
+            email = field.run_validation(request.data.get('email'))
+        except serializers.ValidationError:
+            return Response({'error': 'Укажите корректный email'}, status=400)
         user = User.objects.filter(email__iexact=email, deleted_at__isnull=True).first()
-        if not user:
-            return generic  # не раскрываем, есть ли такой аккаунт
-        new_password = get_random_string(
-            10, allowed_chars='abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789')
-        user.set_password(new_password)
-        # Сбрасываем сохранённые JWT и инвалидируем refresh-токены,
-        # чтобы текущие сессии не продолжали работать со старым паролем.
-        user.access_token = None
-        user.refresh_token = None
-        user.save(update_fields=['password', 'access_token', 'refresh_token'])
+        if user and user.has_usable_password():
+            try:
+                _send_password_reset_email(user)
+            except Exception:
+                # No SMTP exception, recipient, or reset link is exposed in responses/logs.
+                logging.getLogger(__name__).error('Не удалось отправить письмо восстановления пароля')
+        return Response({'message': 'Если аккаунт с такой почтой существует, на неё отправлена ссылка восстановления.'})
+
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+    throttle_classes = [ResetConfirmThrottle]
+
+    def post(self, request, format=None):
+        invalid = Response({'error': 'Ссылка недействительна или срок её действия истёк.', 'code': 'invalid_link'}, status=400)
+        if not isinstance(request.data, dict):
+            return invalid
+        uid, token = request.data.get('uid'), request.data.get('token')
+        if not isinstance(uid, str) or len(uid) > 128:
+            return invalid
         try:
-            from rest_framework_simplejwt.token_blacklist.models import (
-                OutstandingToken, BlacklistedToken,
-            )
-            for token in OutstandingToken.objects.filter(user=user):
-                BlacklistedToken.objects.get_or_create(token=token)
-        except Exception:
-            pass
-        try:
-            _send_new_password_email(user.email, new_password)
-        except Exception as exc:
-            return Response({"error": f"Не удалось отправить письмо: {exc}"},
-                            status=status.HTTP_502_BAD_GATEWAY)
-        return generic
+            pk = int(urlsafe_base64_decode(uid).decode())
+        except (ValueError, TypeError, OverflowError, UnicodeDecodeError):
+            return invalid
+        if pk < 1 or pk > 9223372036854775807 or not isinstance(token, str) or len(token) > 256:
+            return invalid
+        with transaction.atomic():
+            user = User.objects.select_for_update().filter(pk=pk, deleted_at__isnull=True).first()
+            if not user or not user.has_usable_password() or not reset_tokens.check_token(user, token):
+                return invalid
+            password = request.data.get('new_password')
+            if not isinstance(password, str) or not password:
+                return Response({'new_password': ['Укажите новый пароль.']}, status=400)
+            try:
+                validate_password(password, user=user)
+            except DjangoValidationError as exc:
+                return Response({'new_password': list(exc.messages)}, status=400)
+            user.set_password(password)
+            user.save(update_fields=['password'])
+        return Response({'message': 'Пароль изменён. Войдите с новым паролем.'})
 
 
 def _generate_code():
