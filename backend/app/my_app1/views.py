@@ -4,6 +4,7 @@ import boto3
 from .models import *
 from .serializers import *
 from .permissions import IsSuperUser, ReadOnlyOrSuperUser, is_superuser
+from .image_upload import normalize_image
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
@@ -16,7 +17,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from .password_reset import reset_tokens, ResetRequestThrottle, ResetConfirmThrottle
-from django.db.models import Max
+from django.db.models import Max, Prefetch
 from urllib.parse import urlparse, unquote
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -38,8 +39,14 @@ def is_hard_delete(request):
     return str(request.query_params.get('hard', '')).lower() in ('1', 'true', 'yes')
 
 
+def performance_queryset():
+    return Perfomances.objects.select_related('director').prefetch_related(
+        'shows', Prefetch('cast_members', queryset=PerformanceCast.objects.select_related('actor', 'director')),
+    )
+
+
 def public_object_or_404(model, request, **lookup):
-    queryset = model.objects.all()
+    queryset = model.objects.all() if isinstance(model, type) else model.all()
     if not is_superuser(request.user):
         queryset = queryset.filter(deleted_at__isnull=True)
         if model is News:
@@ -426,8 +433,7 @@ class PefomancesList(APIView):
             promote_past_performances()
         except Exception:
             pass
-        perfomances = self.model_class.objects.filter(deleted_at=None,
-                                                      afisha=False).order_by('premiere_date')
+        perfomances = performance_queryset().filter(deleted_at=None, afisha=False).order_by('premiere_date')
         serializer = self.serializer_class(perfomances, many=True,
                                            context={'request': request})
         return Response(serializer.data)
@@ -450,7 +456,7 @@ class PerfomancesListAdmin(APIView):
 
 
     def get(self, request, format=None):
-        perfomances = self.model_class.objects.order_by('id')
+        perfomances = performance_queryset().order_by('id')
         serializer = self.serializer_class(perfomances, many=True,
                                            context={'request': request})
         return Response(serializer.data)
@@ -462,7 +468,7 @@ class PerfomanceDetail(APIView):
 
 
     def get(self, request, id, format=None):
-        perfomance = public_object_or_404(self.model_class, request, id=id)
+        perfomance = public_object_or_404(performance_queryset(), request, id=id)
         serializer = self.serializer_class(perfomance, context={'request': request})
         return Response(serializer.data)
     
@@ -953,12 +959,16 @@ class ImageUploadView(APIView):
         elif folder == 'profile':
             folder = f'profile/{request.user.pk}'
 
+        if folder not in {'images', 'perfomances', 'actors', 'directors', 'news', 'archive', 'achievements', f'profile/{request.user.pk}'}:
+            return Response({'error': 'Недопустимая папка изображения'}, status=400)
+        if fixed_key and fixed_key not in ALLOWED_FIXED_IMAGE_KEYS:
+            return Response({'error': 'Недопустимое имя файла'}, status=400)
+        image, (extension, content_type) = normalize_image(image, png=bool(fixed_key))
         s3_client = _minio_client()
         bucket = settings.AWS_STORAGE_BUCKET_NAME
-        extension = image.name.split('.')[-1].lower()
 
         extra_args = {
-            'ContentType': image.content_type or 'application/octet-stream',
+            'ContentType': content_type,
             'ACL': 'public-read',
         }
 

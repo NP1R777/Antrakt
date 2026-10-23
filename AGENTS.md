@@ -9,7 +9,8 @@ Chakra UI) frontend.
 Layout:
 - `backend/app` — Django project (`manage.py`, settings in `app/`, app code in `my_app1/`).
 - `frontend/antrakt` — CRA frontend.
-- `backend/database/init.sql` — PostgreSQL dump used to seed the dev DB (schema + data).
+- `database/init.sql` — sanitized development schema and migration metadata.
+- `python manage.py seed_demo` — repeatable synthetic development data.
 
 ### Services (none auto-start; the update script only refreshes dependencies)
 
@@ -30,16 +31,21 @@ node_modules are already present from the VM snapshot.
 4. **Frontend** (port 3000): from `frontend/antrakt`, run `BROWSER=none npm start`.
    `apiClient.ts`/`AuthService.ts` hardcode the backend at `http://127.0.0.1:8000` / `http://localhost:8000`.
 
-### Known dev admin login
+### Development data and credentials
 
-`admin@antrakt.com` / `antrakt2026` (superuser; created during setup). The existing dumped
-superuser `np1r777@admin.com` has an unknown password.
+Both checked-in `init.sql` files now contain only sanitized schema and migration
+metadata, without application records, accounts or sessions. Prefer `database/init.sql`;
+then run current migrations and `python manage.py seed_demo` for synthetic content.
+The demo account has an unusable password. No admin credentials are bundled;
+create a local administrator with `python manage.py createsuperuser` when needed.
+Raw backups go to ignored `backups/` files, never to a tracked `init.sql`.
+Historical Git revisions may still contain old private records; do not restore them.
 
 ### Non-obvious gotchas
 
-- **Do NOT apply migration `0002`** (`manage.py migrate` fails on it). The dump's source DB ran
-  without it, and the seed data has duplicate `phone_number` values that violate the unique
-  index `0002` adds. `runserver` only prints an "unapplied migration" warning and works fine.
+- Do not restore an old unsanitized dump or apply migration `0002` to a historical
+  populated database without reviewing its state. The current sanitized dumps already
+  record `0002` as applied; subsequent migrations were tested on a temporary database.
 - The dump schema has `user.phone_number` as **NOT NULL**, so any user you create directly must
   set a (unique) `phone_number` even though the model marks it nullable.
 - Loading the dump on PostgreSQL 16 prints one harmless error about `transaction_timeout`

@@ -151,3 +151,9 @@ temp/
 .env.prod
 .env.*.local
 .env.prod.example
+
+# Private database backups must never be committed.
+backups/
+*.dump
+*.backup
+*.sql.gz

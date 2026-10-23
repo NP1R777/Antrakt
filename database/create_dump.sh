@@ -1,27 +1,13 @@
-#!/bin/bash
-
-# Скрипт для создания дампа локальной базы данных PostgreSQL
-# Использование: ./create_dump.sh [host] [port] [database] [username]
-
-# Параметры по умолчанию (можно изменить)
-HOST=${1:-localhost}
-PORT=${2:-5432}
-DATABASE=${3:-antrakt}
-USERNAME=${4:-postgres}
-
-echo "Создание дампа базы данных..."
-echo "Host: $HOST"
-echo "Port: $PORT"
-echo "Database: $DATABASE"
-echo "Username: $USERNAME"
-
-# Создание дампа
-pg_dump -h $HOST -p $PORT -U $USERNAME -d $DATABASE --no-owner --no-privileges --clean --if-exists > init.sql
-
-if [ $? -eq 0 ]; then
-    echo "Дамп успешно создан: init.sql"
-    echo "Файл готов для использования в проекте"
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
+# Backups contain private data. Keep them in an ignored directory, never init.sql.
+backup_dir=${5:-"$(dirname "$0")/../backups"}
+mkdir -p "$backup_dir"
+backup_file=$(mktemp "$backup_dir/antrakt-XXXXXXXX.dump")
+if pg_dump -h "${1:-localhost}" -p "${2:-5432}" -d "${3:-antrakt}" -U "${4:-postgres}" --format=custom --no-owner --no-privileges --file="$backup_file"; then
+    printf 'Private backup saved: %s\nRestore with pg_restore; do not commit it.\n' "$backup_file"
 else
-    echo "Ошибка при создании дампа"
+    rm -f -- "$backup_file"
     exit 1
 fi

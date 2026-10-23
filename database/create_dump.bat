@@ -1,57 +1,22 @@
 @echo off
-chcp 65001 >nul
-setlocal enabledelayedexpansion
-echo ================================
-echo   Создание дампа базы данных
-echo ================================
-
-REM Параметры по умолчанию (можно передать как аргументы)
-set HOST=%1
-set PORT=%2
-set DATABASE=%3
-set USERNAME=%4
-
-if "%HOST%"=="" set HOST=localhost
-if "%PORT%"=="" set PORT=5432
-if "%DATABASE%"=="" set DATABASE=antrakt
-if "%USERNAME%"=="" set USERNAME=postgres
-
-echo 📋 Параметры подключения:
-echo Host: %HOST%
-echo Port: %PORT%
-echo Database: %DATABASE%
-echo Username: %USERNAME%
-echo.
-
-echo 🔍 Проверка pg_dump...
-pg_dump --version >nul 2>&1
-if !errorlevel! neq 0 (
-    echo ❌ ОШИБКА: pg_dump не найден в системе
-    echo Убедитесь, что PostgreSQL установлен и добавлен в PATH
-    pause
+setlocal
+set "DB_HOST=%~1"
+set "DB_PORT=%~2"
+set "DB_NAME=%~3"
+set "DB_USER=%~4"
+set "BACKUP_DIR=%~5"
+if not defined DB_HOST set "DB_HOST=localhost"
+if not defined DB_PORT set "DB_PORT=5432"
+if not defined DB_NAME set "DB_NAME=antrakt"
+if not defined DB_USER set "DB_USER=postgres"
+if not defined BACKUP_DIR set "BACKUP_DIR=%~dp0..\backups"
+if not exist "%BACKUP_DIR%" mkdir "%BACKUP_DIR%"
+set "BACKUP_FILE=%BACKUP_DIR%\antrakt-%RANDOM%-%RANDOM%.dump"
+if exist "%BACKUP_FILE%" exit /b 1
+pg_dump -h "%DB_HOST%" -p "%DB_PORT%" -d "%DB_NAME%" -U "%DB_USER%" --format=custom --no-owner --no-privileges --file="%BACKUP_FILE%"
+if errorlevel 1 (
+    if exist "%BACKUP_FILE%" del "%BACKUP_FILE%"
     exit /b 1
 )
-
-echo ✅ pg_dump найден
-echo 📦 Создание дампа локальной БД...
-    
-pg_dump -h %HOST% -p %PORT% -U %USERNAME% -d %DATABASE% --no-owner --no-privileges --clean --if-exists > init.sql
-    
-if !errorlevel! equ 0 (
-    echo ✅ Дамп успешно создан: init.sql
-) else (
-    echo ❌ ОШИБКА при создании дампа
-    echo.
-    echo 💡 Возможные причины:
-    echo 1. Неверные параметры подключения
-    echo 2. PostgreSQL не запущен
-    echo 3. Нет прав доступа к базе данных
-    echo 4. Неправильный пароль
-)
-
-echo.
-echo 📋 Команда для восстановления дампа:
-echo psql -h %HOST% -p %PORT% -U %USERNAME% -d %DATABASE% ^< init.sql
-echo.
-
-pause
+echo Private backup saved: "%BACKUP_FILE%"
+echo Restore with pg_restore. Do not commit this file.
