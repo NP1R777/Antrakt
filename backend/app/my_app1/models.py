@@ -435,6 +435,22 @@ class PerformanceCast(models.Model): # Состав спектакля: актё
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+class LegacyPerformanceCredit(models.Model):
+    """Additive migration ledger: original array values are never rewritten."""
+    actor = models.ForeignKey(Actors, null=True, blank=True, on_delete=models.CASCADE, related_name='legacy_credits')
+    director = models.ForeignKey(DirectorsTheatre, null=True, blank=True, on_delete=models.CASCADE, related_name='legacy_credits')
+    performance = models.ForeignKey(Perfomances, null=True, on_delete=models.SET_NULL)
+    legacy_index = models.PositiveIntegerField()
+    snapshot = models.JSONField()
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=(models.Q(actor__isnull=False, director__isnull=True) | models.Q(actor__isnull=True, director__isnull=False)), name='legacy_credit_one_owner'),
+            models.UniqueConstraint(fields=['actor', 'legacy_index'], name='legacy_credit_actor_index'),
+            models.UniqueConstraint(fields=['director', 'legacy_index'], name='legacy_credit_director_index'),
+        ]
+
+
 # Разделитель нескольких ролей одного актёра в одном спектакле на карточке.
 ACTOR_ROLE_SEPARATOR = ' / '
 
@@ -500,6 +516,9 @@ def sync_performance_cast_to_actors(perf, previous_actor_ids=()):
     `previous_actor_ids` — актёры, состоявшие в спектакле до изменения (нужно,
     чтобы убрать роль у тех, кого удалили из состава). Функция идемпотентна.
     """
+    if settings.PERFORMANCE_RELATIONS_ENABLED:
+        return
+
     title = perf.title
     current = {}
     if not perf.afisha:
@@ -536,6 +555,9 @@ def sync_performance_cast_to_actors(perf, previous_actor_ids=()):
 
 def remove_performance_from_director(perf):
     """Remove a propagated performance from the director's parallel arrays."""
+    if settings.PERFORMANCE_RELATIONS_ENABLED:
+        return
+
     if not perf.director_id or not perf.director_propagated:
         return
 
@@ -588,6 +610,9 @@ def sync_director_performance_entry(perf, *, previous_title=None):
     (`production_collective`, `production_title`, год). Раньше они записывались
     только при первом promote — при последующем редактировании не обновлялись.
     """
+    if settings.PERFORMANCE_RELATIONS_ENABLED:
+        return
+
     if not perf.director_id or not perf.director_propagated:
         return
 
@@ -649,24 +674,30 @@ def sync_actor_roles_to_performances(actor):
 
     Источник правды при сохранении карточки актёра — массивы
     `perfomances` / `role_in_perfomances`. Для каждого названия ищем спектакль
-    в БД (точное совпадение title) и обновляем строки состава. Спектакли,
-    которых нет в базе, пропускаются. Удаление роли у актёра убирает его
-    из состава соответствующего спектакля.
+    в БД (единственное точное совпадение title) и обновляем строки состава.
+    При неизвестном/неоднозначном названии операция отменяется. Будущий состав,
+    не представленный в историческом списке актёра, не удаляется.
     """
+    if settings.PERFORMANCE_RELATIONS_ENABLED:
+        return
+
+    from rest_framework.exceptions import ValidationError
     titles = list(actor.perfomances or [])
     roles = list(actor.role_in_perfomances or [])
+    if len(titles) != len(roles):
+        raise ValidationError({'perfomances': 'Названия и роли не выровнены. Редактируйте состав по ID в карточке спектакля.'})
     titles, roles = coalesce_actor_performance_arrays(titles, roles)
     desired = {}  # performance_id -> [roles]
     for i, raw_title in enumerate(titles):
         title = (raw_title or '').strip()
         if not title:
-            continue
+            raise ValidationError({'perfomances': 'Для роли отсутствует название спектакля.'})
         role = (roles[i] if i < len(roles) else '') or ''
         perfs = Perfomances.objects.filter(title=title, deleted_at__isnull=True)
-        perf = perfs.filter(afisha=False).order_by('id').first() \
-            or perfs.order_by('id').first()
-        if not perf:
-            continue
+        matches = list(perfs)
+        if len(matches) != 1:
+            raise ValidationError({'perfomances': 'Спектакль не найден однозначно. Сохранённые роли не изменены; используйте карточку спектакля по ID.'})
+        perf = matches[0]
         desired.setdefault(perf.id, []).extend(split_actor_roles(role) or [''])
 
     existing = list(
@@ -696,6 +727,9 @@ def sync_actor_roles_to_performances(actor):
 
     for perf_id, rows in by_perf.items():
         if perf_id not in desired:
+            # Future/hidden casts are not represented in the actor's legacy list.
+            if rows[0].performance.afisha or rows[0].performance.deleted_at:
+                continue
             for row in rows:
                 row.delete()
 
@@ -726,7 +760,7 @@ def promote_performance(performance):
         # НЕЗАВИСИМО от раздачи ролей актёрам: отдельный флаг director_propagated
         # позволяет «докатить» режиссёра, если его назначили уже после перевода.
         # Название/коллектив/год — из полей спектакля с дефолтами.
-        if perf.director_id and not perf.director_propagated:
+        if perf.director_id and not perf.director_propagated and not settings.PERFORMANCE_RELATIONS_ENABLED:
             director = DirectorsTheatre.objects.select_for_update().get(
                 pk=perf.director_id)
             prod_title = (perf.production_title or '').strip() or perf.title

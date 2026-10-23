@@ -59,6 +59,7 @@ const primaryColor = '#f2f2f2';
 const accentColor = '#c9c9c9';
 
 interface Actor {
+    performance_credits?: unknown[];
     id: number;
     name: string;
     place_of_work: string;
@@ -579,13 +580,14 @@ export const ActorForm: React.FC<{
                         </AnimatePresence>
                     </Wrap>
 
+                    {initialData?.performance_credits !== undefined && <Text color="gray.400">Изменяйте роли в составе спектакля. Старые записи сохранены для справки.</Text>}
                     <HStack spacing={4}>
                         <FormControl>
                             <FormLabel display="flex" alignItems="center" gap={2}>
                                 <CFaTheaterMasks color={accentColor} />
                                 <Text as="span" fontWeight="semibold">Спектакли</Text>
                             </FormLabel>
-                            <Select
+                            <Select isDisabled={initialData?.performance_credits !== undefined}
                                 placeholder="Выберите спектакль"
                                 value={listInputs.perfomances || ''}
                                 onChange={(e) => handleListInputChange('perfomances', e.target.value)}
@@ -607,7 +609,7 @@ export const ActorForm: React.FC<{
                                 <CFaUser color={accentColor} />
                                 <Text as="span" fontWeight="semibold">Роли</Text>
                             </FormLabel>
-                            <Input
+                            <Input isDisabled={initialData?.performance_credits !== undefined}
                                 value={listInputs.role_in_perfomances || ''}
                                 onChange={(e) => handleListInputChange('role_in_perfomances', e.target.value)}
                                 placeholder="Добавить роль"
@@ -619,7 +621,7 @@ export const ActorForm: React.FC<{
                         </FormControl>
 
                         <Tooltip label="Добавить спектакль" hasArrow placement="top">
-                            <IconButton
+                            <IconButton isDisabled={initialData?.performance_credits !== undefined}
                                 aria-label="Добавить спектакль"
                                 icon={<CFaPlus />}
                                 onClick={() => {
@@ -665,7 +667,7 @@ export const ActorForm: React.FC<{
                                             {currentActor.role_in_perfomances?.[index] &&
                                                 ` (${currentActor.role_in_perfomances[index]})`}
                                         </TagLabel>
-                                        <TagCloseButton onClick={() => {
+                                        <TagCloseButton isDisabled={initialData?.performance_credits !== undefined} onClick={() => {
                                             handleRemoveFromList('perfomances', index);
                                             if (currentActor.role_in_perfomances) {
                                                 const role_in_perfomances = [...currentActor.role_in_perfomances];
