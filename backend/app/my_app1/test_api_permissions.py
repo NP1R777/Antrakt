@@ -1,4 +1,6 @@
 from unittest.mock import patch
+from io import BytesIO
+from PIL import Image
 from urllib.parse import urlencode
 
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -129,7 +131,9 @@ class ImageAccessTests(TestCase):
         self.admin = User.objects.create_superuser(password='p', email='images@test.com')
 
     def upload(self, **data):
-        return self.client.post('/upload-image/', {'image': SimpleUploadedFile('avatar.png', b'image', content_type='image/png'), **data}, format='multipart')
+        buffer = BytesIO()
+        Image.new('RGB', (2, 2)).save(buffer, 'PNG')
+        return self.client.post('/upload-image/', {'image': SimpleUploadedFile('avatar.png', buffer.getvalue(), content_type='image/png'), **data}, format='multipart')
 
     @patch('my_app1.views._minio_client')
     def test_upload_permissions_and_owner_namespace(self, s3):

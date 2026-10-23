@@ -503,7 +503,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         email = obj.author.email or ''
         if email:
             return email.split('@')[0]
-        return obj.author.phone_number or 'Пользователь'
+        return 'Пользователь'
 
     def get_author_email(self, obj):
         # Полный email автора виден только администратору (для связи/предупреждений).

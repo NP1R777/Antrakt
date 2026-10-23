@@ -43,9 +43,10 @@ class ImageService {
             } else {
                 throw new Error(response.data.message || 'Ошибка загрузки изображения');
             }
-        } catch (error) {
-            console.error('Ошибка загрузки изображения:', error);
-            throw error;
+        } catch (error: any) {
+            const data = error?.response?.data;
+            const imageError = Array.isArray(data?.image) ? data.image.join(' ') : data?.image;
+            throw new Error(imageError || data?.error || data?.message || error?.message || 'Ошибка загрузки изображения');
         }
     }
 
@@ -74,7 +75,7 @@ class ImageService {
         if (!allowedTypes.includes(file.type)) {
             return {
                 isValid: false,
-                error: 'Неподдерживаемый тип файла. Разрешены только изображения (JPEG, PNG, GIF, WebP).'
+                error: 'Неподдерживаемый тип файла. Разрешены JPEG, PNG, WebP и статический GIF.'
             };
         }
 
