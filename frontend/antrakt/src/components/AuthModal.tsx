@@ -96,7 +96,7 @@ export default function AuthModal({
             await onResetPassword(resetEmail);
             toast({
                 title: "Проверьте почту",
-                description: "Если аккаунт с такой почтой существует, на неё отправлен новый пароль.",
+                description: "Если аккаунт с такой почтой существует, на неё отправлена ссылка восстановления.",
                 status: "success", duration: 4000, isClosable: true, position: "top",
             });
             setView("auth");
@@ -232,7 +232,7 @@ export default function AuthModal({
                             {view === "forgot" ? (
                                 <Flex direction="column" gap={5}>
                                     <Text color="gray.300" textAlign="center" fontSize="sm">
-                                        Укажите почту, на которую зарегистрирован аккаунт. Мы отправим на неё новый пароль.
+                                        Укажите почту, на которую зарегистрирован аккаунт. Мы отправим на неё ссылку для установки нового пароля.
                                     </Text>
                                     <FormControl>
                                         <FormLabel color="white">Email</FormLabel>
@@ -252,7 +252,7 @@ export default function AuthModal({
                                         px={{ base: 3, sm: 6 }}
                                         minH="44px"
                                     >
-                                        Отправить новый пароль
+                                        Отправить ссылку
                                     </Button>
                                     <Link color="#888" fontSize="sm" textAlign="center" onClick={() => setView("auth")}>
                                         ← Вернуться ко входу

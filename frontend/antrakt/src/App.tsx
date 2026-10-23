@@ -1,4 +1,5 @@
 import React from "react";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import theme from "./styles/theme";
 import Hero from "./sections/Hero";
 import Footer from "./components/Footer";
@@ -108,6 +109,7 @@ function App() {
           <Routes>
             {/* Главная страница */}
             <Route path="/" element={<MainPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             {/* Новые маршруты для страницы команды и актеров */}
             <Route path="/team" element={<TeamPage />} />

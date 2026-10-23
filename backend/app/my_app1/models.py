@@ -22,6 +22,12 @@ except ImportError:
     USE_POSTGRES_FIELDS = False
 
 
+class PasswordResetLimit(models.Model):
+    key = models.CharField(max_length=64, primary_key=True)
+    window_started = models.DateTimeField(db_index=True)
+    count = models.PositiveIntegerField(default=0)
+
+
 class CustomUserManager(BaseUserManager):
     def create_user(self, password, email=None, phone_number=None, **extra_fields):
         if not email and not phone_number:

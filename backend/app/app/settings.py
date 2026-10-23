@@ -95,6 +95,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'app.wsgi.application'
 
 REST_FRAMEWORK = {
+    'NUM_PROXIES': config('TRUSTED_PROXY_COUNT', default=0, cast=int),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'my_app1.authentication.VersionedJWTAuthentication',
     ),
@@ -129,6 +130,8 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': None,
     'SLIDING_TOKEN_REFRESH_LIFETIME': None,
 }
+
+PASSWORD_RESET_TIMEOUT = 30 * 60
 
 # Публичный URL фронтенда (без завершающего слэша) — для sitemap.xml / robots.txt.
 # В проде задаётся через FRONTEND_BASE_URL=https://ваш-домен.

@@ -109,7 +109,7 @@ class AccountSessionTests(TestCase):
         self.user.refresh_from_db()
         self.assertIsNotNone(self.user.deleted_at)
 
-    @patch('my_app1.views._send_new_password_email')
+    @patch('my_app1.views._send_password_reset_email')
     def test_password_reset_ignores_deleted_accounts(self, send):
         self.delete_account()
         response = self.client.post('/password-reset/', {'email': self.user.email}, format='json')
