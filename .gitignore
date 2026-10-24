@@ -157,3 +157,6 @@ backups/
 *.dump
 *.backup
 *.sql.gz
+
+# Machine-specific Docker build trust configuration.
+docker-compose.*.local.yml

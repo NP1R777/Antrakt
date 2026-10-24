@@ -1,5 +1,6 @@
 from io import BytesIO, StringIO
 from pathlib import Path
+import os
 from unittest.mock import patch
 
 from PIL import Image
@@ -123,7 +124,8 @@ class DevelopmentDataTests(TestCase):
         self.assertFalse(demo.is_superuser)
 
     def test_checked_in_dumps_contain_only_migration_metadata(self):
-        root = Path(__file__).resolve().parents[3]
+        fixture_root = os.environ.get('REPOSITORY_FIXTURE_ROOT')
+        root = Path(fixture_root) if fixture_root else Path(__file__).resolve().parents[3]
         for name in ['database/init.sql', 'backend/database/init.sql']:
             table = None
             rows = 0

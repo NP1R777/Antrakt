@@ -11,13 +11,13 @@ services:
   db:
     image: postgres:17
     environment:
-      POSTGRES_DB: ${DATABASE_NAME}
-      POSTGRES_USER: ${DATABASE_USER}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME:?Set DATABASE_NAME in .env.prod}
+      POSTGRES_USER: ${DATABASE_USER:?Set DATABASE_USER in .env.prod}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in .env.prod}
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:?Set DATABASE_USER in .env.prod} -d ${DATABASE_NAME:?Set DATABASE_NAME in .env.prod}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -28,14 +28,14 @@ services:
     image: minio/minio:RELEASE.2025-09-07T16-13-09Z
     command: server /data --console-address ":9001"
     ports:
-      - "9001:9001"
+      - "127.0.0.1:9001:9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
-      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:?Set MINIO_ACCESS_KEY in .env.prod}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?Set MINIO_SECRET_KEY in .env.prod}
     volumes:
       - minio_data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "curl", "--noproxy", "*", "-f", "http://127.0.0.1:9000/minio/health/live"]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -45,16 +45,21 @@ services:
   # Одноразовое создание бакета и настройка публичного чтения изображений.
   minio-init:
     image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+    environment:
+      NO_PROXY: minio
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?Set MINIO_ACCESS_KEY in .env.prod}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?Set MINIO_SECRET_KEY in .env.prod}
+      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME:?Set MINIO_BUCKET_NAME in .env.prod}
     depends_on:
       minio:
         condition: service_healthy
-    entrypoint: >
-      /bin/sh -c "
-      mc alias set local http://minio:9000 ${MINIO_ACCESS_KEY} ${MINIO_SECRET_KEY} &&
-      mc mb --ignore-existing local/${MINIO_BUCKET_NAME} &&
-      mc anonymous set download local/${MINIO_BUCKET_NAME} &&
-      echo 'Бакет ${MINIO_BUCKET_NAME} готов (публичное чтение включено)'
-      "
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - |
+        mc alias set local http://minio:9000 "$${MINIO_ACCESS_KEY}" "$${MINIO_SECRET_KEY}"
+        mc mb --ignore-existing "local/$${MINIO_BUCKET_NAME}"
+        mc anonymous set download "local/$${MINIO_BUCKET_NAME}"
     restart: "no"
 
   backend:
@@ -70,23 +75,24 @@ services:
       DATABASE_PORT: 5432
       MINIO_ENDPOINT: http://minio:9000
       # Публичный адрес хранилища для ссылок на изображения.
-      MINIO_CUSTOM_DOMAIN: s3.${DOMAIN}/${MINIO_BUCKET_NAME}
+      MINIO_CUSTOM_DOMAIN: s3.${DOMAIN:?Set DOMAIN in .env.prod}/${MINIO_BUCKET_NAME:?Set MINIO_BUCKET_NAME in .env.prod}
       MINIO_URL_PROTOCOL: "https:"
       # Прод-безопасность.
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env.prod}
       DEBUG: "False"
       SECURE_HTTPS: "True"
-      ALLOWED_HOSTS: api.${DOMAIN}
+      ALLOWED_HOSTS: api.${DOMAIN:?Set DOMAIN in .env.prod}
       CORS_ALLOW_ALL_ORIGINS: "False"
-      CORS_ALLOWED_ORIGINS: https://${DOMAIN}
-      CSRF_TRUSTED_ORIGINS: https://${DOMAIN},https://api.${DOMAIN}
+      CORS_ALLOWED_ORIGINS: https://${DOMAIN:?Set DOMAIN in .env.prod}
+      CSRF_TRUSTED_ORIGINS: https://${DOMAIN:?Set DOMAIN in .env.prod},https://api.${DOMAIN:?Set DOMAIN in .env.prod}
       # Базовый URL сайта для sitemap.xml / robots.txt
-      FRONTEND_BASE_URL: https://${DOMAIN}
-      PLACEHOLDER_IMAGE_URL: ${PLACEHOLDER_IMAGE_URL:-https://s3.${DOMAIN}/${MINIO_BUCKET_NAME:-antrakt-images}/zaglushka.jpg}
+      FRONTEND_BASE_URL: https://${DOMAIN:?Set DOMAIN in .env.prod}
+      PLACEHOLDER_IMAGE_URL: ${PLACEHOLDER_IMAGE_URL:-https://s3.${DOMAIN:?Set DOMAIN in .env.prod}/${MINIO_BUCKET_NAME:-antrakt-images}/zaglushka.jpg}
     depends_on:
       db:
         condition: service_healthy
-      minio:
-        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
     healthcheck:
       # Host + X-Forwarded-Proto: иначе Django отвечает 400 (ALLOWED_HOSTS)
       # или редиректит на HTTPS (SECURE_SSL_REDIRECT) при проверке с localhost.
@@ -95,7 +101,7 @@ services:
           "CMD",
           "curl",
           "-f",
-          "-H", "Host: api.${DOMAIN}",
+          "-H", "Host: api.${DOMAIN:?Set DOMAIN in .env.prod}",
           "-H", "X-Forwarded-Proto: https",
           "http://localhost:8000/health/",
         ]
@@ -116,7 +122,7 @@ services:
       DATABASE_HOST: db
       DATABASE_PORT: 5432
       MINIO_ENDPOINT: http://minio:9000
-      MINIO_CUSTOM_DOMAIN: s3.${DOMAIN}/${MINIO_BUCKET_NAME}
+      MINIO_CUSTOM_DOMAIN: s3.${DOMAIN:?Set DOMAIN in .env.prod}/${MINIO_BUCKET_NAME:?Set MINIO_BUCKET_NAME in .env.prod}
       MINIO_URL_PROTOCOL: "https:"
       DEBUG: "False"
       SECURE_HTTPS: "False"
@@ -125,10 +131,10 @@ services:
       db:
         condition: service_healthy
       backend:
-        condition: service_started
+        condition: service_healthy
     entrypoint: >
       /bin/sh -c "while true; do
-        python manage.py promote_past_performances || true;
+        python manage.py promote_past_performances || echo 'Promotion failed; see the error above' >&2;
         sleep 60;
       done"
     restart: unless-stopped
@@ -138,11 +144,17 @@ services:
       context: ./frontend/antrakt
       dockerfile: Dockerfile.prod
       args:
-        REACT_APP_API_URL: https://api.${DOMAIN}
-        REACT_APP_MEDIA_URL: https://s3.${DOMAIN}
-        REACT_APP_PLACEHOLDER_IMAGE_URL: https://s3.${DOMAIN}/${MINIO_BUCKET_NAME:-antrakt-images}/zaglushka.jpg
+        REACT_APP_API_URL: https://api.${DOMAIN:?Set DOMAIN in .env.prod}
+        REACT_APP_MEDIA_URL: https://s3.${DOMAIN:?Set DOMAIN in .env.prod}
+        REACT_APP_PLACEHOLDER_IMAGE_URL: https://s3.${DOMAIN:?Set DOMAIN in .env.prod}/${MINIO_BUCKET_NAME:-antrakt-images}/zaglushka.jpg
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-Y", "off", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
   caddy:
@@ -151,15 +163,18 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      DOMAIN: ${DOMAIN}
+      DOMAIN: ${DOMAIN:?Set DOMAIN in .env.prod}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
-      - frontend
-      - backend
-      - minio
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
