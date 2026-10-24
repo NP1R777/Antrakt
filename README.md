@@ -82,10 +82,12 @@ secrets:
 
 - Backend-тесты находятся в `backend/app/my_app1`, используют отдельную тестовую БД.
 - Целевые Jest-тесты: `AuthService.test.ts`, `ImageService.test.ts`,
-  `ResetPasswordPage.test.tsx`, `PerformanceCredits.test.tsx`.
+  `ResetPasswordPage.test.tsx`, `PerformanceCredits.test.tsx`,
+  `AfishaDetail.test.tsx`, `ShowTickets.test.tsx`.
 - Полный старый Jest-набор всё ещё содержит две известные неисправные suites:
   пустой `stringMatching.test.ts` и boilerplate `App.test.js` с Chakra/Jest resolver.
 - Сведения о SQL, backup, Pillow и приватности: [DATA_AND_IMAGES.md](DATA_AND_IMAGES.md).
+- Ссылки афиши и билеты по показам: [AFISHA.md](AFISHA.md).
 - Права API и восстановление пароля: [API_ACCESS.md](API_ACCESS.md).
 - Поэтапный перенос связей: [PERFORMANCE_RELATIONS.md](PERFORMANCE_RELATIONS.md).
   `PERFORMANCE_RELATIONS_ENABLED=False` по умолчанию; сам запуск контейнеров перенос не выполняет.

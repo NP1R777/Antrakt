@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
+import { afishaPath } from "../utils/afisha";
 import axios from "axios";
 import {
     Box,
@@ -46,7 +47,6 @@ const AfishaPage: React.FC = () => {
     const [afishaItems, setAfishaItems] = useState<AfishaItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const navigate = useNavigate();
 
     usePageMeta(
         'Афиша',
@@ -198,7 +198,9 @@ const AfishaPage: React.FC = () => {
                                     minW="0"
                                 >
                                     <MotionBox
-                                        as="div"
+                                        as={RouterLink}
+                                        to={afishaPath(item.type, item.id)}
+                                        _hover={{ textDecoration: 'none' }}
                                         bg="linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(255, 255, 255, 0.06))"
                                         borderRadius="xl"
                                         overflow="hidden"
@@ -210,10 +212,6 @@ const AfishaPage: React.FC = () => {
                                             boxShadow: "0 10px 25px rgba(255, 255, 255, 0.22)",
                                             transition: { duration: 0.3 }
                                         }}
-                                        onClick={() => navigate(
-                                            `/${item.type === 'archive' ? 'projects' : item.type}/${item.id}`,
-                                            { state: { item, from: '/afisha' } }
-                                        )}
                                         cursor="pointer"
                                         display="flex"
                                         flexDirection="column"

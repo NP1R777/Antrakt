@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { AfishaType, afishaPath } from "../utils/afisha";
 import { API_URL } from '../config'
 import { getImageUrl } from '../utils/imageUrl';
 import PageFetchError from "../components/PageFetchError";
@@ -12,6 +13,7 @@ const MotionGridItem = motion(GridItem);
 
 // Интерфейс для данных спектакля
 interface Performance {
+    type: AfishaType;
     id: number;
     title: string;
     image_url: string;
@@ -129,7 +131,7 @@ export default function Performances() {
                     >
                         {performances.map((performance) => (
                             <MotionGridItem
-                                key={performance.id}
+                                key={`${performance.type}-${performance.id}`}
                                 initial={{ opacity: 0, y: 30 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true, margin: "-100px" }}
@@ -218,7 +220,7 @@ function PerformanceCard({ performance }: { performance: Performance }) {
 
                     <Button
                         as={RouterLink}
-                        to={`/performance/${performance.id}`}
+                        to={afishaPath(performance.type, performance.id)}
                         variant="theater"
                         size="md"
                         rightIcon={<span>→</span>}

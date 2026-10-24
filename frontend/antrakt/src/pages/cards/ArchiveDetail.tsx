@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Navigate } from "react-router-dom";
 import axios from "axios";
 import {
     Box,
@@ -109,6 +109,10 @@ const ArchiveDetail: React.FC = () => {
                 <Footer />
             </Box>
         );
+    }
+
+    if (project.afisha) {
+        return <Navigate to={`/afisha/archive/${id}`} replace />;
     }
 
     return (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Navigate } from "react-router-dom";
 import axios from "axios";
 import {
     Box,
@@ -305,6 +305,10 @@ const PerformanceDetail: React.FC = () => {
                 <Footer />
             </Box>
         );
+    }
+
+    if (performance.afisha) {
+        return <Navigate to={`/afisha/performance/${id}`} replace />;
     }
 
     return (

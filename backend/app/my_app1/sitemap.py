@@ -63,10 +63,10 @@ def _collect_urls():
     add('/about', changefreq='monthly', priority='0.6')
 
     for perf in Perfomances.objects.filter(deleted_at=None).only(
-        'id', 'updated_at', 'created_at', 'premiere_date'
+        'id', 'updated_at', 'created_at', 'premiere_date', 'afisha'
     ):
         add(
-            f'/performance/{perf.id}',
+            f'/afisha/performance/{perf.id}' if perf.afisha else f'/performance/{perf.id}',
             lastmod=perf.updated_at or perf.premiere_date or perf.created_at,
             changefreq='weekly',
             priority='0.7',
@@ -103,10 +103,10 @@ def _collect_urls():
         )
 
     for item in Archive.objects.filter(deleted_at=None).only(
-        'id', 'updated_at', 'created_at', 'premiere_date'
+        'id', 'updated_at', 'created_at', 'premiere_date', 'afisha'
     ):
         add(
-            f'/projects/{item.id}',
+            f'/afisha/archive/{item.id}' if item.afisha else f'/projects/{item.id}',
             lastmod=item.updated_at or item.premiere_date or item.created_at,
             changefreq='monthly',
             priority='0.6',
