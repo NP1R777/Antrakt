@@ -52,6 +52,7 @@ const primaryColor = '#f2f2f2';
 const accentColor = '#c9c9c9';
 
 interface Director {
+    performance_credits?: unknown[];
     id: number;
     name: string;
     description: string;
@@ -319,7 +320,7 @@ export const DirectorForm: React.FC<{
                             <Text as="span" fontWeight="semibold">Поставленные спектакли</Text>
                         </FormLabel>
 
-                        <Button
+                        <Button isDisabled={initialData?.performance_credits !== undefined}
                             leftIcon={<CFaPlus />}
                             onClick={openPerfomanceModal}
                             bg={accentColor}
@@ -329,6 +330,7 @@ export const DirectorForm: React.FC<{
                             Добавить спектакль
                         </Button>
 
+                        {initialData?.performance_credits !== undefined && <Text color="gray.400" mb={3}>Изменяйте постановку в карточке спектакля. Старые записи сохранены для справки.</Text>}
                         <Wrap spacing={2} minH="50px" mb={4}>
                             <AnimatePresence>
                                 {currentDirector.perfomances?.map((perfomance, index) => (
@@ -349,7 +351,7 @@ export const DirectorForm: React.FC<{
                                             {currentDirector.team_name?.[index] && ` (${currentDirector.team_name[index]})`}
                                             {currentDirector.years?.[index] && `, ${currentDirector.years[index]} год`}
                                         </TagLabel>
-                                        <TagCloseButton onClick={() => handleRemovePerfomance(index)} />
+                                        <TagCloseButton isDisabled={initialData?.performance_credits !== undefined} onClick={() => handleRemovePerfomance(index)} />
                                     </MotionTag>
                                 ))}
                             </AnimatePresence>

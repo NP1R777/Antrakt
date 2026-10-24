@@ -133,6 +133,9 @@ SIMPLE_JWT = {
 
 PASSWORD_RESET_TIMEOUT = 30 * 60
 
+# Enable only after backup restoration and an explicitly reviewed relationship import.
+PERFORMANCE_RELATIONS_ENABLED = config('PERFORMANCE_RELATIONS_ENABLED', default=False, cast=bool)
+
 # Публичный URL фронтенда (без завершающего слэша) — для sitemap.xml / robots.txt.
 # В проде задаётся через FRONTEND_BASE_URL=https://ваш-домен.
 FRONTEND_BASE_URL = config('FRONTEND_BASE_URL', default='http://localhost:3000')

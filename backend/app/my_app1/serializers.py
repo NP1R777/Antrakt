@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from django.db import transaction
+from django.conf import settings
+from .performance_relations import performance_credits
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from .models import (User, Perfomances, Actors, DirectorsTheatre,
@@ -380,6 +382,9 @@ class ActorsSerializer(BlankToNullMixin, serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
+        if settings.PERFORMANCE_RELATIONS_ENABLED:
+            data['performance_credits'] = performance_credits(instance)
+            return data
         titles, roles = coalesce_actor_performance_arrays(
             data.get('perfomances'), data.get('role_in_perfomances')
         )
@@ -387,9 +392,23 @@ class ActorsSerializer(BlankToNullMixin, serializers.ModelSerializer):
         data['role_in_perfomances'] = roles
         return data
 
+    def validate(self, attrs):
+        roles_changed = any(field in attrs and attrs[field] != getattr(self.instance, field, [])
+                            for field in ('perfomances', 'role_in_perfomances'))
+        if roles_changed:
+            titles = attrs.get('perfomances', getattr(self.instance, 'perfomances', []))
+            roles = attrs.get('role_in_perfomances', getattr(self.instance, 'role_in_perfomances', []))
+            if len(titles) != len(roles):
+                raise serializers.ValidationError({'role_in_perfomances': 'Для каждого названия должна быть сохранена своя роль. Данные не изменены.'})
+        if settings.PERFORMANCE_RELATIONS_ENABLED:
+            for field in ('perfomances', 'role_in_perfomances'):
+                if field in attrs and attrs[field] != getattr(self.instance, field, []):
+                    raise serializers.ValidationError({field: 'В новом режиме роли редактируются в составе спектакля по ID.'})
+        return attrs
+
     def create(self, validated_data):
         with transaction.atomic():
-            if 'perfomances' in validated_data or 'role_in_perfomances' in validated_data:
+            if not settings.PERFORMANCE_RELATIONS_ENABLED and ('perfomances' in validated_data or 'role_in_perfomances' in validated_data):
                 titles, roles = coalesce_actor_performance_arrays(
                     validated_data.get('perfomances'),
                     validated_data.get('role_in_perfomances'),
@@ -402,7 +421,9 @@ class ActorsSerializer(BlankToNullMixin, serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         with transaction.atomic():
-            if 'perfomances' in validated_data or 'role_in_perfomances' in validated_data:
+            roles_changed = any(field in validated_data and validated_data[field] != getattr(instance, field)
+                                for field in ('perfomances', 'role_in_perfomances'))
+            if not settings.PERFORMANCE_RELATIONS_ENABLED and roles_changed:
                 titles, roles = coalesce_actor_performance_arrays(
                     validated_data.get('perfomances', instance.perfomances),
                     validated_data.get('role_in_perfomances', instance.role_in_perfomances),
@@ -413,13 +434,25 @@ class ActorsSerializer(BlankToNullMixin, serializers.ModelSerializer):
                 setattr(instance, attr, value)
             instance.save()
             # Если менялись роли/спектакли — синхронизируем состав спектаклей.
-            if ('perfomances' in validated_data
-                    or 'role_in_perfomances' in validated_data):
+            if roles_changed:
                 sync_actor_roles_to_performances(instance)
         return instance
 
 
 class DirectorsSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        if settings.PERFORMANCE_RELATIONS_ENABLED:
+            for field in ('perfomances', 'years', 'team_name'):
+                if field in attrs and attrs[field] != getattr(self.instance, field, []):
+                    raise serializers.ValidationError({field: 'В новом режиме постановка редактируется в карточке спектакля по ID.'})
+        return attrs
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if settings.PERFORMANCE_RELATIONS_ENABLED:
+            data['performance_credits'] = performance_credits(instance)
+        return data
+
     class Meta:
         model = DirectorsTheatre
         fields = '__all__'

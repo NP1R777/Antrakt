@@ -1,3 +1,4 @@
+import PerformanceCredits, { PerformanceCredit } from '../../components/PerformanceCredits';
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -49,6 +50,7 @@ const MotionBox = motion(Box);
 
 // Интерфейс для данных режиссёра
 interface ServerDirector {
+    performance_credits?: PerformanceCredit[];
     name: string;
     image_url: string;
     description: string;
@@ -289,7 +291,8 @@ const DirectorDetail: React.FC = () => {
                                     </Text>
                                 </Box>
 
-                                {director.perfomances?.length > 0 && (
+                                <PerformanceCredits credits={director.performance_credits} />
+                                {director.performance_credits === undefined && director.perfomances?.length > 0 && (
                                     <Box w="full" mt={6}>
                                         <Heading as="h3" size="sm" mb={3} display="flex" alignItems="center" color="white">
                                             <CFaTheaterMasks mr={2} color="#d9d9d9" />

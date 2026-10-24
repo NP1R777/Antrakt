@@ -45,8 +45,19 @@ def performance_queryset():
     )
 
 
+def people_queryset(model):
+    query = model.objects.all()
+    if settings.PERFORMANCE_RELATIONS_ENABLED:
+        relations = ['legacy_credits__performance']
+        relations.append('cast_roles__performance' if model is Actors else 'directed_performances')
+        query = query.prefetch_related(*relations)
+    return query
+
+
 def public_object_or_404(model, request, **lookup):
     queryset = model.objects.all() if isinstance(model, type) else model.all()
+    if model is Actors or model is DirectorsTheatre:
+        queryset = people_queryset(model)
     if not is_superuser(request.user):
         queryset = queryset.filter(deleted_at__isnull=True)
         if model is News:
@@ -523,7 +534,7 @@ class ActorsList(APIView):
 
 
     def get(self, request, format=None):
-        actors = self.model_class.objects.filter(deleted_at=None).order_by('id')
+        actors = people_queryset(self.model_class).filter(deleted_at=None).order_by('id')
         # ?active=1 — только действующие актёры (без выбывших): используется,
         # например, в выпадающем списке состава при выборе ролей в админке.
         if str(request.query_params.get('active', '')).lower() in ('1', 'true', 'yes'):
@@ -548,7 +559,7 @@ class ActorsListAdmin(APIView):
 
 
     def get(self, request, format=None):
-        actors = self.model_class.objects.order_by('id')
+        actors = people_queryset(self.model_class).order_by('id')
         serializer = self.serializer_class(actors, many=True)
         return Response(serializer.data)
 
@@ -590,7 +601,7 @@ class DirectorsList(APIView):
 
 
     def get(self, request, format=None):
-        directors = self.model_class.objects.filter(deleted_at=None)
+        directors = people_queryset(self.model_class).filter(deleted_at=None)
         serializer = self.serializer_class(directors, many=True)
         return Response(serializer.data)
     
@@ -611,7 +622,7 @@ class DirectorsListAdmin(APIView):
 
 
     def get(self, request, format=None):
-        directors = self.model_class.objects.order_by('id')
+        directors = people_queryset(self.model_class).order_by('id')
         serializer = self.serializer_class(directors, many=True)
         return Response(serializer.data)
 

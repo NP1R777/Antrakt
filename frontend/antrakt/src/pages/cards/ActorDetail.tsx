@@ -1,3 +1,4 @@
+import PerformanceCredits, { PerformanceCredit } from '../../components/PerformanceCredits';
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -39,6 +40,7 @@ const CFaMusic = chakra(FaMusic as any);
 const MotionBox = motion(Box);
 
 interface ServerActor {
+    performance_credits?: PerformanceCredit[];
     name: string;
     image_url: string;
     place_of_work: string;
@@ -154,6 +156,8 @@ const ActorDetail: React.FC = () => {
         const performanceId = findPerformanceIdByTitle(performanceTitle);
         if (performanceId) navigate(`/performance/${performanceId}`);
     };
+
+    const performanceCount = actor?.performance_credits?.length ?? actor?.perfomances?.length ?? 0;
 
     if (loading) {
         return (
@@ -285,8 +289,8 @@ const ActorDetail: React.FC = () => {
                                             <CFaFilm mr={2} color="#d9d9d9" />
                                             Творчество
                                         </Heading>
-                                        {actor.perfomances?.length ? (
-                                            <Text fontSize="md" color="gray.400"><b>Спектаклей:</b> {actor.perfomances.length} {performanceDeclension(actor.perfomances.length)}</Text>
+                                        {performanceCount ? (
+                                            <Text fontSize="md" color="gray.400"><b>Спектаклей:</b> {performanceCount} {performanceDeclension(performanceCount)}</Text>
                                         ) : null}
                                         {actor.favorite_film?.length ? (
                                             <Text fontSize="md" color="gray.400"><b>Любимый фильм:</b> {actor.favorite_film.join(", ")}</Text>
@@ -316,7 +320,8 @@ const ActorDetail: React.FC = () => {
                                     </Box>
                                 )}
 
-                                {actor.perfomances?.length ? (
+                                <PerformanceCredits credits={actor.performance_credits} />
+                                {actor.performance_credits === undefined && actor.perfomances?.length ? (
                                     <Box w="full" mt={6}>
                                         <Heading as="h3" size="sm" mb={3} display="flex" alignItems="center" color="white">
                                             <CFaTheaterMasks mr={2} color="#d9d9d9" />
