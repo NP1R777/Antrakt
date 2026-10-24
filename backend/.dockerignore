@@ -6,3 +6,12 @@ __pycache__/
 venv/
 .env.production
 .DS_Store
+.env.*
+backups/
+*.dump
+*.backup
+**/.env
+**/.env.*
+**/*.dump
+**/*.backup
+**/__pycache__/

@@ -1,22 +1,17 @@
-FROM python:3.11-slim
-
+FROM python:3.11-slim-bookworm
+ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 WORKDIR /app
-
-# Установка системных зависимостей
-RUN apt-get update && apt-get install -y \
-    gcc \
-    libpq-dev \
+RUN apt-get update && apt-get install -y --no-install-recommends libpq5 curl \
     && rm -rf /var/lib/apt/lists/*
-
-# Копирование requirements и установка зависимостей
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Копирование исходного кода (backend/ -> /app/).
-# Django-проект лежит в backend/app (manage.py), поэтому рабочая
-# директория — /app/app, а модуль настроек — app.settings.
-COPY . .
-WORKDIR /app/app
-
-# Запуск приложения
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "app.wsgi:application"]
+# Optional trusted CA for corporate/cloud build proxies; TLS verification stays enabled.
+RUN --mount=type=secret,id=build_ca \
+    if [ -s /run/secrets/build_ca ]; then \
+      PIP_CERT=/run/secrets/build_ca pip install --no-cache-dir -r requirements.txt; \
+    else pip install --no-cache-dir -r requirements.txt; fi
+COPY app/ /app/
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+EXPOSE 8000
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

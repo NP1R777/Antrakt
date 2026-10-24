@@ -1,0 +1,6 @@
+# Optional development override for an existing named MinIO volume.
+# LEGACY_MINIO_VOLUME=minio_data docker compose -f docker-compose.yml -f docker-compose.legacy-minio.yml up -d --build
+volumes:
+  minio_data:
+    external: true
+    name: ${LEGACY_MINIO_VOLUME:?Set LEGACY_MINIO_VOLUME to your existing development volume}
