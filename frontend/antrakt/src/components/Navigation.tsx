@@ -230,8 +230,13 @@ export default function Navigation() {
                     </Link>
                 </Box>
 
-                <Flex display={{ base: "none", md: "flex" }} align="center" gap={6}>
-                    {NAV_ITEMS.map((item) => (
+                <Flex display={{ base: "none", xl: "flex" }} align="center" gap={4}>
+                    {NAV_ITEMS.map((item) => item.href === 'afisha' ? (
+                        <Button key={item.href} as={RouterLink} to="/afisha" colorScheme="yellow" size="sm"
+                            flexShrink={0} _focusVisible={{ outline: '3px solid white', outlineOffset: '4px' }}>
+                            Смотреть афишу
+                        </Button>
+                    ) : (
                         <Link
                             key={item.label}
                             as={RouterLink}
@@ -311,7 +316,7 @@ export default function Navigation() {
                 </Flex>
 
                 <IconButton
-                    display={{ base: "flex", md: "none" }}
+                    display={{ base: "flex", xl: "none" }}
                     onClick={onToggle}
                     icon={isOpen ? <CloseIcon w={4} h={4} /> : <HamburgerIcon w={6} h={6} />}
                     variant="ghost"
@@ -322,9 +327,15 @@ export default function Navigation() {
             </Flex>
 
             <Collapse in={isOpen} animateOpacity>
-                <Box display={{ md: "none" }} bg="rgba(0, 0, 0, 0.95)" px={{ base: 2, sm: 4 }} py={2}>
+                <Box display={{ xl: "none" }} bg="rgba(0, 0, 0, 0.95)" px={{ base: 2, sm: 4 }} py={2}>
                     <Stack as="nav" spacing={4}>
-                        {NAV_ITEMS.map((item) => (
+                        {NAV_ITEMS.map((item) => item.href === 'afisha' ? (
+                            <Button key={item.href} as={RouterLink} to="/afisha" colorScheme="yellow"
+                                onClick={onToggle} w="full"
+                                _focusVisible={{ outline: '3px solid white', outlineOffset: '4px' }}>
+                                Смотреть афишу
+                            </Button>
+                        ) : (
                             <Link
                                 key={item.label}
                                 as={RouterLink}

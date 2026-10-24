@@ -1,3 +1,4 @@
+import Image from "../../components/ContentImage";
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Navigate } from "react-router-dom";
 import axios from "axios";
@@ -6,7 +7,6 @@ import {
     VStack,
     Heading,
     Text,
-    Image,
     Grid,
     GridItem,
     Flex,

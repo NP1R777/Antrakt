@@ -1,3 +1,4 @@
+import Image from "../components/ContentImage";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -9,7 +10,6 @@ import {
     Heading,
     Flex,
     Button,
-    Image,
     Container,
     chakra,
     Spinner

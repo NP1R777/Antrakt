@@ -1,3 +1,4 @@
+import Image from "../../components/ContentImage";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../../config";
@@ -9,7 +10,6 @@ import {
     VStack,
     Heading,
     Text,
-    Image,
     Grid,
     GridItem,
     Button,

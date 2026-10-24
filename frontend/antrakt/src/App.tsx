@@ -1,3 +1,4 @@
+import NotFoundPage from "./pages/NotFoundPage";
 import React from "react";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import theme from "./styles/theme";
@@ -128,7 +129,6 @@ function App() {
             <Route path="/projects/:id" element={<ArchiveDetail />} />
             <Route path="/archive" element={<Navigate to="/projects" replace />} />
             <Route path="/archive/:id" element={<LegacyArchiveRedirect />} />
-            <Route path="/:type/:id" element={<AfishaDetail />} />
             <Route path="/profile/:id" element={<ProfilePage />} />
 
             {/* Админ-панель */}
@@ -266,8 +266,8 @@ function App() {
               }
             />
 
-            {/* Перенаправление на главную для неизвестных маршрутов */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* Неизвестный адрес сохраняется, показываем страницу 404. */}
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
           </SiteContentProvider>
           </AuthModalProvider>

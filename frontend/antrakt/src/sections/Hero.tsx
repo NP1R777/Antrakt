@@ -1,4 +1,4 @@
-import { Box, Heading, Text, Button, Flex } from "@chakra-ui/react";
+import { Box, Heading, Text, Flex } from "@chakra-ui/react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useSiteContent } from "../contexts/SiteContentContext";
 import { MEDIA_URL } from '../config';

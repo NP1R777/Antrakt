@@ -1,3 +1,4 @@
+import Image from "../../components/ContentImage";
 import PerformanceCredits, { PerformanceCredit } from '../../components/PerformanceCredits';
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -7,7 +8,6 @@ import {
     VStack,
     Heading,
     Text,
-    Image,
     Grid,
     GridItem,
     Flex,

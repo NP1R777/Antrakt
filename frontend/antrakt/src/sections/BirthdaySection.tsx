@@ -1,5 +1,6 @@
+import Image from "../components/ContentImage";
 import React, { useEffect, useState } from 'react';
-import { Box, Container, Heading, Text, Image, VStack } from '@chakra-ui/react';
+import { Box, Container, Heading, Text, VStack } from "@chakra-ui/react";
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { API_URL } from '../config'
