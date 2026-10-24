@@ -123,6 +123,7 @@ function App() {
             <Route path="/news" element={<NewsPage />} />
             <Route path="/news/:id" element={<NewsDetail />} />
             <Route path="/afisha" element={<AfishaPage />} />
+            <Route path="/afisha/:type/:id" element={<AfishaDetail />} />
             <Route path="/projects" element={<ArchivePage />} />
             <Route path="/projects/:id" element={<ArchiveDetail />} />
             <Route path="/archive" element={<Navigate to="/projects" replace />} />

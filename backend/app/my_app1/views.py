@@ -883,7 +883,7 @@ class AfishaList(APIView):
             afisha=True, deleted_at=None
         ).select_related('director').prefetch_related('shows')
 
-        archives = Archive.objects.filter(afisha=True).values(
+        archives = Archive.objects.filter(afisha=True, deleted_at__isnull=True).values(
             'id', 'title', 'description', 'premiere_date', 'age_limit', 'image_url'
         )
 
