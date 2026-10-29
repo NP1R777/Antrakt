@@ -53,6 +53,10 @@ Production import needs separately authorized backup restoration and review. See
 
 ## Product backlog
 
+The performance admin form must retain its established appearance and workflow.
+Its internal components live in frontend/antrakt/src/pages/admin/forms/performance;
+do not redesign it without explicit user approval.
+
 The owner expects autonomous routine operation. Administrators primarily publish
 performances, news and photos; do not introduce mandatory review queues or recurring
 manual maintenance into ordinary site operation. Preserve automatic performance
