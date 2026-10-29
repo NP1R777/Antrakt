@@ -15,11 +15,12 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from my_app1 import views
+from my_app1.page_metadata import PageMetadataView, PublicPageView
 from my_app1.sitemap import RobotsTxtView, SitemapView
 from drf_yasg import openapi
 from django.contrib import admin
 from django.http import JsonResponse
-from django.urls import path, include
+from django.urls import path, include, re_path
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from django.views.generic import TemplateView
@@ -46,6 +47,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
     path('health/', health_check, name='health-check'),
+    path('page-metadata/', PageMetadataView.as_view(), name='page-metadata'),
+    re_path(r'^public-page/(?P<page_path>.*)$', PublicPageView.as_view(), name='public-page'),
     path('sitemap.xml', SitemapView.as_view(), name='sitemap'),
     path('robots.txt', RobotsTxtView.as_view(), name='robots-txt'),
     path('users/', views.UserList.as_view(), name='user-list'),

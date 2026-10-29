@@ -81,12 +81,13 @@ services:
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env.prod}
       DEBUG: "False"
       SECURE_HTTPS: "True"
-      ALLOWED_HOSTS: api.${DOMAIN:?Set DOMAIN in .env.prod}
+      ALLOWED_HOSTS: api.${DOMAIN:?Set DOMAIN in .env.prod},backend
       CORS_ALLOW_ALL_ORIGINS: "False"
       CORS_ALLOWED_ORIGINS: https://${DOMAIN:?Set DOMAIN in .env.prod}
       CSRF_TRUSTED_ORIGINS: https://${DOMAIN:?Set DOMAIN in .env.prod},https://api.${DOMAIN:?Set DOMAIN in .env.prod}
       # Базовый URL сайта для sitemap.xml / robots.txt
       FRONTEND_BASE_URL: https://${DOMAIN:?Set DOMAIN in .env.prod}
+      PUBLIC_SPA_INDEX_URL: http://frontend/index.html
       PLACEHOLDER_IMAGE_URL: ${PLACEHOLDER_IMAGE_URL:-https://s3.${DOMAIN:?Set DOMAIN in .env.prod}/${MINIO_BUCKET_NAME:-antrakt-images}/zaglushka.jpg}
     depends_on:
       db:

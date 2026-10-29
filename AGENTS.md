@@ -26,6 +26,10 @@ docker-compose.legacy-minio.yml override; see README.md. Do not change the stora
 or production project/volume names implicitly. Never run down -v on user data.
 
 Backend: python manage.py test my_app1 --noinput from backend/app (Docker: /app).
+Public production HTML passes through nginx → backend /public-page/ → frontend /index.html.
+The exact /index.html location must stay static to prevent a proxy loop.
+PUBLIC_SPA_INDEX_URL is configured in production Compose; see LINK_PREVIEWS.md.
+
 Frontend: npx tsc --noEmit and npm run build from frontend/antrakt.
 Backend tests are substantial and functional. The old frontend App.test.js and
 stringMatching.test.ts have known pre-existing failures; run relevant targeted suites and
