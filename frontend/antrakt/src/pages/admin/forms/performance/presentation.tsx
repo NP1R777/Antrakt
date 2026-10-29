@@ -1,0 +1,20 @@
+import { Button, Tag, Box, chakra } from '@chakra-ui/react';
+import { motion } from 'framer-motion';
+import { FaPlus, FaTheaterMasks, FaUser, FaCalendar, FaClock, FaImage, FaTimes, FaSave, FaUsers, FaChild, FaTrash } from 'react-icons/fa';
+
+export const MotionButton = motion(Button);
+export const MotionTag = motion(Tag);
+export const MotionBox = motion(Box);
+export const CFaPlus = chakra(FaPlus as any);
+export const CFaTheaterMasks = chakra(FaTheaterMasks as any);
+export const CFaUser = chakra(FaUser as any);
+export const CFaCalendar = chakra(FaCalendar as any);
+export const CFaClock = chakra(FaClock as any);
+export const CFaImage = chakra(FaImage as any);
+export const CFaTimes = chakra(FaTimes as any);
+export const CFaSave = chakra(FaSave as any);
+export const CFaUsers = chakra(FaUsers as any);
+export const CFaChild = chakra(FaChild as any);
+export const CFaTrash = chakra(FaTrash as any);
+export const primaryColor = '#f2f2f2';
+export const accentColor = '#c9c9c9';
