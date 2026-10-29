@@ -18,7 +18,7 @@ gunicorn==23.0.0
 inflection==0.5.1
 jmespath==1.0.1
 packaging==25.0
-Pillow==13.0.0
+Pillow==12.3.0
 psycopg==3.2.9
 psycopg2-binary==2.9.10
 pycparser==2.22
