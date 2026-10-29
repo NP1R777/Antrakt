@@ -17,7 +17,8 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from .password_reset import reset_tokens, ResetRequestThrottle, ResetConfirmThrottle
-from django.db.models import Max, Prefetch
+from django.db.models import Max, Prefetch, F
+from django.db import transaction
 from urllib.parse import urlparse, unquote
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -1479,12 +1480,12 @@ class BirthdayGreetingDetail(APIView):
 
 def _featured_site_reviews(limit=6):
     """Отзывы для главной: сначала закреплённые админом, затем свежие; максимум limit."""
-    pinned = list(SiteReview.objects.filter(pinned=True, hidden=False)
-                  .order_by('position', '-review_date', '-id'))
+    pinned = list(SiteReview.objects.filter(pinned=True, hidden=False, excluded=False)
+                  .order_by('position', F('review_date').desc(nulls_last=True), '-id')[:limit])
     result = pinned[:limit]
     if len(result) < limit:
-        rest = (SiteReview.objects.filter(pinned=False, hidden=False)
-                .order_by('-review_date', '-id')[:limit - len(result)])
+        rest = (SiteReview.objects.filter(pinned=False, hidden=False, excluded=False)
+                .order_by(F('review_date').desc(nulls_last=True), '-id')[:limit - len(result)])
         result += list(rest)
     return result
 
@@ -1502,7 +1503,7 @@ class SiteReviewListAdmin(APIView):
     permission_classes = [IsSuperUser]
 
     def get(self, request, format=None):
-        items = SiteReview.objects.all().order_by('-review_date', '-id')
+        items = SiteReview.objects.all().order_by(F('review_date').desc(nulls_last=True), '-id')
         return Response(SiteReviewSerializer(items, many=True).data)
 
     def post(self, request, format=None):
@@ -1520,28 +1521,39 @@ class SiteReviewDetail(APIView):
         return get_object_or_404(SiteReview, id=id)
 
     def put(self, request, id, format=None):
-        obj = self.get_object(id)
-        serializer = SiteReviewSerializer(obj, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            obj = get_object_or_404(SiteReview.objects.select_for_update(), id=id)
+            serializer = SiteReviewSerializer(obj, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, id, format=None):
-        obj = self.get_object(id)
-        obj.delete()
+        with transaction.atomic():
+            obj = get_object_or_404(SiteReview.objects.select_for_update(), id=id)
+            if obj.vk_comment_id is not None:
+                obj.excluded = True
+                obj.save(update_fields=['excluded', 'updated_at'])
+            else:
+                obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class VkReviewsParseView(APIView):
-    """Запуск парсера отзывов ВК из админ-панели (кнопка «Обновить из ВК»)."""
+    """Админ ставит задание; сетевой импорт выполняет отдельный worker."""
     permission_classes = [IsSuperUser]
 
+    def get(self, request, format=None):
+        from .vk_jobs import status_data
+        return Response(status_data())
+
     def post(self, request, format=None):
-        from .vk_parser import parse_reviews, VkParserError
+        from .vk_jobs import enqueue, job_data
+        from .vk_parser import VkParserError
         full = str(request.data.get('full', '')).lower() in ('1', 'true', 'yes')
         try:
-            result = parse_reviews(full=full)
+            job, created = enqueue(full=full)
         except VkParserError as exc:
-            return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"success": True, **result})
+            return Response({'error': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'job': job_data(job), 'created': created}, status=status.HTTP_202_ACCEPTED)

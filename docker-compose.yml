@@ -54,6 +54,11 @@ services:
       FRONTEND_BASE_URL: http://localhost:${DEV_WEB_PORT:-3000}
       PERFORMANCE_RELATIONS_ENABLED: "False"
       TRUSTED_PROXY_COUNT: "0"
+      VK_IMPORT_BACKEND: ${VK_IMPORT_BACKEND:-auto}
+      VK_GROUP_DOMAIN: ${VK_GROUP_DOMAIN:-tc_antrakt}
+      VK_ACCESS_TOKEN: ${VK_ACCESS_TOKEN:-}
+      VK_SESSION_COOKIE: ${VK_SESSION_COOKIE:-}
+      VK_IMPORT_INTERVAL_SECONDS: ${VK_IMPORT_INTERVAL_SECONDS:-1209600}
       DEBUG: "True"
       REPOSITORY_FIXTURE_ROOT: /development-fixtures
     depends_on:
@@ -71,6 +76,32 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
+
+  # Для разработки интеграции: docker compose --profile vk up -d vk-reviews-worker
+  vk-reviews-worker:
+    profiles: ["vk"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: antrakt_db
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: "123"
+      USE_MINIO_STORAGE: "False"
+      VK_IMPORT_BACKEND: ${VK_IMPORT_BACKEND:-auto}
+      VK_GROUP_DOMAIN: ${VK_GROUP_DOMAIN:-tc_antrakt}
+      VK_ACCESS_TOKEN: ${VK_ACCESS_TOKEN:-}
+      VK_SESSION_COOKIE: ${VK_SESSION_COOKIE:-}
+      VK_IMPORT_INTERVAL_SECONDS: ${VK_IMPORT_INTERVAL_SECONDS:-1209600}
+    volumes:
+      - ./backend/app:/app
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: ["python", "manage.py", "vk_reviews_worker"]
+    restart: unless-stopped
 
   frontend:
     build:

@@ -322,6 +322,16 @@ VK_ACCESS_TOKEN = config('VK_ACCESS_TOKEN', default='')
 VK_API_VERSION = config('VK_API_VERSION', default='5.199')
 VK_GROUP_DOMAIN = config('VK_GROUP_DOMAIN', default='tc_antrakt')
 
+# auto сохраняет прежний приоритет cookie; api включается явно после проверки доступа.
+VK_IMPORT_BACKEND = config('VK_IMPORT_BACKEND', default='auto')
+VK_IMPORT_INTERVAL_SECONDS = config('VK_IMPORT_INTERVAL_SECONDS', default=14 * 86400, cast=int)
+VK_IMPORT_MAX_ATTEMPTS = config('VK_IMPORT_MAX_ATTEMPTS', default=3, cast=int)
+VK_IMPORT_STALE_SECONDS = config('VK_IMPORT_STALE_SECONDS', default=300, cast=int)
+VK_IMPORT_MAX_COMMENTS = config('VK_IMPORT_MAX_COMMENTS', default=10000, cast=int)
+VK_IMPORT_HTTP_ATTEMPTS = config('VK_IMPORT_HTTP_ATTEMPTS', default=3, cast=int)
+VK_IMPORT_REQUEST_INTERVAL = config('VK_IMPORT_REQUEST_INTERVAL', default=0.35, cast=float)
+VK_IMPORT_CA_BUNDLE = config('VK_IMPORT_CA_BUNDLE', default='')
+
 # URL картинки-заглушки (например, https://s3.example.com/antrakt-images/zaglushka.jpg),
 # подставляется вместо пустой основной фотографии сущностей.
 PLACEHOLDER_IMAGE_URL = config('PLACEHOLDER_IMAGE_URL', default='')

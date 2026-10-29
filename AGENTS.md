@@ -49,6 +49,12 @@ Production import needs separately authorized backup restoration and review. See
 
 ## Product backlog
 
+The owner expects autonomous routine operation. Administrators primarily publish
+performances, news and photos; do not introduce mandatory review queues or recurring
+manual maintenance into ordinary site operation. Preserve automatic performance
+promotion and other existing automation. VK reviews should publish automatically;
+ordinary imports inspect the latest 20 wall posts, without revisiting tracked old posts.
+
 Agreed follow-up work is in BACKLOG.md. When implementing it, update the appropriate statuses.
 Do not mark staged work done while production transfer or ambiguous-record review is outstanding.
 Do not commit or push unless authorized by the user.
