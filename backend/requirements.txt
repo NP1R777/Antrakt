@@ -38,3 +38,5 @@ uritemplate==4.2.0
 urllib3==2.5.0
 whitenoise==6.9.0
 click
+
+beautifulsoup4==4.13.4

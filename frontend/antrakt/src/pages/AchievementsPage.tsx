@@ -1,3 +1,4 @@
+import Image from "../components/ContentImage";
 import React, { useState, useEffect } from "react";
 import {
     Box,
@@ -6,7 +7,6 @@ import {
     Grid,
     GridItem,
     Heading,
-    Image,
     Spinner,
     Text
 } from "@chakra-ui/react";

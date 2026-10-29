@@ -99,3 +99,5 @@ secrets:
 не восстановлен, полный стек и реальное S3-поведение здесь не подтверждены.
 PostgreSQL/API/frontend проверяются отдельно в изолированном Docker-проекте с
 `USE_MINIO_STORAGE=False`. Это тестовый override, а не замена MinIO в основном Compose.
+
+Импорт отзывов VK выполняет отдельный worker с расписанием и общей PostgreSQL-очередью; настройка и проверка описаны в [VK_PARSER.md](VK_PARSER.md).

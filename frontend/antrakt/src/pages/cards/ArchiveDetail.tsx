@@ -1,3 +1,4 @@
+import ChakraImage from "../../components/ContentImage";
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Navigate } from "react-router-dom";
 import axios from "axios";
@@ -20,7 +21,7 @@ import PhotoGallery from "../../components/PhotoGallery";
 import PageFetchError from "../../components/PageFetchError";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import { FaProjectDiagram } from "react-icons/fa";
-import { Image as ChakraImage } from "@chakra-ui/react";
+
 import { API_URL } from '../../config'
 import { getImageUrl } from '../../utils/imageUrl';
 import { truncateMeta, usePageMeta } from '../../hooks/usePageMeta';

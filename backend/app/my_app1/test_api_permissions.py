@@ -52,9 +52,11 @@ class ApiAccessTests(TestCase):
                 with self.subTest(user=user, route=route):
                     self.assertEqual(self.client.get(f'/{route}/').status_code, expected)
 
-    @patch('my_app1.vk_parser.parse_reviews', return_value={'created': 0})
+    @patch('my_app1.vk_jobs.enqueue')
     def test_vk_import_requires_admin_before_running_parser(self, parse):
-        for user, expected in [(None, 401), (self.user, 403), (self.admin, 200)]:
+        from .models import VkImportJob
+        parse.return_value = (VkImportJob(id=1, group_domain='test', backend='api'), True)
+        for user, expected in [(None, 401), (self.user, 403), (self.admin, 202)]:
             self.client.force_authenticate(user)
             self.assertEqual(self.client.post('/vk-reviews/parse/', {}, format='json').status_code, expected)
         parse.assert_called_once_with(full=False)

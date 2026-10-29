@@ -14,6 +14,7 @@ jest.mock('@chakra-ui/react', () => {
     const React = require('react');
     const container = ({ children, role }: any) => <div role={role}>{children}</div>;
     return {
+        forwardRef: React.forwardRef,
         Box: container, VStack: container, Grid: container, GridItem: container,
         Heading: ({ as, children }: any) => React.createElement(as || 'h2', {}, children),
         Text: ({ children, role }: any) => <p role={role}>{children}</p>,

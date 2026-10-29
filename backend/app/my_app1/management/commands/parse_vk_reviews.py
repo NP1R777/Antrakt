@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from my_app1.vk_parser import parse_reviews, VkParserError
 
 
@@ -18,8 +18,7 @@ class Command(BaseCommand):
         try:
             result = parse_reviews(full=options['full'])
         except VkParserError as exc:
-            self.stderr.write(self.style.ERROR(f'Парсер не выполнен: {exc}'))
-            return
+            raise CommandError(str(exc)) from None
         self.stdout.write(self.style.SUCCESS(
             f"Готово. Постов-приглашений: {result['posts']}, "
             f"новых отзывов: {result['added']} (full={result['full']})."

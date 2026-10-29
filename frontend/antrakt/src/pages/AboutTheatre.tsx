@@ -1,8 +1,9 @@
+import Image from "../components/ContentImage";
 import React from "react";
 import { motion } from "framer-motion";
 import Footer from "../components/Footer";
 import Navigation from "../components/Navigation";
-import { Box, Flex, Heading, Text, VStack, Grid, GridItem, Image, Center } from "@chakra-ui/react";
+import { Box, Flex, Heading, Text, VStack, Grid, GridItem, Center } from "@chakra-ui/react";
 import { useSiteContent } from "../contexts/SiteContentContext";
 import { MEDIA_URL } from '../config';
 import { usePageMeta } from '../hooks/usePageMeta';

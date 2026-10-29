@@ -1,3 +1,4 @@
+import Image from "../../components/ContentImage";
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -6,7 +7,6 @@ import {
     Flex,
     Heading,
     Text,
-    Image,
     Grid,
     GridItem,
     Button,

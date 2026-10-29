@@ -563,11 +563,13 @@ class ReviewReactionSerializer(serializers.Serializer):
 
 
 class SiteReviewSerializer(serializers.ModelSerializer):
+    rating = serializers.IntegerField(min_value=1, max_value=5, allow_null=True, required=False)
+
     class Meta:
         model = SiteReview
         fields = ['id', 'author_name', 'role', 'avatar_url', 'rating', 'text',
                   'review_date', 'source_url', 'source', 'pinned', 'hidden',
-                  'position', 'created_at']
+                  'position', 'excluded', 'created_at']
         read_only_fields = ['id', 'source', 'created_at']
 
 

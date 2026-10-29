@@ -1101,7 +1101,7 @@ class SiteReview(models.Model): # Отзывы для секции на глав
     author_name = models.CharField(max_length=200)      # Фамилия и имя
     role = models.CharField(max_length=120, blank=True, default='Зритель')
     avatar_url = models.URLField(max_length=500, blank=True, default='')
-    rating = models.PositiveSmallIntegerField(default=5)
+    rating = models.PositiveSmallIntegerField(null=True, blank=True, default=None)
     text = models.TextField()
     review_date = models.DateField(null=True, blank=True)  # дата отзыва
     source_url = models.URLField(max_length=500, blank=True, default='')
@@ -1109,6 +1109,7 @@ class SiteReview(models.Model): # Отзывы для секции на глав
     vk_owner_id = models.BigIntegerField(null=True, blank=True)
     vk_post_id = models.BigIntegerField(null=True, blank=True)
     vk_comment_id = models.BigIntegerField(null=True, blank=True)
+    excluded = models.BooleanField(default=False)  # явное исключение, импорт не снимает
     pinned = models.BooleanField(default=False)   # админ закрепил в секции
     hidden = models.BooleanField(default=False)   # админ убрал из секции
     position = models.IntegerField(default=0)     # порядок закреплённых
@@ -1123,13 +1124,38 @@ class VkParserState(models.Model): # Состояние парсера отзы�
     class Meta:
         db_table = 'vk_parser_state'
 
+    group_domain = models.CharField(max_length=100, blank=True, default='')
     initial_done = models.BooleanField(default=False)  # первый полный проход выполнен
     last_run_at = models.DateTimeField(null=True, blank=True)
     last_result = models.CharField(max_length=500, blank=True, default='')
 
     @classmethod
     def get_solo(cls):
-        obj = cls.objects.first()
-        if not obj:
-            obj = cls.objects.create()
+        # Старые установки могли содержать несколько строк: используем самую раннюю.
+        obj = cls.objects.order_by("pk").first()
+        if obj is None:
+            obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+
+class VkImportJob(models.Model):
+    class Meta:
+        constraints = [models.UniqueConstraint(
+            fields=['group_domain'], condition=models.Q(status__in=['pending', 'running']),
+            name='one_active_vk_import_per_group')]
+        ordering = ['-id']
+
+    group_domain = models.CharField(max_length=100)
+    backend = models.CharField(max_length=10)
+    full = models.BooleanField(default=False)
+    trigger = models.CharField(max_length=10, default='manual')
+    status = models.CharField(max_length=12, default='pending', db_index=True)
+    stage = models.CharField(max_length=120, default='Ожидает запуска')
+    stats = models.JSONField(default=dict)
+    error = models.CharField(max_length=500, blank=True, default='')
+    attempts = models.PositiveSmallIntegerField(default=0)
+    available_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    heartbeat_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)

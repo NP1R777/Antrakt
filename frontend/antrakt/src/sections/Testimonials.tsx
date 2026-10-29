@@ -6,6 +6,7 @@ import {
     GridItem,
     Text,
     Flex,
+    Link,
     Avatar,
     chakra
 } from "@chakra-ui/react";
@@ -26,7 +27,9 @@ interface SiteReview {
     author_name: string;
     role?: string;
     avatar_url?: string;
-    rating: number;
+    rating: number | null;
+    source?: string;
+    source_url?: string;
     text: string;
     review_date?: string | null;
 }
@@ -121,7 +124,14 @@ export default function Testimonials() {
 }
 
 function TestimonialCard({ testimonial }: { testimonial: SiteReview }) {
-    const rating = testimonial.rating || 5;
+    const rating = testimonial.source !== 'vk' && testimonial.rating != null
+        && testimonial.rating >= 1 && testimonial.rating <= 5 ? testimonial.rating : null;
+    const sourceUrl = (() => {
+        try {
+            const url = new URL(testimonial.source_url || '');
+            return url.protocol === 'https:' && ['vk.com', 'm.vk.com'].includes(url.hostname) ? url.href : null;
+        } catch { return null; }
+    })();
     return (
         <MotionBox
             bg="rgba(30, 30, 30, 0.8)"
@@ -152,7 +162,7 @@ function TestimonialCard({ testimonial }: { testimonial: SiteReview }) {
             />
 
             {/* Рейтинг */}
-            <Flex mb={4}>
+            {rating !== null && <Flex mb={4} aria-label={`Оценка: ${rating} из 5`}>
                 {[...Array(5)].map((_, i) => (
                     <ChakraFaStar
                         key={i}
@@ -161,7 +171,7 @@ function TestimonialCard({ testimonial }: { testimonial: SiteReview }) {
                         fontSize="lg"
                     />
                 ))}
-            </Flex>
+            </Flex>}
 
             {/* Аватар и текст */}
             <Flex flex="1" mb={6}>
@@ -187,6 +197,11 @@ function TestimonialCard({ testimonial }: { testimonial: SiteReview }) {
                     <Text color="gray.400" fontSize="sm" mt={2}>
                         {testimonial.role}
                     </Text>
+                )}
+                {testimonial.source === 'vk' && sourceUrl && (
+                    <Link href={sourceUrl} isExternal rel="noopener noreferrer" color="yellow.300" fontSize="sm" display="inline-block" mt={3}>
+                        Оригинал в VK
+                    </Link>
                 )}
                 {testimonial.review_date && (
                     <Text color="gray.600" fontSize="xs" mt={2}>

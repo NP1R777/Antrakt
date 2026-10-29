@@ -1,10 +1,10 @@
+import Image from "./ContentImage";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
     Box,
     Flex,
     Heading,
     IconButton,
-    Image,
     Modal,
     ModalCloseButton,
     ModalContent,

@@ -1,3 +1,4 @@
+import Image from "../components/ContentImage";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -5,7 +6,6 @@ import {
     Box,
     Heading,
     Text,
-    Image,
     Flex,
     Spinner,
     Container,

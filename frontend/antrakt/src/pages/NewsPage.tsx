@@ -1,9 +1,9 @@
+import Image from "../components/ContentImage";
 import React, { useState, useEffect } from "react";
 import {
     Box,
     SimpleGrid,
     Text,
-    Image,
     Button,
     Container,
     Heading,

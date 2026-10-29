@@ -1,4 +1,5 @@
-import { Box, Heading, Grid, GridItem, Text, Button, Image, Flex, Spinner, Center } from "@chakra-ui/react";
+import Image from "../components/ContentImage";
+import { Box, Heading, Grid, GridItem, Text, Button, Flex, Spinner, Center } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import { Link as RouterLink } from "react-router-dom";
 import { useEffect, useState } from "react";
