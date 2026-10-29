@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Box, Button, Heading, Stack, Text } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
 import Navigation from '../components/Navigation';
@@ -7,13 +7,6 @@ import { usePageMeta } from '../hooks/usePageMeta';
 
 export default function NotFoundPage() {
     usePageMeta('Страница не найдена', 'Такой страницы нет. Перейдите на главную или посмотрите афишу театра.');
-    useEffect(() => {
-        const meta = document.createElement('meta');
-        meta.name = 'robots';
-        meta.content = 'noindex';
-        document.head.appendChild(meta);
-        return () => meta.remove();
-    }, []);
     return <Box bg="black" color="white" minH="100vh" display="flex" flexDirection="column">
         <Navigation />
         <Box as="main" flex="1" textAlign="center" px={6} py={{ base: 20, md: 32 }}>

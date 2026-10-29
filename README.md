@@ -101,3 +101,5 @@ PostgreSQL/API/frontend проверяются отдельно в изолир�
 `USE_MINIO_STORAGE=False`. Это тестовый override, а не замена MinIO в основном Compose.
 
 Импорт отзывов VK выполняет отдельный worker с расписанием и общей PostgreSQL-очередью; настройка и проверка описаны в [VK_PARSER.md](VK_PARSER.md).
+
+Превью ссылок: production отдаёт серверные Open Graph/canonical и HTTP 404 через связку frontend nginx → backend → готовый index.html. Backend и frontend обновляются вместе; см. [LINK_PREVIEWS.md](LINK_PREVIEWS.md).

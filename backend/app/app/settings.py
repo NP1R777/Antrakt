@@ -139,6 +139,8 @@ PERFORMANCE_RELATIONS_ENABLED = config('PERFORMANCE_RELATIONS_ENABLED', default=
 # Публичный URL фронтенда (без завершающего слэша) — для sitemap.xml / robots.txt.
 # В проде задаётся через FRONTEND_BASE_URL=https://ваш-домен.
 FRONTEND_BASE_URL = config('FRONTEND_BASE_URL', default='http://localhost:3000')
+# Фиксированный внутренний адрес готового index.html; пусто в обычном CRA dev.
+PUBLIC_SPA_INDEX_URL = config('PUBLIC_SPA_INDEX_URL', default='')
 
 # CORS/CSRF: в dev разрешаем всё; в проде выключите CORS_ALLOW_ALL_ORIGINS и
 # перечислите домены фронтенда в CORS_ALLOWED_ORIGINS / CSRF_TRUSTED_ORIGINS.

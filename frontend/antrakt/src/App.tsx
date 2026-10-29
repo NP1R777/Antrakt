@@ -1,3 +1,4 @@
+import PageMetadata from "./components/PageMetadata";
 import NotFoundPage from "./pages/NotFoundPage";
 import React from "react";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -107,6 +108,7 @@ function App() {
           <AuthModalProvider>
           <SiteContentProvider>
           <ScrollToTop />
+          <PageMetadata />
           <Routes>
             {/* Главная страница */}
             <Route path="/" element={<MainPage />} />
